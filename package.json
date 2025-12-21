@@ -1,0 +1,28 @@
+{
+  "name": "4ol-full",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Monorepo for 4 Our Life app with nextjs for admin web, react native for mobile app",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:web": "npm run dev -w @4ol/web",
+    "dev:mobile": "npm run start -w @4ol/mobile",
+    "db:generate": "npm run generate -w @4ol/db -- --name $MIGRATION_NAME",
+    "db:push": "npm run push -w @4ol/db",
+    "auth-schema:generate": "npm run -w @4ol/api generate"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.31.8",
+    "turbo": "latest",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@trpc/server": "^11.8.1",
+    "better-auth": "^1.4.7",
+    "dotenv": "^17.2.3",
+    "drizzle-orm": "^0.41.0"
+  }
+}
