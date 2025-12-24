@@ -1,14 +1,13 @@
 import { relations } from "drizzle-orm";
+import { pgTable, text, timestamp, boolean, index } from "drizzle-orm/pg-core";
 import {
-  pgTable,
-  text,
-  timestamp,
-  boolean,
-  jsonb,
-  index,
-} from "drizzle-orm/pg-core";
+  ROLE_ENUM,
+  SEX_ENUM,
+  STATUS_ENUM,
+  USER_TYPE_ENUM,
+} from "../types/formInput";
 
-export const user_profiles = pgTable("user_profiles", {
+export const user = pgTable("user", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
@@ -19,18 +18,30 @@ export const user_profiles = pgTable("user_profiles", {
     .defaultNow()
     .$onUpdate(() => /* @__PURE__ */ new Date())
     .notNull(),
-  sex: text("sex", { enum: ["male", "female", "other"] }).notNull(),
-  dob: timestamp("dob").notNull(),
-  user_type: text("user_type", {
-    enum: ["customer", "business_provider", "both"],
+});
+
+export const user_profiles = pgTable("user_profiles", {
+  userId: text("user_id")
+    .primaryKey()
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => /* @__PURE__ */ new Date())
+    .notNull(),
+  sex: text("sex", { enum: SEX_ENUM }).notNull(),
+  dob: text("dob").notNull(),
+  userType: text("user_type", {
+    enum: USER_TYPE_ENUM,
   })
     .default("customer")
     .notNull(),
-  role: text("role", { enum: ["user", "admin", "super_admin"] })
-    .default("user")
-    .notNull(),
-  permissions: jsonb("permissions").notNull(),
-  phone_number: text("phone_number").notNull(),
+  role: text("role", { enum: ROLE_ENUM }).default("user").notNull(),
+  status: text({ enum: STATUS_ENUM }).default("active").notNull(),
+  phoneNumber: text("phone_number").notNull(),
   deletedAt: timestamp("deleted_at"),
 });
 
@@ -48,7 +59,7 @@ export const session = pgTable(
     userAgent: text("user_agent"),
     userId: text("user_id")
       .notNull()
-      .references(() => user_profiles.id, { onDelete: "cascade" }),
+      .references(() => user.id, { onDelete: "cascade" }),
   },
   (table) => [index("session_userId_idx").on(table.userId)]
 );
@@ -61,7 +72,7 @@ export const account = pgTable(
     providerId: text("provider_id").notNull(),
     userId: text("user_id")
       .notNull()
-      .references(() => user_profiles.id, { onDelete: "cascade" }),
+      .references(() => user.id, { onDelete: "cascade" }),
     accessToken: text("access_token"),
     refreshToken: text("refresh_token"),
     idToken: text("id_token"),
@@ -93,21 +104,32 @@ export const verification = pgTable(
   (table) => [index("verification_identifier_idx").on(table.identifier)]
 );
 
-export const user_profilesRelations = relations(user_profiles, ({ many }) => ({
+export const usersRelations = relations(user, ({ many, one }) => ({
+  user_profiles: one(user_profiles, {
+    fields: [user.id],
+    references: [user_profiles.userId],
+  }),
   sessions: many(session),
   accounts: many(account),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({
-  user_profiles: one(user_profiles, {
+  users: one(user, {
     fields: [session.userId],
-    references: [user_profiles.id],
+    references: [user.id],
   }),
 }));
 
 export const accountRelations = relations(account, ({ one }) => ({
-  user_profiles: one(user_profiles, {
+  users: one(user, {
     fields: [account.userId],
-    references: [user_profiles.id],
+    references: [user.id],
+  }),
+}));
+
+export const userProfilesRelations = relations(user_profiles, ({ one }) => ({
+  users: one(user, {
+    fields: [user_profiles.userId],
+    references: [user.id],
   }),
 }));

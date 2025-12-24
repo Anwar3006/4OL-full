@@ -2,18 +2,19 @@
   "name": "@4ol/db",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
   "private": true,
   "scripts": {
     "generate": "drizzle-kit generate",
+    "migrate": "drizzle-kit migrate",
     "push": "drizzle-kit push",
     "studio": "drizzle-kit studio"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
   "dependencies": {
-    "@neondatabase/serverless": "^1.0.2"
+    "@neondatabase/serverless": "^1.0.2",
+    "zod": "^4.2.1"
   }
 }

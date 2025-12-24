@@ -1,6 +1,6 @@
 {
-  "id": "4de804f7-eb6b-4737-8027-062128b98998",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "c145c2d0-5f4b-4203-bc25-00f83c98641a",
+  "prevId": "4de804f7-eb6b-4737-8027-062128b98998",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -353,6 +353,13 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'user'"
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'active'"
         },
         "phone_number": {
           "name": "phone_number",

@@ -5,8 +5,15 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1766346499841,
-      "tag": "0000_AddBetterAuthTables",
+      "when": 1766411664008,
+      "tag": "0000_AddedBetterAuthTables",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1766564546606,
+      "tag": "0001_AddStatusToUserProfile",
       "breakpoints": true
     }
   ]

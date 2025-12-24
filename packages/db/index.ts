@@ -1,13 +1,10 @@
-import { neon, neonConfig, Pool } from "@neondatabase/serverless";
+import { neon, Pool } from "@neondatabase/serverless";
 import { drizzle as drizzleHttp } from "drizzle-orm/neon-http";
 import { drizzle as drizzlePool } from "drizzle-orm/neon-serverless";
 import * as schema from "./models/index.model";
 
 import * as dotenv from "dotenv";
 dotenv.config({ path: "../../.env.local" });
-
-// Keeps connections alive in serverless
-neonConfig.fetchConnectionCache = true;
 
 const connectionString = process.env.DATABASE_URL!;
 
