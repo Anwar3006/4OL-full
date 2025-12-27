@@ -15,6 +15,27 @@
       "when": 1766564546606,
       "tag": "0001_AddStatusToUserProfile",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1766579426206,
+      "tag": "0002_AddFacilityProfileTable",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1766582118179,
+      "tag": "0003_EditedEmailFieldFacilityProfileTable",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1766832324555,
+      "tag": "0004_AddMarketingTable",
+      "breakpoints": true
     }
   ]
 }

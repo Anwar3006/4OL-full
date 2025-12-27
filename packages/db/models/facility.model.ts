@@ -1,5 +1,6 @@
 import {
-  boolean,
+  doublePrecision,
+  geometry,
   index,
   integer,
   jsonb,
@@ -14,6 +15,8 @@ import {
   FACILITY_TYPE_ENUM,
   GHANA_REGIONS_ENUM,
 } from "../types/formInput";
+import { relations } from "drizzle-orm";
+import { user_profiles } from "./auth.model";
 
 export const facilityStatusEnum = pgEnum(
   "facility_status_enum",
@@ -31,42 +34,79 @@ export const facilityProfile = pgTable(
     id: text("id")
       .primaryKey()
       .$defaultFn(() => nanoid(10)),
+    ownerId: text("owner_id")
+      .notNull()
+      .references(() => user_profiles.userId, { onDelete: "cascade" }),
     facilityType: text("facility_type").notNull(),
     facilityName: text("facility_name").notNull(),
     contactNumber: text("contact_number").notNull(),
     whatsappNumber: text("whatsapp_number").notNull(),
-    email: text("email").notNull().unique(),
+    email: text("email").unique(),
     mediaUrls: jsonb("media_urls"),
 
-    gps_address: text("gps_address").notNull(),
+    gpsAddress: text("gps_address").notNull(),
     street: text("street").notNull(),
-    post_code: text("post_code").notNull(),
+    postCode: text("post_code").notNull(),
     area: text("area").notNull(),
     district: text("district").notNull(),
     region: regionEnum("region").notNull().default("greater accra"),
     country: text("country").notNull().default("Ghana"),
+    latitude: doublePrecision("latitude").notNull(),
+    longitude: doublePrecision("longitude").notNull(),
 
-    hospital_services: jsonb("hospital_services").$type<string[]>(), // Use string array type,
-    hospital_amenities: jsonb("hospital_amenities"),
+    // Add this column for radius search
+    location: geometry("location", {
+      type: "point",
+      srid: 4326,
+    }),
+
+    services: jsonb("hospital_services").$type<string[]>(), // Use string array type,
+    amenities: jsonb("hospital_amenities"),
 
     // Owner/manager details
-    first_name: text("first_name").notNull(),
-    last_name: text("last_name").notNull(),
-    person_contact_number: text("person_contact_number").notNull(),
+    firstName: text("first_name").notNull(),
+    lastName: text("last_name").notNull(),
+    ownerEmail: text("owner_email").notNull(),
+    personContactNumber: text("person_contact_number").notNull(),
     position: text("position").notNull(),
 
     // Approved, Pending, Rejected
     status: facilityStatusEnum("status").default("pending").notNull(),
 
-    business_hours: jsonb("business_hours"),
+    businessHours: jsonb("business_hours"),
 
     keywords: jsonb("keywords").$type<string[]>(), // Use string array type,
-    avg_rating: integer("avg_rating").default(0),
+    avgRating: integer("avg_rating").default(0),
 
     createdAt: timestamp("created_at").defaultNow().notNull(),
     approvedAt: timestamp("approved_at"),
   },
-  (table) => ({
-    keywordsGin: index("keywords_gin_idx").using("gin", table.keywords),
+  (table) => [
+    // 1. GIN index for fast "contains" search in JSONB
+    index("keywords_gin_idx").using("gin", table.keywords),
+    index("services_gin_idx").using("gin", table.services),
+
+    // 2. B-Tree index for sorting by rating and filtering by region
+    index("region_idx").on(table.region),
+    index("rating_idx").on(table.avgRating),
+
+    // 3. Name search (standard B-Tree for "Starts With" or exact)
+    index("name_idx").on(table.facilityName),
+    index("owner_id_idx").on(table.ownerId),
+
+    // 4. Spatial Index (GIST) - ESSENTIAL for radius performance
+    index("location_gist_idx").using("gist", table.location),
+
+    //5. TODO: Implement full-text search for district, area, region, facility_name, keywords so users can search "canc" and get hits like "Cancer"
+  ]
+);
+
+export const facilityProfileRelations = relations(
+  facilityProfile,
+  ({ one }) => ({
+    owner: one(user_profiles, {
+      fields: [facilityProfile.ownerId],
+      references: [user_profiles.userId],
+    }),
   })
 );

@@ -1,0 +1,65 @@
+import z from "zod";
+import { FACILITY_TYPE_ENUM, GHANA_REGIONS_ENUM } from "../types/formInput";
+
+export const timeString = z
+  .string()
+  .regex(/^([01]\d|2[0-3]):([0-5]\d)$/, "Use HH:mm format");
+
+export const businessDaySchema = z.object({
+  day: z.enum([
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+    "Sunday",
+  ]),
+  open: timeString,
+  close: timeString,
+  isClosed: z.boolean().default(false), // Useful for holidays or weekends
+});
+export type BusinessDay = z.infer<typeof businessDaySchema>;
+
+export const facilityProfileSchema = z
+  .object({
+    // ownerId: z.string(),
+    facilityType: z.enum(FACILITY_TYPE_ENUM),
+    facilityName: z.string().min(1, "Please enter facility name"),
+    contactNumber: z.string().min(1, "Please enter facility contact number"),
+    whatsappNumber: z.string().optional(),
+    email: z.email().optional(),
+    mediaUrls: z.array(z.string()),
+
+    gpsAddress: z.string().min(1, "Please enter facility gps address"),
+    street: z.string().min(1, "Please enter facility street"),
+    postCode: z.string().min(1, "Please enter facility post code"),
+    area: z.string().min(1, "Please enter facility area"),
+    district: z.string().min(1, "Please enter facility district"),
+    region: z.enum(GHANA_REGIONS_ENUM).default("greater accra"),
+    country: z.string().default("Ghana"),
+
+    // Coordinates are numbers in Zod
+    latitude: z.number({ error: "Latitude must be a number" }),
+    longitude: z.number({ error: "Longitude must be a number" }),
+
+    services: z.array(z.string()).min(1, "Please select at least one service"),
+    amenities: z.array(z.string()).min(1, "Please select at least one amenity"),
+
+    firstName: z.string().min(1, "First name is required"),
+    lastName: z.string().min(1, "Last name is required"),
+    ownerEmail: z.email("Invalid owner email"),
+    personContactNumber: z.string().min(1, "Personal contact is required"),
+    position: z.string().optional(),
+
+    // ✅ Structured Business Hours
+    businessHours: z.array(businessDaySchema),
+
+    keywords: z.string(),
+  })
+  .refine((data) => data.mediaUrls.length >= 6, {
+    message: "Please ensure you upload at least 6 images",
+    path: ["mediaUrls"],
+  });
+
+export type FacilityProfileInput = z.infer<typeof facilityProfileSchema>;

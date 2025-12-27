@@ -1,3 +1,5 @@
+import { BusinessDay } from "../schemas/facility-profile.schema";
+
 // Define the sex options
 export const SEX_OPTIONS = [
   { value: "male", label: "Male" },
@@ -38,8 +40,237 @@ export const FACILITY_STATUS_ENUM = [
   "pending",
   "active",
   "rejected",
-  "suspended",
+  "inactive",
 ] as const;
+export const FACILITY_REQUIREMENTS = {
+  "hospitals_&_clinics": {
+    amenities: [
+      "Emergency Room",
+      "Pharmacy",
+      "Waiting Area",
+      "Parking Lot",
+      "Ambulance Service",
+      "Operating Theater",
+      "Inpatient Wards",
+      "Maternity Wing",
+      "Cafeteria",
+    ],
+    services: [
+      "General Consultation",
+      "Surgical Services",
+      "Immunization",
+      "Laboratory Testing",
+      "Antenatal Care",
+      "Pediatrics",
+      "Emergency Care",
+      "Radiology",
+      "Chronic Disease Management",
+    ],
+  },
+  herbal_centers: {
+    amenities: [
+      "Consultation Rooms",
+      "Herbal Pharmacy",
+      "Treatment Garden",
+      "Waiting Lounge",
+      "Traditional Healing Area",
+      "Processing Unit",
+    ],
+    services: [
+      "Herbal Consultations",
+      "Holistic Healing",
+      "Traditional Medicine Dispensing",
+      "Nutritional Counseling",
+      "Detoxification Programs",
+      "Acupuncture",
+    ],
+  },
+  diagnostic_labs: {
+    amenities: [
+      "Phlebotomy Station",
+      "Sample Collection Room",
+      "Waiting Area",
+      "Modern Lab Equipment",
+      "Wheelchair Access",
+      "Secure Data Storage",
+    ],
+    services: [
+      "Blood Testing",
+      "Microbiology",
+      "Imaging (X-Ray/Ultrasound)",
+      "ECG",
+      "Biopsy Analysis",
+      "DNA Testing",
+      "Urinalysis",
+      "Pathology Services",
+    ],
+  },
+  pharmacies: {
+    amenities: [
+      "Medication Storage (Cold Chain)",
+      "Consultation Desk",
+      "Waiting Seating",
+      "CCTV Security",
+      "Point of Sale System",
+      "Delivery Vehicle",
+    ],
+    services: [
+      "Prescription Dispensing",
+      "Over-the-Counter Advice",
+      "Blood Pressure Monitoring",
+      "Blood Sugar Testing",
+      "Vaccination Services",
+      "Medication Review",
+      "First Aid Supplies",
+    ],
+  },
+  dental_clinics: {
+    amenities: [
+      "Dental Chairs",
+      "Sterilization Room",
+      "X-Ray Room (Ondontogram)",
+      "Recovery Area",
+      "Patient Restrooms",
+      "Waiting Lounge",
+    ],
+    services: [
+      "Teeth Whitening",
+      "Root Canal Therapy",
+      "Dental Implants",
+      "Orthodontics (Braces)",
+      "Scaling and Polishing",
+      "Tooth Extraction",
+      "Pediatric Dentistry",
+    ],
+  },
+  homes: {
+    amenities: [
+      "Private Bedrooms",
+      "Communal Dining Area",
+      "Disability Ramps",
+      "Medical Alert Systems",
+      "Outdoor Garden",
+      "Laundry Service",
+      "Safety Handrails",
+    ],
+    services: [
+      "Palliative Care",
+      "24/7 Nursing Support",
+      "Physiotherapy",
+      "Social Activities",
+      "Medication Management",
+      "Nutritional Support",
+      "Assisted Living",
+    ],
+  },
+  eye_clinics: {
+    amenities: [
+      "Optical Shop",
+      "Dark Room for Exams",
+      "Autorefractor Station",
+      "Testing Lane",
+      "Waiting Area",
+      "Surgical Suite",
+    ],
+    services: [
+      "Eye Examinations",
+      "Cataract Surgery",
+      "Glaucoma Screening",
+      "Prescription Glasses",
+      "Contact Lens Fitting",
+      "Refractive Surgery",
+      "Pediatric Ophthalmology",
+    ],
+  },
+  osteopathy_centers: {
+    amenities: [
+      "Adjustment Tables",
+      "Private Treatment Rooms",
+      "Exercise Area",
+      "Waiting Room",
+      "Anatomical Models",
+      "Sanitation Stations",
+    ],
+    services: [
+      "Manual Therapy",
+      "Postural Assessment",
+      "Sports Injury Treatment",
+      "Joint Mobilization",
+      "Soft Tissue Massage",
+      "Corrective Exercises",
+    ],
+  },
+  physiotherapy_centers: {
+    amenities: [
+      "Rehabilitation Gym",
+      "Hydrotherapy Pool",
+      "Massage Tables",
+      "Ultrasound Equipment",
+      "Parallel Bars",
+      "Cryotherapy Units",
+    ],
+    services: [
+      "Stroke Rehabilitation",
+      "Orthopedic Recovery",
+      "Sports Physiotherapy",
+      "Pain Management",
+      "Posture Correction",
+      "Electrotherapy",
+      "Geriatric Rehab",
+    ],
+  },
+  prosthetics_centers: {
+    amenities: [
+      "Fitting Rooms",
+      "Fabrication Workshop",
+      "Gait Analysis Track",
+      "3D Scanning Lab",
+      "Waiting Area",
+      "Showroom",
+    ],
+    services: [
+      "Artificial Limb Fitting",
+      "Orthotic Bracing",
+      "Gait Training",
+      "Custom Prosthetic Design",
+      "Repairs and Maintenance",
+      "Pediatric Orthotics",
+    ],
+  },
+  psychiatric_centers: {
+    amenities: [
+      "Counseling Rooms",
+      "Group Therapy Hall",
+      "Quiet Rooms",
+      "Secure Inpatient Wards",
+      "Recreational Area",
+      "Visitor Room",
+    ],
+    services: [
+      "Psychological Assessment",
+      "Crisis Intervention",
+      "Cognitive Behavioral Therapy (CBT)",
+      "Medication Management",
+      "Substance Abuse Counseling",
+      "Occupational Therapy",
+      "Family Counseling",
+    ],
+  },
+};
+export const FACILITY_TYPE_OPTIONS = [
+  { value: "hospitals_&_clinics", label: "Hospitals & Clinics" },
+  { value: "herbal_centers", label: "Herbal Centers" },
+  { value: "diagnostic_labs", label: "Diagnostic Labs" },
+  { value: "pharmacies", label: "Pharmacies" },
+  { value: "dental_clinics", label: "Dental Clinics" },
+  { value: "homes", label: "Homes" },
+  { value: "eye_clinics", label: "Eye Clinics" },
+  { value: "osteopathy_centers", label: "Osteopathy Centers" },
+  { value: "physiotherapy_centers", label: "Physiotherapy Centers" },
+  { value: "prosthetics_centers", label: "Prosthetics Centers" },
+  { value: "psychiatric_centers", label: "Psychiatric Centers" },
+  { value: "ibps", label: "IBPS" },
+];
 export const FACILITY_TYPE_ENUM = [
   "hospitals_&_clinics",
   "herbal_centers",
@@ -73,6 +304,206 @@ export const GHANA_REGIONS_ENUM = [
   "western",
   "western north",
 ] as const;
+
+export const DEFAULT_BUSINESS_HOURS: BusinessDay[] = [
+  { day: "Monday", open: "08:00", close: "17:00", isClosed: false },
+  { day: "Tuesday", open: "08:00", close: "17:00", isClosed: false },
+  { day: "Wednesday", open: "08:00", close: "17:00", isClosed: false },
+  { day: "Thursday", open: "08:00", close: "17:00", isClosed: false },
+  { day: "Friday", open: "08:00", close: "17:00", isClosed: false },
+  { day: "Saturday", open: "09:00", close: "13:00", isClosed: true }, // Default weekends to closed
+  { day: "Sunday", open: "09:00", close: "13:00", isClosed: true },
+];
+
+////////////////// MARKETING RELATED
+export const MARKETING_TYPE_OPTIONS = [
+  { value: "ads", label: "Ads" },
+  { value: "events", label: "Events" },
+  { value: "news", label: "News" },
+  { value: "health", label: "Health" },
+  { value: "other", label: "Other" },
+];
+export const MARKETING_TYPE_ENUM = [
+  "ads",
+  "events",
+  "news",
+  "health",
+  "other",
+] as const;
+export const MARKETING_STATUS_OPTIONS = [
+  { value: "draft", label: "Draft" },
+  { value: "scheduled", label: "Scheduled" },
+  { value: "live", label: "Live" },
+  { value: "paused", label: "Paused" },
+  { value: "ended", label: "Ended" },
+];
+export const MARKETING_STATUS_ENUM = [
+  "draft",
+  "scheduled",
+  "live",
+  "paused",
+  "ended",
+] as const;
+export const MARKETING_CTA_OPTIONS = [
+  { value: "apply_now", label: "Apply Now" },
+  { value: "contact_us", label: "Contact Us" },
+  { value: "get_offer", label: "Get offer" },
+  { value: "book_now", label: "Book Now" },
+  { value: "donate_now", label: "Donate Now" },
+  { value: "get_quote", label: "Get Quote" },
+  { value: "like_page", label: "Like Page" },
+  { value: "call_now", label: "Call Now" },
+  { value: "get_directions", label: "Get Directions" },
+  { value: "install_now", label: "Install Now" },
+  { value: "learn_more", label: "Learn More" },
+  { value: "listen_now", label: "Listen Now" },
+  { value: "open_link", label: "Open Link" },
+  { value: "order_now", label: "Order Now" },
+  { value: "play_game", label: "Play Game" },
+  { value: "request_time", label: "Request Time" },
+  { value: "save", label: "Save" },
+  { value: "see_menu", label: "See Menu" },
+  { value: "send_message", label: "Send Message" },
+  { value: "send_whatsapp_message", label: "Send WhatsApp Message" },
+  { value: "shop_now", label: "Shop Now" },
+  { value: "sign_up", label: "Sign Up" },
+  { value: "subscribe", label: "Subscribe" },
+  { value: "use_app", label: "Use App" },
+  { value: "view_event", label: "View Event" },
+  { value: "watch_more", label: "Watch More" },
+];
+export const CTA_CONFIG = {
+  apply_now: {
+    label: "Form Link",
+    type: "single",
+    placeholder: "https://form.link",
+  }, //
+  book_now: {
+    label: "Form Link",
+    type: "single",
+    placeholder: "https://booking.link",
+  }, //
+  call_now: {
+    label: "Contact Numbers",
+    type: "multi",
+    fields: ["Phone 1", "Phone 2"],
+  }, //
+  contact_us: {
+    label: "Contact Details",
+    type: "multi",
+    fields: ["Phone", "Email", "WhatsApp"],
+  }, //
+  donate_now: {
+    label: "Donation Link",
+    type: "single",
+    placeholder: "https://donate.link",
+  }, //
+  get_directions: {
+    label: "Map Link",
+    type: "single",
+    placeholder: "https://maps.google.com/...",
+  }, //
+  get_offer: {
+    label: "Offer Link",
+    type: "single",
+    placeholder: "https://offer.link",
+  }, //
+  get_quote: {
+    label: "Quote Link",
+    type: "single",
+    placeholder: "https://quote.link",
+  }, //
+  install_now: {
+    label: "App Links",
+    type: "multi",
+    fields: ["iOS Link", "Android Link", "Other Link"],
+  }, //
+  learn_more: {
+    label: "Page Link",
+    type: "single",
+    placeholder: "https://info.link",
+  }, //
+  like_page: {
+    label: "Social Links",
+    type: "multi",
+    fields: ["Instagram", "Facebook", "X", "Tiktok", "Snapchat", "Website"],
+  }, //
+  listen_now: {
+    label: "Audio Link",
+    type: "single",
+    placeholder: "https://audio.link",
+  }, //
+  open_link: {
+    label: "Link",
+    type: "single",
+    placeholder: "https://open.link",
+  }, //
+  order_now: {
+    label: "Product Page",
+    type: "single",
+    placeholder: "https://shop.link/product",
+  }, //
+  play_game: {
+    label: "Game Link",
+    type: "single",
+    placeholder: "https://game.link",
+  }, //
+  request_time: {
+    label: "Page Link",
+    type: "single",
+    placeholder: "https://request.link",
+  }, //
+  save: {
+    label: "Save Link",
+    type: "single",
+    placeholder: "https://save.link",
+  }, //
+  see_menu: {
+    label: "Menu Link",
+    type: "single",
+    placeholder: "https://menu.link",
+  }, //
+  send_message: {
+    label: "Message Link",
+    type: "single",
+    placeholder: "https://message.link",
+  }, //
+  send_whatsapp_message: {
+    label: "WhatsApp Number",
+    type: "single",
+    placeholder: "e.g., +233...",
+  }, //
+  shop_now: {
+    label: "Products Page",
+    type: "single",
+    placeholder: "https://shop.link",
+  }, //
+  sign_up: {
+    label: "Form Link",
+    type: "single",
+    placeholder: "https://signup.link",
+  }, //
+  subscribe: {
+    label: "Page Link",
+    type: "single",
+    placeholder: "https://subscribe.link",
+  }, //
+  use_app: {
+    label: "App Links",
+    type: "multi",
+    fields: ["iOS Link", "Android Link", "Other Link"],
+  }, //
+  view_event: {
+    label: "Page Link",
+    type: "single",
+    placeholder: "https://event.link",
+  }, //
+  watch_more: {
+    label: "Video Page",
+    type: "single",
+    placeholder: "https://video.link",
+  }, //
+} as const;
 // the relationsship between role and user type for permissions
 // Super Admin -> both
 // Admin -> both but with only ability to view not edit/delete

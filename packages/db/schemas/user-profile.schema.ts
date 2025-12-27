@@ -50,9 +50,23 @@ export type UserLoginSchema = z.infer<typeof userLoginSchema>;
 export type TBetterAuthUser = Session["user"];
 
 export type TUserProfile = {
-  id: string;
-  createdAt: string;
-  updatedAt: string;
+  userId: string;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+  name: string;
+  email: string;
+  sex: "male" | "female" | "other";
+  dob: string;
+  userType: "customer" | "business_provider" | "both";
+  role: "user" | "registrar" | "admin" | "super_admin";
+  status: "active" | "pending" | "inactive" | "suspended";
+  phoneNumber: string;
+};
+
+export type TUserProfileWithUser = {
+  userId: string;
+  createdAt: Date | string;
+  updatedAt: Date | string;
   name: string;
   email: string;
   sex: "male" | "female" | "other";

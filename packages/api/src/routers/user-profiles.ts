@@ -1,10 +1,15 @@
 import { db, dbTransact } from "@4ol/db";
 import { router, publicProcedure, protectedProcedure } from "../trpc";
 import { user, user_profiles } from "@4ol/db/models/auth.model";
-import { userRegistrationSchema } from "@4ol/db/schemas/user-profile.schema";
+import {
+  TUserProfile,
+  TUserProfileWithUser,
+  userRegistrationSchema,
+} from "@4ol/db/schemas/user-profile.schema";
 import z from "zod";
 import { eq, inArray, like, or, sql } from "drizzle-orm";
 import { ROLE_ENUM, STATUS_ENUM } from "@4ol/db/types/formInput";
+import { TRPCError } from "@trpc/server";
 
 export const userProfilesRouter = router({
   getProfile: publicProcedure.query(async () => {
@@ -52,7 +57,7 @@ export const userProfilesRouter = router({
       const [users, [{ count }]] = await Promise.all([
         db
           .select({
-            id: user.id,
+            userId: user.id,
             name: user.name,
             email: user.email,
             phoneNumber: user_profiles.phoneNumber,
@@ -87,7 +92,7 @@ export const userProfilesRouter = router({
         .groupBy(user_profiles.status);
 
       return {
-        users,
+        users: users as TUserProfileWithUser[],
         total: Number(count),
         totalPages: Math.ceil(Number(count) / limit),
         currentPage: page,
@@ -128,5 +133,38 @@ export const userProfilesRouter = router({
 
         return profile;
       });
+    }),
+
+  getById: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ input }) => {
+      try {
+        const { id } = input;
+        const [userFound] = await db
+          .select({
+            userId: user.id,
+            name: user.name,
+            email: user.email,
+            phoneNumber: user_profiles.phoneNumber,
+            status: user_profiles.status,
+            role: user_profiles.role,
+            createdAt: user_profiles.createdAt,
+            updatedAt: user_profiles.updatedAt,
+            dob: user_profiles.dob,
+            sex: user_profiles.sex,
+            userType: user_profiles.userType,
+          })
+          .from(user_profiles)
+          .where(eq(user_profiles.userId, id))
+          .leftJoin(user, eq(user_profiles.userId, user.id));
+
+        return userFound as TUserProfileWithUser;
+      } catch (error) {
+        throw new TRPCError({
+          message: "User not found",
+          code: "NOT_FOUND",
+          cause: error,
+        });
+      }
     }),
 });

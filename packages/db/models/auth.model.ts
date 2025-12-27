@@ -6,6 +6,7 @@ import {
   STATUS_ENUM,
   USER_TYPE_ENUM,
 } from "../types/formInput";
+import { facilityProfile } from "./facility.model";
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -127,9 +128,13 @@ export const accountRelations = relations(account, ({ one }) => ({
   }),
 }));
 
-export const userProfilesRelations = relations(user_profiles, ({ one }) => ({
-  users: one(user, {
-    fields: [user_profiles.userId],
-    references: [user.id],
-  }),
-}));
+export const userProfilesRelations = relations(
+  user_profiles,
+  ({ one, many }) => ({
+    users: one(user, {
+      fields: [user_profiles.userId],
+      references: [user.id],
+    }),
+    facilities: many(facilityProfile),
+  })
+);
