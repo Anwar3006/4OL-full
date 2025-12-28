@@ -1,5 +1,7 @@
 import z from "zod";
 import { FACILITY_TYPE_ENUM, GHANA_REGIONS_ENUM } from "../types/formInput";
+import { createSelectSchema } from "drizzle-zod";
+import { facilityProfile } from "../models/facility.model";
 
 export const timeString = z
   .string()
@@ -63,3 +65,8 @@ export const facilityProfileSchema = z
   });
 
 export type FacilityProfileInput = z.infer<typeof facilityProfileSchema>;
+
+const facilitySchema = createSelectSchema(facilityProfile).extend({
+  createdAt: z.string() || z.date(),
+});
+export type TFacilityTable = z.infer<typeof facilitySchema>;

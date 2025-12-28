@@ -1,6 +1,9 @@
 // Define apis for the facility profiles
 
-import { facilityProfileSchema } from "@4ol/db/schemas/facility-profile.schema";
+import {
+  facilityProfileSchema,
+  TFacilityTable,
+} from "@4ol/db/schemas/facility-profile.schema";
 import { protectedProcedure, router } from "../trpc";
 import { db, dbTransact } from "@4ol/db";
 import { user, user_profiles } from "@4ol/db/models/auth.model";
@@ -121,14 +124,26 @@ export const facilityProfileRouter = router({
       }
 
       const moveApprovedImagesPromise = imageKeys.map(async (oldFilePath) => {
-        const newFilePath = oldFilePath.replace("/temporary", "/approved");
+        const cleanOldPath = oldFilePath.startsWith("/")
+          ? oldFilePath.slice(1)
+          : oldFilePath;
+        const newFilePath = cleanOldPath.replace("temporary", "approved");
+
+        // Check if replacement actually happened to prevent self-copy
+        if (cleanOldPath === newFilePath) {
+          console.error(
+            `Skip copy: Source and destination are identical for ${cleanOldPath}`
+          );
+          return cleanOldPath;
+        }
 
         // Copy them over to new filepath
         await s3Client.send(
           new CopyObjectCommand({
             Bucket: process.env.OCI_BUCKET_NAME,
-            CopySource: `${process.env.OCI_BUCKET_NAME}/${oldFilePath}`,
+            CopySource: `${process.env.OCI_BUCKET_NAME}/${cleanOldPath}`,
             Key: newFilePath,
+            MetadataDirective: "COPY",
           })
         );
 
@@ -231,7 +246,7 @@ export const facilityProfileRouter = router({
       };
     }),
 
-  getFacility: protectedProcedure
+  getById: protectedProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ input }) => {
       const { id } = input;
@@ -241,7 +256,16 @@ export const facilityProfileRouter = router({
           owner: true,
         },
       });
-      return facility;
+      if (!facility) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Facility not found",
+        });
+      }
+      return {
+        ...facility,
+        createdAt: facility.createdAt.toISOString(),
+      } as TFacilityTable;
     }),
 
   getTopRatedFacilities: protectedProcedure
