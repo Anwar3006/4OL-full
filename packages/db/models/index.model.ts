@@ -23,3 +23,13 @@ export {
   marketingStatusEnum,
   marketingProfile,
 } from "./marketing.model";
+
+export {
+  categories,
+  bodyParts,
+  conditions,
+  conditionTypes,
+  conditionCauses,
+  conditionToBodyParts,
+  conditionToCategories,
+} from "./conditions.model";
