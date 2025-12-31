@@ -36,6 +36,34 @@
       "when": 1766832324555,
       "tag": "0004_AddMarketingTable",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1767021525768,
+      "tag": "0005_AddCondtionsTable",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1767024512938,
+      "tag": "0006_AddNewFieldToCondtionsTable",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1767134232025,
+      "tag": "0007_AddOnDeleteConstraintsToConditionsTable",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1767180092866,
+      "tag": "0008_ModifiefFieldsInConditionsTable",
+      "breakpoints": true
     }
   ]
 }

@@ -68,5 +68,10 @@ export type FacilityProfileInput = z.infer<typeof facilityProfileSchema>;
 
 const facilitySchema = createSelectSchema(facilityProfile).extend({
   createdAt: z.string() || z.date(),
+  mediaUrls: z.array(z.string()),
+  amenities: z.array(z.string()),
+  services: z.array(z.string()),
+  businessHours: z.array(businessDaySchema),
+  approvedAt: z.string() || z.date(),
 });
 export type TFacilityTable = z.infer<typeof facilitySchema>;

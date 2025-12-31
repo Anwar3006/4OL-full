@@ -7,7 +7,8 @@
     "generate": "drizzle-kit generate",
     "migrate": "drizzle-kit migrate",
     "push": "drizzle-kit push",
-    "studio": "drizzle-kit studio"
+    "studio": "drizzle-kit studio",
+    "seed": "tsx scripts/bodyPart_category_seeder.ts"
   },
   "keywords": [],
   "author": "",

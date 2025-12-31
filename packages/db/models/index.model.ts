@@ -32,4 +32,11 @@ export {
   conditionCauses,
   conditionToBodyParts,
   conditionToCategories,
+  categoriesRelations,
+  bodyPartsRelations,
+  conditionsRelations,
+  conditionTypesRelations,
+  conditionCausesRelations,
+  conditionToBodyPartsRelations,
+  conditionToCategoriesRelations,
 } from "./conditions.model";

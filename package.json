@@ -13,6 +13,7 @@
     "db:generate": "npm run generate -w @4ol/db -- --name $MIGRATION_NAME",
     "db:migrate": "npm run migrate -w @4ol/db",
     "db:push": "npm run push -w @4ol/db",
+    "db:seed": "npm run seed -w @4ol/db",
     "auth-schema:generate": "npm run -w @4ol/api generate"
   },
   "devDependencies": {
@@ -29,6 +30,8 @@
     "drizzle-orm": "^0.41.0",
     "drizzle-zod": "^0.8.3",
     "nanoid": "^5.1.6",
+    "slugify": "^1.6.6",
+    "tsx": "^4.21.0",
     "zod": "^4.2.1"
   }
 }

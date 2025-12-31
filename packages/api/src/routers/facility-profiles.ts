@@ -230,7 +230,7 @@ export const facilityProfileRouter = router({
       const totalCount = Number(countRes[0]?.count ?? 0);
 
       return {
-        facilities,
+        facilities: facilities as TFacilityTable[],
         meta: {
           total: totalCount,
           totalPages: Math.ceil(totalCount / limit),
@@ -265,6 +265,8 @@ export const facilityProfileRouter = router({
       return {
         ...facility,
         createdAt: facility.createdAt.toISOString(),
+        approvedAt: facility.approvedAt?.toISOString(),
+        mediaUrls: facility.mediaUrls as string[],
       } as TFacilityTable;
     }),
 
