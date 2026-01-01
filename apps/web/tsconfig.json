@@ -1,0 +1,20 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "noEmit": true,
+    "jsx": "preserve", // Next.js preferred over react-jsx in some versions
+    "incremental": true,
+    "plugins": [{ "name": "next" }],
+    "paths": {
+      "@/*": ["./*"],
+      // IMPORTANT: Map your shared packages here for IDE support
+      "@4ol/api": ["../../packages/api"],
+      "@4ol/api/*": ["../../packages/api/*"],
+      "@4ol/db": ["../../packages/db"],
+      "@4ol/db/*": ["../../packages/db/*"]
+    }
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
+}
