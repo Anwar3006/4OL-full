@@ -80,3 +80,29 @@ export const hasLexicalContent = (json: any): boolean => {
     return child.type !== "paragraph" && child.type !== "text";
   });
 };
+
+// ======================== Permissions ========================
+import { ROLE_PERMISSIONS } from "@/constants/users.const";
+import { TUserProfile } from "@4ol/db/schemas/user-profile.schema";
+
+export function hasPermission(userPermissions: string[], action: string) {
+  if (userPermissions.includes("*")) {
+    return !userPermissions.includes(`!${action}`);
+  }
+  return userPermissions.includes(action);
+}
+
+export const getPermissionsForRole = (role: TUserProfile["role"]) => {
+  // Return the specific object containing allowedRoutes and actions
+  return ROLE_PERMISSIONS[role] || { allowedRoutes: [], actions: [] };
+};
+
+export const canAccessRoute = (role: TUserProfile["role"], route: string) => {
+  const { allowedRoutes }: { allowedRoutes: string[] } =
+    getPermissionsForRole(role);
+
+  if (allowedRoutes.includes("*")) {
+    return !allowedRoutes.includes(`!${route}`);
+  }
+  return allowedRoutes.includes(route);
+};

@@ -270,6 +270,7 @@ export const FACILITY_TYPE_OPTIONS = [
   { value: "prosthetics_centers", label: "Prosthetics Centers" },
   { value: "psychiatric_centers", label: "Psychiatric Centers" },
   { value: "ibps", label: "IBPS" },
+  { value: "health_schools", label: "Health Schools" },
 ];
 export const FACILITY_TYPE_ENUM = [
   "hospitals_&_clinics",
@@ -284,6 +285,7 @@ export const FACILITY_TYPE_ENUM = [
   "prosthetics_centers",
   "psychiatric_centers",
   "ibps",
+  "health_schools",
 ] as const;
 
 export const GHANA_REGIONS_ENUM = [

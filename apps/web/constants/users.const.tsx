@@ -58,3 +58,22 @@ export const RoleMap: Record<TUserTable["role"], JSX.Element> = {
     </div>
   ),
 };
+
+export const ROLE_PERMISSIONS = {
+  super_admin: {
+    allowedRoutes: ["*"],
+    actions: ["*"],
+  },
+  admin: {
+    allowedRoutes: ["*"],
+    actions: ["*", "!invite_admin", "!edit_admin_role", "!delete_admin"],
+  },
+  registrar: {
+    allowedRoutes: ["/dashboard", "/facilities"],
+    actions: ["create_facility"],
+  },
+  user: {
+    allowedRoutes: [],
+    actions: [],
+  },
+};

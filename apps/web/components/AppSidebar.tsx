@@ -20,6 +20,7 @@ import { TBetterAuthUser } from "@4ol/db/schemas/user-profile.schema";
 import { Button } from "./ui/button";
 import { SIDEBAR_NAV_ITEMS } from "@/constants/sidebar.const";
 import Image from "next/image";
+import { useAdminPermissions } from "@/hooks/use-admin-permissions";
 
 // This is sample data.
 
@@ -31,6 +32,9 @@ export function AppSidebar({
 }) {
   const pathname = usePathname();
   const { setOpenMobile, isMobile } = useSidebar();
+  const { filteredNavItems, canDo, role } = useAdminPermissions();
+
+  console.log("filteredNavItems: ", filteredNavItems, role);
 
   return (
     <Sidebar {...props}>

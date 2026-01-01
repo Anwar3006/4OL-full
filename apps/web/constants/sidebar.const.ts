@@ -67,11 +67,11 @@ export const SIDEBAR_NAV_ITEMS = [
     icon: Map,
     url: "/map",
   },
-  {
-    title: "User Groupings",
-    icon: Users,
-    url: "/user_groupings",
-  },
+  // {
+  //   title: "User Groupings",
+  //   icon: Users,
+  //   url: "/user_groupings",
+  // },
   {
     title: "Marketing",
     icon: Megaphone,
