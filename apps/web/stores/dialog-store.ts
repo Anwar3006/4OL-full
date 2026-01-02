@@ -12,8 +12,8 @@ export type DialogTypes =
   | "view-facility"
   | "add-marketing"
   | "view-marketing"
-  | "add-user"
-  | "view-user"
+  | "add-admin"
+  | "view-admin"
   | "add-condition"
   | "view-condition";
 
@@ -209,20 +209,19 @@ export const useViewMarketingDialog = () => {
 };
 
 /**
- * Hook for Add/Edit User Dialog
+ * Hook for Add/Edit Admin Dialog
  */
-export const useAddUserDialog = () => {
+export const useAddAdminDialog = () => {
   const openDialog = useDialogStore((state) => state.openDialog);
   const closeDialog = useDialogStore((state) => state.closeDialog);
-  const isOpen = useDialogStore((state) => state.isDialogOpen("add-user"));
-  const data = useDialogStore((state) => state.getDialogData("add-user"));
-
+  const isOpen = useDialogStore((state) => state.isDialogOpen("add-admin"));
+  const data = useDialogStore((state) => state.getDialogData("add-admin"));
   return {
     isOpen,
     data,
     isEditMode: !!data,
-    open: (data?: any) => openDialog("add-user", { data }),
-    close: () => closeDialog("add-user"),
+    open: (data?: any) => openDialog("add-admin", { data }),
+    close: () => closeDialog("add-admin"),
   };
 };
 
@@ -232,14 +231,14 @@ export const useAddUserDialog = () => {
 export const useViewUserDialog = () => {
   const openDialog = useDialogStore((state) => state.openDialog);
   const closeDialog = useDialogStore((state) => state.closeDialog);
-  const isOpen = useDialogStore((state) => state.isDialogOpen("view-user"));
-  const entityId = useDialogStore((state) => state.getEntityId("view-user"));
+  const isOpen = useDialogStore((state) => state.isDialogOpen("view-admin"));
+  const entityId = useDialogStore((state) => state.getEntityId("view-admin"));
 
   return {
     isOpen,
     entityId,
-    open: (entityId: string) => openDialog("view-user", { entityId }),
-    close: () => closeDialog("view-user"),
+    open: (entityId: string) => openDialog("view-admin", { entityId }),
+    close: () => closeDialog("view-admin"),
   };
 };
 
@@ -267,8 +266,12 @@ export const useAddConditionDialog = () => {
 export const useViewConditionDialog = () => {
   const openDialog = useDialogStore((state) => state.openDialog);
   const closeDialog = useDialogStore((state) => state.closeDialog);
-  const isOpen = useDialogStore((state) => state.isDialogOpen("view-condition"));
-  const entityId = useDialogStore((state) => state.getEntityId("view-condition"));
+  const isOpen = useDialogStore((state) =>
+    state.isDialogOpen("view-condition")
+  );
+  const entityId = useDialogStore((state) =>
+    state.getEntityId("view-condition")
+  );
 
   return {
     isOpen,

@@ -12,6 +12,8 @@ export interface Context {
 const t = initTRPC.context<Context>().create();
 
 export const router = t.router;
+export const createCallerFactory = t.createCallerFactory;
+
 export const publicProcedure = t.procedure;
 // Protected procedure - requires authentication
 export const protectedProcedure = t.procedure.use(async ({ ctx, next }) => {

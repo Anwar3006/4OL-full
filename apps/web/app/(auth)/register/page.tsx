@@ -1,4 +1,3 @@
-"use client";
 import React from "react";
 import { GalleryVerticalEnd } from "lucide-react";
 import RegisterForm from "@/app/(auth)/_components/RegisterForm";
@@ -7,16 +6,19 @@ const RegisterPage = () => {
   return (
     <div className="grid min-h-svh lg:grid-cols-2">
       <div className="flex flex-col gap-4 p-6 md:p-10 h-[98vh] overflow-y-scroll">
-        <div className="flex justify-center gap-2 md:justify-start">
-          <a
-            href="/register"
-            className="flex items-center gap-2 font-medium underline underline-offset-3"
-          >
-            <div className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md">
-              <GalleryVerticalEnd className="size-4" />
+        <div className="flex justify-center gap-2 md:justify-start items-end">
+          <a href="/register" className="flex items-center gap-2 ">
+            <div className="p-2 text-primary-foreground flex size-full items-center justify-center rounded-xl shadow-sm border border-muted">
+              <img
+                src="/assets/images/all-img/logo.png"
+                alt="Logo"
+                className="w-10 rounded-md "
+              />
             </div>
-            4 Our Life.
           </a>
+          <span className="text-sm font-medium underline underline-offset-3">
+            4 Our Life.
+          </span>
         </div>
 
         {/* Form */}

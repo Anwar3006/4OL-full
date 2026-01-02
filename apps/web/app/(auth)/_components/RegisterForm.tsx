@@ -15,6 +15,7 @@ import * as zod from "zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import {
+  TUserProfile,
   userRegistrationSchema,
   UserRegistrationSchema,
 } from "@4ol/db/schemas/user-profile.schema";
@@ -26,29 +27,42 @@ import { ROLE_OPTIONS, SEX_OPTIONS } from "@4ol/db/types/formInput";
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { trpc } from "@/lib/trpc";
+import { useEffect } from "react";
 
 const RegisterForm = ({
+  isInvited = false,
+  inviteData,
   className,
   ...props
-}: React.ComponentProps<"form">) => {
+}: React.ComponentProps<"form"> & {
+  isInvited?: boolean;
+  inviteData?: { email: string; role: string };
+}) => {
   const form = useForm<zod.infer<typeof userRegistrationSchema>>({
     resolver: zodResolver(userRegistrationSchema),
     defaultValues: {
       firstName: "",
       lastName: "",
-      email: "",
+      email: inviteData?.email || "",
       sex: "" as "male" | "female" | "other",
       dob: "",
       password: "",
       confirmPassword: "",
-      role: "user",
+      role: (inviteData?.role as TUserProfile["role"]) || "user",
       phoneNumber: "",
       userType: "customer",
     },
   });
   const router = useRouter();
 
-  // tRPC mutation for profile creation
+  // useEffect(() => {
+  //   if (isInvited && inviteData) {
+  //     form.setValue("email", inviteData.email);
+  //     form.setValue("role", inviteData.role as TUserProfile["role"]);
+  //   }
+  // }, [isInvited, form]);
+
+  //============= tRPC mutation for profile creation
   const createProfile = trpc.userProfiles.createProfile.useMutation({
     onSuccess: () => {
       console.log("TRPC - Profile created!");
@@ -59,6 +73,7 @@ const RegisterForm = ({
       throw error;
     },
   });
+  //===================================
 
   const handleSubmit = async (data: UserRegistrationSchema) => {
     try {
@@ -105,7 +120,11 @@ const RegisterForm = ({
         <FieldGroup>
           <div className="flex flex-col items-center gap-1 text-center">
             {/* Title */}
-            <h1 className="text-2xl font-bold">Create an account for Admins</h1>
+            <h1 className="text-2xl font-bold">
+              {isInvited
+                ? "Administrative Account Setup"
+                : "Create your account"}
+            </h1>
 
             <p className="text-muted-foreground text-sm text-balance">
               Fill in the form below to create an account
@@ -121,6 +140,7 @@ const RegisterForm = ({
               placeholder="Francis Neizer"
               control={form.control}
               disabled={false}
+              readOnly={false}
             />
 
             <CustomInput
@@ -130,6 +150,7 @@ const RegisterForm = ({
               placeholder="Mensah"
               control={form.control}
               disabled={false}
+              readOnly={false}
             />
           </div>
 
@@ -161,7 +182,7 @@ const RegisterForm = ({
             control={form.control}
             description="This email address will be your primary form of contact.
               Periodically check your inbox."
-            disabled={false} //disable input, we will pull the email from the queryParams of the link sent to their email
+            disabled={isInvited} //disable if invited
           />
 
           {/* Phone Number */}
@@ -173,6 +194,7 @@ const RegisterForm = ({
             control={form.control}
             description="We will use this to contact you if need be. Make sure it is accessible."
             disabled={false}
+            readOnly={false}
           />
 
           {/* Role */}
@@ -181,8 +203,8 @@ const RegisterForm = ({
             label="Your Role"
             options={ROLE_OPTIONS}
             control={form.control}
-            disabled={false}
             description="You have been assigned this role by the Administrator."
+            disabled={isInvited}
           />
 
           {/* Password & Confirm Password */}
@@ -194,6 +216,7 @@ const RegisterForm = ({
               placeholder="***********"
               control={form.control}
               disabled={false}
+              readOnly={false}
             />
             <CustomInput
               type="password"
@@ -202,6 +225,7 @@ const RegisterForm = ({
               placeholder="***********"
               control={form.control}
               disabled={false}
+              readOnly={false}
             />
           </div>
 

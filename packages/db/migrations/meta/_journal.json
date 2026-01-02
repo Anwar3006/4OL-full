@@ -64,6 +64,13 @@
       "when": 1767180092866,
       "tag": "0008_ModifiefFieldsInConditionsTable",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1767345483277,
+      "tag": "0009_AddUserInvitesTable",
+      "breakpoints": true
     }
   ]
 }

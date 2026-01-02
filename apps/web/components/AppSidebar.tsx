@@ -35,6 +35,8 @@ export function AppSidebar({
   const { filteredNavItems, canDo, role } = useAdminPermissions();
 
   console.log("filteredNavItems: ", filteredNavItems, role);
+  const navItems =
+    role === "super_admin" ? SIDEBAR_NAV_ITEMS : filteredNavItems;
 
   return (
     <Sidebar {...props}>
@@ -64,7 +66,7 @@ export function AppSidebar({
       </SidebarHeader>
       <SidebarContent className="px-2">
         {/* We create a SidebarGroup for each parent. */}
-        {SIDEBAR_NAV_ITEMS.map((item) => {
+        {navItems.map((item) => {
           const isActive = pathname === item.url;
 
           return (

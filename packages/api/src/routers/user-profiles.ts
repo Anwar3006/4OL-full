@@ -1,8 +1,9 @@
 import { db, dbTransact } from "@4ol/db";
 import { router, publicProcedure, protectedProcedure } from "../trpc";
-import { user, user_profiles } from "@4ol/db/models/auth.model";
+import { user, user_invites, user_profiles } from "@4ol/db/models/auth.model";
 import {
-  TUserProfile,
+  adminInviteSchema,
+  AdminInviteSchema,
   TUserProfileWithUser,
   userRegistrationSchema,
 } from "@4ol/db/schemas/user-profile.schema";
@@ -162,6 +163,69 @@ export const userProfilesRouter = router({
       } catch (error) {
         throw new TRPCError({
           message: "User not found",
+          code: "NOT_FOUND",
+          cause: error,
+        });
+      }
+    }),
+
+  insertAdminInvite: protectedProcedure
+    .input(adminInviteSchema)
+    .mutation(async ({ input }) => {
+      try {
+        const { email, role, token, expiresAt } = input;
+
+        const existingInvite = await db.query.user_invites.findFirst({
+          where: eq(user_invites.email, email),
+        });
+
+        if (existingInvite) {
+          throw new TRPCError({
+            message: "User already invited",
+            code: "BAD_REQUEST",
+          });
+        }
+
+        const [invite] = await db
+          .insert(user_invites)
+          .values({
+            email,
+            role,
+            token,
+            expiresAt,
+          })
+          .returning();
+
+        return invite as AdminInviteSchema;
+      } catch (error) {
+        throw new TRPCError({
+          message:
+            (error as TRPCError).message || "Failed to insert admin invite",
+          code: "INTERNAL_SERVER_ERROR",
+          cause: error,
+        });
+      }
+    }),
+
+  getInvitedAdmin: protectedProcedure
+    .input(z.object({ token: z.string() }))
+    .query(async ({ input }) => {
+      try {
+        const { token } = input;
+        const [userFound] = await db
+          .select({
+            email: user_invites.email,
+            token: user_invites.token,
+            role: user_invites.role,
+            expiresAt: user_invites.expiresAt,
+          })
+          .from(user_invites)
+          .where(eq(user_invites.token, token));
+
+        return userFound as AdminInviteSchema;
+      } catch (error) {
+        throw new TRPCError({
+          message: "Invited admin not found",
           code: "NOT_FOUND",
           cause: error,
         });

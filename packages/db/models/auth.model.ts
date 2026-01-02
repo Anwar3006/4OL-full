@@ -1,5 +1,12 @@
 import { relations } from "drizzle-orm";
-import { pgTable, text, timestamp, boolean, index } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  text,
+  timestamp,
+  boolean,
+  index,
+  uuid,
+} from "drizzle-orm/pg-core";
 import {
   ROLE_ENUM,
   SEX_ENUM,
@@ -44,6 +51,15 @@ export const user_profiles = pgTable("user_profiles", {
   status: text({ enum: STATUS_ENUM }).default("active").notNull(),
   phoneNumber: text("phone_number").notNull(),
   deletedAt: timestamp("deleted_at"),
+});
+
+export const user_invites = pgTable("user_invites", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  email: text("email").notNull().unique(),
+  token: text("token").notNull().unique(),
+  role: text("role", { enum: ROLE_ENUM }).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
 });
 
 export const session = pgTable(

@@ -19,10 +19,13 @@ import { Separator } from "@/components/ui/separator";
 import { createPaginationHandlers } from "@/lib/utils";
 
 import { userCardConfig } from "@/components/Data-Table/mobile-table-configs/userCardConfig";
-import { useViewUserDialog } from "@/stores/dialog-store";
+import { useAddAdminDialog, useViewUserDialog } from "@/stores/dialog-store";
+import { UserViewDialog } from "@/components/dialogs/UserViewDialog";
+import AddAdminDialog from "./_components/add-admin-dialog";
 
 export default function UsersPage() {
   const viewDialog = useViewUserDialog();
+  const addAdminDialog = useAddAdminDialog();
 
   // 1. Separate State for Admins
   const [adminPage, setAdminPage] = useState(1);
@@ -97,6 +100,7 @@ export default function UsersPage() {
           Icon={MailPlus}
           hasButton
           buttonLabel="Invite Admin"
+          onButtonClick={addAdminDialog.open}
         />
 
         {adminLoading ? (
@@ -265,6 +269,10 @@ export default function UsersPage() {
           </>
         )}
       </section>
+
+      {/* Dialogs */}
+      <UserViewDialog />
+      <AddAdminDialog />
     </div>
   );
 }

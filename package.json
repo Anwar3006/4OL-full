@@ -15,6 +15,7 @@
     "db:migrate": "npm run migrate -w @4ol/db",
     "db:push": "npm run push -w @4ol/db",
     "db:seed": "npm run seed -w @4ol/db",
+    "email:dev": "npm run dev -w @4ol/email-sender",
     "auth-schema:generate": "npm run -w @4ol/api generate"
   },
   "devDependencies": {

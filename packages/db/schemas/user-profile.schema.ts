@@ -44,6 +44,19 @@ export const userLoginSchema = z.object({
 
 export type UserLoginSchema = z.infer<typeof userLoginSchema>;
 
+export const adminInviteSchema = z.object({
+  email: z.email("Invalid email address"),
+  role: z.enum(ROLE_ENUM),
+  token: z.string(),
+  expiresAt: z.date(),
+});
+export type AdminInviteSchema = z.infer<typeof adminInviteSchema>;
+
+export const adminInviteInputSchema = z.object({
+  role: z.enum(ROLE_ENUM),
+  email: z.email(),
+});
+export type AdminInviteInputSchema = z.infer<typeof adminInviteInputSchema>;
 //The above are for Form input validations
 
 //The below are actual types

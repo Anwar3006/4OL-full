@@ -1,6 +1,7 @@
 export {
   user,
   user_profiles,
+  user_invites,
   session,
   account,
   verification,

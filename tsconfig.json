@@ -13,6 +13,7 @@
     "paths": {
       "@4ol/api": ["./packages/api"],
       "@4ol/api/*": ["./packages/api/*"],
+      "@4ol/email-sender/*": ["./packages/email-sender/*"],
       "@4ol/db": ["./packages/db"],
       "@4ol/db/schemas/*": ["./packages/db/schemas/*"],
       "@4ol/db/models/*": ["./packages/db/models/*"]
