@@ -3,6 +3,7 @@ import { appRouter, createCallerFactory } from "@4ol/api/src";
 import { headers } from "next/headers";
 import { cache } from "react";
 import { db } from "@4ol/db";
+import { redirect } from "next/navigation";
 
 // This function creates a server-side tRPC caller with the appropriate context
 // We use it to fetch data directly on the server without needing React Query
@@ -15,6 +16,12 @@ export const serverApi = cache(async () => {
   const session = await auth.api.getSession({
     headers: head,
   });
+
+  if (!session) {
+    console.warn(
+      "⚠️ No session found in serverApi caller. Protected procedures will fail."
+    );
+  }
 
   // Provide the context that your tRPC procedures expect (auth, db, etc.)
   return createCaller({

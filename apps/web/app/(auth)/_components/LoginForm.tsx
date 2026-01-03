@@ -88,6 +88,7 @@ const LoginForm = ({ className, ...props }: React.ComponentProps<"form">) => {
             control={form.control}
             description="Use the email address you used to sign up"
             disabled={false} //disable input, we will pull the email from the queryParams of the link sent to their email
+            readOnly={false}
           />
 
           {/* Password */}
@@ -98,6 +99,7 @@ const LoginForm = ({ className, ...props }: React.ComponentProps<"form">) => {
             placeholder="***********"
             control={form.control}
             disabled={false}
+            readOnly={false}
           />
 
           <Field>

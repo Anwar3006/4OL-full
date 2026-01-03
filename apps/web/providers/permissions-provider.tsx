@@ -17,7 +17,7 @@ export const PermissionsProvider = async ({
   });
 
   if (!betterAuthUserSession || !betterAuthUserSession.user) {
-    redirect("/login");
+    return <>{children}</>;
   }
 
   try {
@@ -26,10 +26,8 @@ export const PermissionsProvider = async ({
 
     // 2. Fetch data directly (no useQuery needed on server)
     const userInfo = await api.userProfiles.getById({
-      id: betterAuthUserSession.user.id,
+      id: betterAuthUserSession?.user.id!,
     });
-
-    if (!userInfo) redirect("/login");
 
     if (userInfo.status === "suspended" || userInfo.status === "pending") {
       redirect("/unauthorized");
@@ -43,6 +41,6 @@ export const PermissionsProvider = async ({
     );
   } catch (error) {
     console.error("Auth server-side error:", error);
-    redirect("/login");
+    return <>{children}</>;
   }
 };

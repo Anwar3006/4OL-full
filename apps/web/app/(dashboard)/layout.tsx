@@ -18,7 +18,7 @@ const DashboardLayout = async ({ children }: { children: React.ReactNode }) => {
   }
 
   return (
-    <DashboardLayoutClient user={session.user}>
+    <DashboardLayoutClient user={session?.user}>
       <div className="flex-1 overflow-auto md:p-4">{children}</div>
     </DashboardLayoutClient>
   );
