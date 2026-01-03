@@ -7,7 +7,7 @@ import {
   useViewConditionDialog,
 } from "@/stores/dialog-store";
 import { Loader2, PlusCircleIcon } from "lucide-react";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import AddConditionDialog from "./_components/add-condition-dialog";
 import { trpc } from "@/lib/trpc";
 import { conditionColumns } from "@/components/Data-Table/columns/conditionColumns";
@@ -18,6 +18,7 @@ const DiseasesAndConditionsPage = () => {
   const addConditions = useAddConditionDialog();
   const viewConditions = useViewConditionDialog();
   const [page, setPage] = useState(1);
+  const [bodyPart, setBodyPart] = useState<string | null>();
   const limit = 10;
 
   const { data: allConditions, isLoading } =
@@ -26,6 +27,13 @@ const DiseasesAndConditionsPage = () => {
       limit,
     });
   const conditionsPagination = createPaginationHandlers(page, setPage);
+
+  useEffect(() => {
+    if (allConditions?.analytics?.mostAffectedBodyParts) {
+      const bodyPart = allConditions?.analytics?.mostAffectedBodyParts[0]?.name;
+      setBodyPart(bodyPart);
+    }
+  }, [allConditions]);
 
   return (
     <section className="container mx-auto lg:px-4 py-4 sm:py-6 lg:pb-10 lg:pt-2 max-w-7xl">
@@ -47,10 +55,26 @@ const DiseasesAndConditionsPage = () => {
       ) : ( */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {/* <ConditionsStats label="Total Registered" value={data?.meta?.total || 0} /> */}
-        <ConditionsStats label="Total Registered" value={3} />
-        <ConditionsStats label="Total Number of Categories" value={3} />
-        <ConditionsStats label="Most Affected Body Part" value={"Skin"} />
-        <ConditionsStats label="Most Recurring Category" value={"Cancer"} />
+        <ConditionsStats
+          label="Total Registered"
+          value={allConditions?.meta?.total || 0}
+          isLoading={isLoading}
+        />
+        <ConditionsStats
+          label="Total Number of Categories"
+          value={allConditions?.analytics?.totalCategories || 0}
+          isLoading={isLoading}
+        />
+        <ConditionsStats
+          label="Most Affected Body Part"
+          value={bodyPart || "N/A"}
+          isLoading={isLoading}
+        />
+        <ConditionsStats
+          label="Most Recurring Category"
+          value={"Cancer"}
+          isLoading={isLoading}
+        />
         {/* <ConditionsStats label="Total Register" value={3} /> */}
       </div>
       {/* )} */}
@@ -89,6 +113,7 @@ type ConditionsStatsProps = {
   label: string;
   value: number | string;
   borderColor?: string;
+  isLoading: boolean;
 };
 //Stats to track
 // 1. Total Conditions
@@ -100,15 +125,22 @@ const ConditionsStats = ({
   label,
   value,
   borderColor,
+  isLoading,
 }: ConditionsStatsProps) => {
   return (
     <div
       className={cn("bg-white border rounded-lg p-4 border-gray-300 shadow-md")}
     >
-      <div className="flex flex-col items-center gap-3">
-        <div className="text-2xl font-bold">{value}</div>
-        <div className="text-sm text-muted-foreground">{label}</div>
-      </div>
+      {isLoading ? (
+        <div className="flex items-center justify-center">
+          <Loader2 size={24} className="animate-spin" />
+        </div>
+      ) : (
+        <div className="flex flex-col items-center gap-3">
+          <div className="text-2xl font-bold">{value}</div>
+          <div className="text-sm text-muted-foreground">{label}</div>
+        </div>
+      )}
     </div>
   );
 };

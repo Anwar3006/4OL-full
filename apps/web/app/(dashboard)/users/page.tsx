@@ -1,28 +1,10 @@
 "use client";
 import React, { useState } from "react";
-import { trpc } from "@/lib/trpc";
-
 import { Button } from "@/components/ui/button";
-import { MailPlus, Search, Filter, Users } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import {
-  EmptyState,
-  ErrorState,
-  StatsCard,
-  TableSkeleton,
-} from "@/components/Data-Table/helpers";
-import { userColumns } from "@/components/Data-Table/columns/userColumns";
-
-import { DataTable } from "@/components/Data-Table/data-table";
-import SectionHeader from "@/components/SectionHeader";
+import { Users } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
-import { createPaginationHandlers } from "@/lib/utils";
-
-import { userCardConfig } from "@/components/Data-Table/mobile-table-configs/userCardConfig";
-import { useAddAdminDialog, useViewUserDialog } from "@/stores/dialog-store";
 import { UserViewDialog } from "@/components/dialogs/UserViewDialog";
 import AddAdminDialog from "./_components/add-admin-dialog";
-import { useAdminPermissions } from "@/hooks/use-admin-permissions";
 import AdminSection from "./_components/AdminSection";
 import UserSection from "./_components/UserSection";
 

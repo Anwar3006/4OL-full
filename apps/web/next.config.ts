@@ -8,15 +8,15 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   compress: true,
 
-  async redirects() {
-    return [
-      {
-        source: "/",
-        destination: "/dashboard",
-        permanent: true,
-      },
-    ];
-  },
+  // async redirects() {
+  //   return [
+  //     {
+  //       source: "/",
+  //       destination: "/dashboard",
+  //       permanent: true,
+  //     },
+  //   ];
+  // },
 
   // Image optimization for your CDN/Object Storage
   images: {

@@ -6,6 +6,8 @@ import {
   TConditionsOutput,
 } from "@4ol/db/schemas/conditions.schema";
 import {
+  bodyParts,
+  categories,
   conditionCauses,
   conditions,
   conditionToBodyParts,
@@ -13,7 +15,7 @@ import {
   conditionTypes,
 } from "@4ol/db/models/conditions.model";
 import z from "zod";
-import { eq, sql } from "drizzle-orm";
+import { aliasedTable, desc, eq, gt, sql } from "drizzle-orm";
 
 export const conditionsRouter = router({
   getAllBodyParts: protectedProcedure.query(async () => {
@@ -154,25 +156,41 @@ export const conditionsRouter = router({
         const { page, limit } = input;
         const offset = (page - 1) * limit;
 
-        const [fetchConditons, [{ count }]] = await Promise.all([
-          db
-            .select({
-              id: conditions.id,
-              name: conditions.name,
-              slug: conditions.slug,
-              imageUrl: conditions.imageUrl,
-              nhsLink: conditions.nhsLink,
-              isSystemic: conditions.isSystemic,
-              specialist: conditions.specialist,
-            })
-            .from(conditions)
-            .limit(limit)
-            .offset(offset),
-          db.select({ count: sql<number>`count(*)` }).from(conditions),
-        ]);
+        const [fetchConditons, [{ count }], mostAffectedPart, [{ countCats }]] =
+          await Promise.all([
+            db
+              .select({
+                id: conditions.id,
+                name: conditions.name,
+                slug: conditions.slug,
+                imageUrl: conditions.imageUrl,
+                nhsLink: conditions.nhsLink,
+                isSystemic: conditions.isSystemic,
+                specialist: conditions.specialist,
+              })
+              .from(conditions)
+              .limit(limit)
+              .offset(offset),
+
+            db.select({ count: sql<number>`count(*)` }).from(conditions),
+
+            getHierarchicalConditionStats(),
+
+            db
+              .select({ countCats: sql<number>`count(*)` })
+              .from(categories)
+              .where(eq(categories.level, 0)),
+          ]);
 
         return {
           conditions: fetchConditons,
+          analytics: {
+            mostAffectedBodyParts: mostAffectedPart.slice(
+              0,
+              1
+            ) as TMostAffectedBosyPart, // Only top 1 for the UI
+            totalCategories: countCats,
+          },
           meta: {
             totalPages: Math.ceil(count / limit),
             total: count,
@@ -307,3 +325,37 @@ export const conditionsRouter = router({
       }
     }),
 });
+
+//======================== Helpers
+type TMostAffectedBosyPart = {
+  id: string;
+  name: string;
+  path: string;
+  totalConditions: number;
+}[];
+export const getHierarchicalConditionStats = async () => {
+  // 1. Create an alias for the 'descendants' instance of the table
+  const descendants = aliasedTable(bodyParts, "descendants");
+
+  return await db
+    .select({
+      id: bodyParts.id,
+      name: bodyParts.name,
+      path: bodyParts.path,
+      // We count conditions linked to the descendants
+      totalConditions: sql<number>`
+        count(DISTINCT ${conditionToBodyParts.conditionId})
+      `.mapWith(Number),
+    })
+    .from(bodyParts) // This is our 'Parent'
+    // 2. Join the 'Parent' to the 'Descendants' using the alias
+    .leftJoin(descendants, sql`${bodyParts.path} @> ${descendants.path}`)
+    // 3. Connect the conditions to those descendants
+    .leftJoin(
+      conditionToBodyParts,
+      eq(descendants.id, conditionToBodyParts.bodyPartId)
+    )
+    .where(gt(bodyParts.level, 0))
+    .groupBy(bodyParts.id)
+    .orderBy(desc(sql`count(DISTINCT ${conditionToBodyParts.conditionId})`));
+};
