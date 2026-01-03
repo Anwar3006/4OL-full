@@ -5,6 +5,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { DashboardLayoutClient } from "@/components/Dashboard-Layout";
+import { PermissionsProvider } from "@/providers/permissions-provider";
 
 const DashboardLayout = async ({ children }: { children: React.ReactNode }) => {
   // 1. Pass headers to BetterAuth so it can read the cookies
@@ -18,9 +19,11 @@ const DashboardLayout = async ({ children }: { children: React.ReactNode }) => {
   }
 
   return (
-    <DashboardLayoutClient user={session?.user}>
-      <div className="flex-1 overflow-auto md:p-4">{children}</div>
-    </DashboardLayoutClient>
+    <PermissionsProvider>
+      <DashboardLayoutClient user={session?.user}>
+        <div className="flex-1 overflow-auto md:p-4">{children}</div>
+      </DashboardLayoutClient>
+    </PermissionsProvider>
   );
 };
 
