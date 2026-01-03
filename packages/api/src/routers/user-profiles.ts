@@ -8,7 +8,7 @@ import {
   userRegistrationSchema,
 } from "@4ol/db/schemas/user-profile.schema";
 import z from "zod";
-import { eq, inArray, like, or, sql } from "drizzle-orm";
+import { and, eq, inArray, like, or, sql } from "drizzle-orm";
 import { ROLE_ENUM, STATUS_ENUM } from "@4ol/db/types/formInput";
 import { TRPCError } from "@trpc/server";
 
@@ -30,6 +30,13 @@ export const userProfilesRouter = router({
     .query(async ({ input }) => {
       const { page, limit, search, status, admin } = input;
       const offset = (page - 1) * limit;
+
+      const roleCondition = admin
+        ? inArray(
+            user_profiles.role,
+            ROLE_ENUM.filter((r) => r !== "user")
+          )
+        : eq(user_profiles.role, "user");
 
       // Build where clause
       const whereConditions = [];
@@ -54,6 +61,8 @@ export const userProfilesRouter = router({
         whereConditions.push(eq(user_profiles.role, "user"));
       }
 
+      const finalWhere = and(roleCondition, ...whereConditions);
+
       // Fetch paginated data
       const [users, [{ count }]] = await Promise.all([
         db
@@ -71,7 +80,7 @@ export const userProfilesRouter = router({
             userType: user_profiles.userType,
           })
           .from(user_profiles)
-          .where(whereConditions.length ? or(...whereConditions) : undefined)
+          .where(finalWhere)
           .limit(limit)
           .offset(offset)
           .leftJoin(user, eq(user_profiles.userId, user.id)),
@@ -79,7 +88,7 @@ export const userProfilesRouter = router({
         db
           .select({ count: sql<number>`count(*)` })
           .from(user_profiles)
-          .where(whereConditions.length ? or(...whereConditions) : undefined),
+          .where(roleCondition),
       ]);
 
       // Get stats
@@ -89,7 +98,7 @@ export const userProfilesRouter = router({
           count: sql<number>`count(*)`,
         })
         .from(user_profiles)
-        .where(whereConditions.length ? or(...whereConditions) : undefined)
+        .where(roleCondition)
         .groupBy(user_profiles.status);
 
       return {

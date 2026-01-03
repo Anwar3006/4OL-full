@@ -1,6 +1,5 @@
-import { trpc } from "@/lib/trpc";
 import RegisterForm from "../_components/RegisterForm";
-import DashboardLoading from "@/app/(dashboard)/loading";
+
 import { redirect } from "next/navigation";
 import { serverApi } from "@/lib/trpc-serverCaller";
 

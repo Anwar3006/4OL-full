@@ -34,7 +34,6 @@ export function AppSidebar({
   const { setOpenMobile, isMobile } = useSidebar();
   const { filteredNavItems, canDo, role } = useAdminPermissions();
 
-  console.log("filteredNavItems: ", filteredNavItems, role);
   const navItems =
     role === "super_admin" ? SIDEBAR_NAV_ITEMS : filteredNavItems;
 
