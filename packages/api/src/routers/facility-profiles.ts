@@ -284,4 +284,51 @@ export const facilityProfileRouter = router({
       });
       return facilities;
     }),
+
+  getFacilitiesMapData: protectedProcedure
+    .input(
+      z.object({
+        minLng: z.number(),
+        minLat: z.number(),
+        maxLng: z.number(),
+        maxLat: z.number(),
+        zoom: z.number(),
+      })
+    )
+    .query(async ({ input }) => {
+      const { minLng, minLat, maxLng, maxLat, zoom } = input;
+      const limit = zoom < 10 ? 1000 : 5000;
+
+      try {
+        // Senior Move: If zoom is low (zoomed out), use Clustering or Limit data
+        // If zoom is high (zoomed in), show all facilities in the view
+        //get the facilites using Bounding Box: basically get all facilities that user is looking at
+        const facilities = await db.execute(sql`
+          SELECT jsonb_build_object(
+            'type', 'FeatureCollection',
+            'features', COALESCE(jsonb_agg(features.feature), '[]'::jsonb) -- IMPORTANT: Fallback to empty array
+          )
+          FROM (
+            SELECT jsonb_build_object(
+              'type', 'Feature',
+              'geometry', ST_AsGeoJSON(ST_MakePoint(longitude, latitude))::jsonb,
+              'properties', jsonb_build_object('id', id, 'name', facility_name, 'type', facility_type)
+            ) AS feature
+            FROM facility_profile
+            WHERE longitude BETWEEN ${minLng} AND ${maxLng}
+              AND latitude BETWEEN ${minLat} AND ${maxLat}
+            LIMIT ${limit} -- Safety cap to prevent browser crash
+          ) features
+        `);
+
+        return facilities.rows[0].jsonb_build_object;
+      } catch (error) {
+        console.error("Error fetching map data for facilities: ", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            "Database error while fetching map data for facilities: " + error,
+        });
+      }
+    }),
 });

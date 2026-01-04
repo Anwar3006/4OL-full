@@ -22,8 +22,6 @@ import { SIDEBAR_NAV_ITEMS } from "@/constants/sidebar.const";
 import Image from "next/image";
 import { useAdminPermissions } from "@/hooks/use-admin-permissions";
 
-// This is sample data.
-
 export function AppSidebar({
   user,
   ...props
@@ -87,28 +85,6 @@ export function AppSidebar({
       </SidebarContent>
 
       <SidebarFooter className="my-5">
-        {/* Buttons */}
-        {/* <div className="w-full">
-          <div className="flex flex-col space-y-3">
-            <Button
-              variant={"default"}
-              type="button"
-              className="w-full flex items-center gap-2 bg-zinc-800! text-xs"
-            >
-              My Profile
-              <UserPen size={16} />
-            </Button>
-
-            <Button
-              type="button"
-              variant={"outline"}
-              className="w-full flex items-center gap-2 text-xs"
-            >
-              Log out
-              <LogOut size={16} />
-            </Button>
-          </div>
-        </div> */}
         <NavUser user={user} />
       </SidebarFooter>
 
