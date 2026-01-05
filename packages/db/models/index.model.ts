@@ -41,3 +41,16 @@ export {
   conditionToBodyPartsRelations,
   conditionToCategoriesRelations,
 } from "./conditions.model";
+
+export {
+  symptoms,
+  symptomToCategories,
+  symptomToBodyParts,
+  symptomTypes,
+  symptomCauses,
+  symptomRelations,
+  symptomToCategoriesRelations,
+  symptomToBodyPartsRelations,
+  symptomTypesRelations,
+  symptomCausesRelations,
+} from "./symptoms.model";

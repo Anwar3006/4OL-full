@@ -4,6 +4,7 @@ import { storageRouter } from "./routers/media-storage";
 import { facilityProfileRouter } from "./routers/facility-profiles";
 import { marketingProfileRouter } from "./routers/marketing-profiles";
 import { conditionsRouter } from "./routers/conditions-router";
+import { symptomsRouter } from "./routers/symptoms-router";
 
 export const appRouter = router({
   userProfiles: userProfilesRouter,
@@ -11,6 +12,7 @@ export const appRouter = router({
   facilityProfiles: facilityProfileRouter,
   marketingProfiles: marketingProfileRouter,
   conditionsRouter: conditionsRouter,
+  symptomsRouter: symptomsRouter,
 });
 
 // Export the type for the client

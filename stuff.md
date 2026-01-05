@@ -8,7 +8,6 @@ create a new
 ## Modeling the facility_profile table according to Buiness Requirments
 
 1. Users should be able to search for facilities around them:
-
    - To do this, we include the `latitude` and `longitude` fields and store them as `doublePrecision` datatype. This makes it easier for PostGIS(a Postgres extension for handling geolocation data) to search records based on the datatype:
 
    - We include the `location` field as a geometry datatype and, passing it `point` and `srid` to be used by PostGIS
@@ -21,7 +20,6 @@ create a new
      ```
 
 2. Facilty Owners/Managers may have more than one facility they are managing:
-
    - So we create a constraint, translating this Business requirement into the Database Relationship Cardinality by giving the relationship between `user_profile` and `facility_profile` as `one-to-many` respectively. Then we create a `hash index` on the facility_profile table for fast `owner_id` lookups.
 
    - The Architectural Strategy
@@ -74,7 +72,6 @@ create a new
 ### Decision - Going with AWS S3 + Image Kit
 
 - We can choose a hybrid design:
-
   - Storage (S3): Upload to /temporary/facility_id/image_01.jpg.
 
   - Review (ImageKit + Admin): Admin views the images via an ImageKit proxy URL pointing to the temporary folder.
@@ -122,4 +119,35 @@ const { data: images } = trpc.media.getImages.useQuery({
   isFacility: true, // Uses Presigned URLs for the Admin Review
   width: 800,
 });
+```
+
+---
+
+```js
+/**
+ * Symtoms
+ * name: string; about: richText;
+ * types: [{type_name: string, about_type: richText}]; causes: [{cause_name: string, otherPossibleCauses: richText}]
+ * diagnosis: richText, treatment: richText, prevention: richText, complication: richText
+ * specialist: string; contact_your_doctor: richText
+ * more_info: richText, attribution: richText, image: string
+ *
+ *
+ * Healthy Living
+ * name: string; about: richText;
+ * types: [{type_name: string, about_type: richText}];
+ * category: richText;
+ * contact_your_doctor: richText
+ * more_info: richText, attribution: richText, image: string
+ *
+ * FAQ
+ * question: string; answer: richText
+ *
+ * Notification
+ * title: string, description: string
+ * Target Audience
+ * Select Region: string
+ * Select Gender: string
+ * Select Age Range: string
+ */
 ```

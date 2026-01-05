@@ -71,6 +71,13 @@
       "when": 1767345483277,
       "tag": "0009_AddUserInvitesTable",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1767563835589,
+      "tag": "0010_AddSymptomsTable",
+      "breakpoints": true
     }
   ]
 }

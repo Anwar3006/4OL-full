@@ -52,6 +52,9 @@ export const conditionsSchema = z.object({
 
 export type TConditionsInput = z.infer<typeof conditionsSchema>;
 
+export const symptomsSchema = conditionsSchema.omit({ symptoms: true });
+export type TSymptomsInput = z.infer<typeof symptomsSchema>;
+
 export type TConditionsOutput = {
   id: string;
   name: string;
@@ -64,6 +67,26 @@ export type TConditionsOutput = {
   treatment: SerializedEditorState;
   complications: SerializedEditorState;
   symptoms: SerializedEditorState;
+  prevention: SerializedEditorState;
+  contactYourDoctor: SerializedEditorState;
+  moreInformation: SerializedEditorState;
+  attribution: SerializedEditorState;
+  isSystemic: boolean;
+  specialist: string | null;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+};
+
+export type TSymptomsOutput = {
+  id: string;
+  name: string;
+  slug: string;
+  nhsLink: string | null;
+  imageUrl: string | null;
+  about: SerializedEditorState;
+  diagnosis: SerializedEditorState;
+  treatment: SerializedEditorState;
+  complications: SerializedEditorState;
   prevention: SerializedEditorState;
   contactYourDoctor: SerializedEditorState;
   moreInformation: SerializedEditorState;

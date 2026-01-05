@@ -13,6 +13,7 @@ import { trpc } from "@/lib/trpc";
 import { conditionColumns } from "@/components/Data-Table/columns/conditionColumns";
 import { conditionCardConfig } from "@/components/Data-Table/mobile-table-configs/conditionCardConfig";
 import { ViewConditionDialog } from "./_components/view-condition-dialog";
+import ConditionsStats from "./_components/ConditionStats";
 
 const DiseasesAndConditionsPage = () => {
   const addConditions = useAddConditionDialog();
@@ -47,21 +48,14 @@ const DiseasesAndConditionsPage = () => {
       />
 
       {/* StatsCard */}
-      {/* {isLoading ? (
-        <div className="w-full h-30 flex items-center justify-center gap-2">
-          <Loader2 size={24} className="animate-spin" />
-          Loading Facilities...
-        </div>
-      ) : ( */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        {/* <ConditionsStats label="Total Registered" value={data?.meta?.total || 0} /> */}
         <ConditionsStats
           label="Total Registered"
           value={allConditions?.meta?.total || 0}
           isLoading={isLoading}
         />
         <ConditionsStats
-          label="Total Number of Categories"
+          label="Total Condition Categories"
           value={allConditions?.analytics?.totalCategories || 0}
           isLoading={isLoading}
         />
@@ -77,7 +71,6 @@ const DiseasesAndConditionsPage = () => {
         />
         {/* <ConditionsStats label="Total Register" value={3} /> */}
       </div>
-      {/* )} */}
 
       {/* Conditions Table */}
       <DataTable
@@ -108,39 +101,3 @@ const DiseasesAndConditionsPage = () => {
 };
 
 export default DiseasesAndConditionsPage;
-
-type ConditionsStatsProps = {
-  label: string;
-  value: number | string;
-  borderColor?: string;
-  isLoading: boolean;
-};
-//Stats to track
-// 1. Total Conditions
-// 2. Total number of categories -> 18 Medical Categories
-// 3. Number of body parts covered -> 14 Body Parts
-// 4. Top Category based on number of conditions
-// 5. Top Body Part based on number of conditions
-const ConditionsStats = ({
-  label,
-  value,
-  borderColor,
-  isLoading,
-}: ConditionsStatsProps) => {
-  return (
-    <div
-      className={cn("bg-white border rounded-lg p-4 border-gray-300 shadow-md")}
-    >
-      {isLoading ? (
-        <div className="flex items-center justify-center">
-          <Loader2 size={24} className="animate-spin" />
-        </div>
-      ) : (
-        <div className="flex flex-col items-center gap-3">
-          <div className="text-2xl font-bold">{value}</div>
-          <div className="text-sm text-muted-foreground">{label}</div>
-        </div>
-      )}
-    </div>
-  );
-};
