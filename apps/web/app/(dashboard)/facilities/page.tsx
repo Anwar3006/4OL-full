@@ -15,6 +15,8 @@ import { useRouter } from "next/navigation";
 import { StatsCard } from "@/components/Data-Table/helpers";
 import { FACILITY_TYPE_OPTIONS } from "@4ol/db/types/formInput";
 import { useAddFacilityDialog } from "@/stores/dialog-store";
+import AddFacilityDialog from "./_components/add-facility-dialog";
+import { FacilityViewDialog } from "@/components/dialogs/FacilityViewDialog";
 
 const FacilitiesPage = () => {
   const addFacility = useAddFacilityDialog();
@@ -82,6 +84,8 @@ const FacilitiesPage = () => {
           ))}
         </div>
       </div>
+
+      <AddFacilityDialog />
     </section>
   );
 };

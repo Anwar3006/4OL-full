@@ -9,6 +9,9 @@ import { Separator } from "@/components/ui/separator";
 
 import DashboardHeader from "@/components/DashboardHeader";
 import { AppSidebar } from "@/components/AppSidebar";
+import { trpc } from "@/lib/trpc";
+import { useRouter } from "next/navigation";
+import DashboardLoading from "@/app/(dashboard)/loading";
 
 export const DashboardLayoutClient = ({
   children,
@@ -17,6 +20,19 @@ export const DashboardLayoutClient = ({
   children: React.ReactNode;
   user: any;
 }) => {
+  const router = useRouter();
+  const { data, isLoading } = trpc.userProfiles.getById.useQuery({
+    id: user.id,
+  });
+
+  if (isLoading) {
+    return <DashboardLoading />;
+  }
+
+  if (data?.role === "user") {
+    router.push("/login");
+    return null;
+  }
   return (
     <SidebarProvider>
       <AppSidebar user={user} />

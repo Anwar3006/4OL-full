@@ -4,7 +4,7 @@ import { serverApi } from "@/lib/trpc-serverCaller";
 import { PermissionProviderClient } from "@/stores/permission-context";
 import { auth } from "@4ol/api/src/auth";
 import { headers } from "next/headers";
-import { redirect } from "next/navigation";
+import { permanentRedirect, redirect } from "next/navigation";
 import { ReactNode } from "react";
 
 export const PermissionsProvider = async ({
@@ -20,27 +20,32 @@ export const PermissionsProvider = async ({
     return <>{children}</>;
   }
 
+  let userInfo;
   try {
     // 1. Initialize the caller with context
     const api = await serverApi();
 
     // 2. Fetch data directly (no useQuery needed on server)
-    const userInfo = await api.userProfiles.getById({
+    userInfo = await api.userProfiles.getById({
       id: betterAuthUserSession?.user.id!,
     });
-
-    if (userInfo.status === "suspended" || userInfo.status === "pending") {
-      redirect("/unauthorized");
-    }
-
-    // 3. Pass the role to the Client Provider
-    return (
-      <PermissionProviderClient userRole={userInfo.role}>
-        {children}
-      </PermissionProviderClient>
-    );
   } catch (error) {
     console.error("Auth server-side error:", error);
     return <>{children}</>;
   }
+
+  // if (
+  //   userInfo.status === "suspended" ||
+  //   userInfo.status === "pending" ||
+  //   userInfo.role === "user"
+  // ) {
+  //   permanentRedirect("/not-found");
+  // }
+
+  // 3. Pass the role to the Client Provider
+  return (
+    <PermissionProviderClient userRole={userInfo.role}>
+      {children}
+    </PermissionProviderClient>
+  );
 };

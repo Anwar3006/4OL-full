@@ -32,6 +32,8 @@ import ImageDropZone from "@/components/ImageDropZone";
 import { trpc } from "@/lib/trpc";
 import { nanoid } from "nanoid";
 import { useAddFacilityDialog } from "@/stores/dialog-store";
+import { authClient } from "@/lib/auth-client";
+import FacilityCredentialsModal from "./facility-credentials-modal";
 
 // Step 1 Fields - To make sure we validate these fields before moving on to Step 2
 const STEP_1_FIELDS: (keyof FacilityProfileInput)[] = [
@@ -55,6 +57,13 @@ const AddFacilityDialog = () => {
   // Progress Step Management
   const [step, setStep] = useState<1 | 2>(1);
   const [submitting, setSubmitting] = useState<boolean>(false);
+  const [facilityModal, setFacilityModal] = useState<boolean>(false);
+  const [credentials, setCredentials] = useState<{
+    email: string;
+    password: string;
+    facilityName: string;
+  } | null>(null);
+  const queryUtils = trpc.useUtils();
 
   // Hooks to fetch location and Ghana Post Address
   const {
@@ -106,12 +115,14 @@ const AddFacilityDialog = () => {
   useEffect(() => {
     if (isOpen) {
       if (isEditMode && data) {
-        form.reset({ ...data });
+        form.reset({ ...form.getValues(), ...data });
       } else {
         form.reset({
-          facilityType: "hospitals_&_clinics",
+          facilityName: "",
+          contactNumber: "",
           region: "greater accra",
           country: "Ghana",
+          sameForWeekdays: false,
           businessHours: DEFAULT_BUSINESS_HOURS,
           mediaUrls: [],
           services: [],
@@ -197,22 +208,38 @@ const AddFacilityDialog = () => {
   ) => {
     setSubmitting(true);
     const { sameForWeekdays, ...payload } = data;
-    console.log("Clicked");
+
     try {
-      const result = await facilityMutation.mutateAsync(payload);
-      if (result) {
-        toast.success(
-          isEditMode
-            ? "Facility updated successfully!"
-            : "Facility registered successfully!"
-        );
-        close();
+      const newAuthUser = await authClient.admin.createUser({
+        name: `${payload.firstName} ${payload.lastName}`,
+        email: payload.email ? payload.email : payload.ownerEmail,
+        password: payload.gpsAddress,
+      });
+
+      if (newAuthUser) {
+        const result = await facilityMutation.mutateAsync(payload);
+        if (result) {
+          toast.success(isEditMode ? "Updated!" : "Registered!");
+
+          // 1. Prepare credential data
+          setCredentials({
+            email: payload.email ? payload.email : payload.ownerEmail,
+            password: payload.gpsAddress,
+            facilityName: payload.facilityName,
+          });
+
+          // 2. Open the credentials modal
+          setFacilityModal(true);
+
+          // 3. Close this registration dialog
+          close();
+        }
       }
-      setSubmitting(false);
     } catch (error) {
-      console.error("Registration Error: ", error);
-      toast.error("Registration failed! : " + (error as Error).message);
+      toast.error("Registration failed!");
+    } finally {
       setSubmitting(false);
+      queryUtils.facilityProfiles.getFacilities.invalidate();
     }
   };
 
@@ -227,6 +254,16 @@ const AddFacilityDialog = () => {
 
   return (
     <Dialog open={isOpen} onOpenChange={handleDialogClose}>
+      {credentials && (
+        <FacilityCredentialsModal
+          isOpen={facilityModal}
+          onClose={() => {
+            setFacilityModal(false);
+            setCredentials(null);
+          }}
+          data={credentials}
+        />
+      )}
       <DialogContent className="max-w-5xl! max-h-[95vh] md:max-h-[90vh] overflow-y-auto py-5! px-2 md:px-6">
         <div className="flex justify-center gap-2 mb-4 w-full pr-4">
           <div

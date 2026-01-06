@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "jsx": "react-native",
+    "moduleResolution": "node", // Metro prefers this
+    "paths": {
+      "@/*": ["./*"],
+      "@4ol/api": ["../../packages/api/src/index.ts"],
+      "@4ol/db": ["../../packages/db/src/index.ts"]
+    }
+  }
+}

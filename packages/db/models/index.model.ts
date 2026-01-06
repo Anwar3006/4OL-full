@@ -54,3 +54,9 @@ export {
   symptomTypesRelations,
   symptomCausesRelations,
 } from "./symptoms.model";
+
+export {
+  healthyLiving,
+  healthyLivingTypes,
+  healthyLivingRelations,
+} from "./healthyLiving.model";

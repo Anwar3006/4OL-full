@@ -1,12 +1,18 @@
 {
-  "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "jsx": "react-native",
-    "moduleResolution": "node", // Metro prefers this
+    "strict": true,
     "paths": {
-      "@/*": ["./*"],
-      "@4ol/api": ["../../packages/api/src/index.ts"],
-      "@4ol/db": ["../../packages/db/src/index.ts"]
+      "@/*": [
+        "./*"
+      ]
     }
-  }
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    ".expo/types/**/*.ts",
+    "expo-env.d.ts",
+    "nativewind-env.d.ts"
+  ],
+  "extends": "expo/tsconfig.base"
 }

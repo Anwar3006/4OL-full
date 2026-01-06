@@ -78,6 +78,20 @@
       "when": 1767563835589,
       "tag": "0010_AddSymptomsTable",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1767621582282,
+      "tag": "0011_AddHealthyLivingTable",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1767655420366,
+      "tag": "0012_AddDateToHealthyLivingTable",
+      "breakpoints": true
     }
   ]
 }

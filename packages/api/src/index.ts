@@ -5,6 +5,7 @@ import { facilityProfileRouter } from "./routers/facility-profiles";
 import { marketingProfileRouter } from "./routers/marketing-profiles";
 import { conditionsRouter } from "./routers/conditions-router";
 import { symptomsRouter } from "./routers/symptoms-router";
+import { healthyLivingRouter } from "./routers/healthyLiving-router";
 
 export const appRouter = router({
   userProfiles: userProfilesRouter,
@@ -13,6 +14,7 @@ export const appRouter = router({
   marketingProfiles: marketingProfileRouter,
   conditionsRouter: conditionsRouter,
   symptomsRouter: symptomsRouter,
+  healthyLivingRouter: healthyLivingRouter,
 });
 
 // Export the type for the client

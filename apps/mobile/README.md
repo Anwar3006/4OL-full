@@ -1,322 +1,50 @@
-# 📱 React Native Mobile App
+# Welcome to your Expo app 👋
 
-React Native mobile app with tRPC integration and Better Auth authentication.
+This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
-## 🚀 Quick Start
+## Get started
 
-### Prerequisites
-- Node.js 18+
-- pnpm (or npm/yarn)
-- Expo CLI: `npm install -g expo-cli`
-- iOS Simulator (Mac) or Android Emulator
+1. Install dependencies
 
-### Installation
-
-```bash
-# Install dependencies
-pnpm install
-
-# Copy environment file
-cp .env.example .env
-
-# Update .env with your API URL
-# For local development: API_URL=http://localhost:3000
-# For device testing: API_URL=http://YOUR_LOCAL_IP:3000
-```
-
-### Run the App
-
-```bash
-# Start Expo
-pnpm start
-
-# Or run specific platform
-pnpm ios      # iOS Simulator
-pnpm android  # Android Emulator
-pnpm web      # Web browser
-```
-
-## 📦 What's Included
-
-### Core Setup
-- ✅ tRPC client with React Query
-- ✅ Better Auth integration
-- ✅ TypeScript configuration
-- ✅ Environment configuration
-
-### Features
-- 🔐 Authentication (login/signup/logout)
-- 🖼️ Image loading with signed URLs
-- 📋 Data fetching with caching
-- 🔄 Optimistic updates
-- 🔌 Offline support (via React Query)
-
-### Directory Structure
-```
-apps/mobile/
-├── lib/
-│   ├── auth-client.ts       # Better Auth client
-│   ├── trpc.ts              # tRPC React hooks
-│   └── trpc-client.ts       # tRPC client config
-├── providers/
-│   └── trpc-provider.tsx    # tRPC provider wrapper
-├── examples/
-│   ├── auth-examples.tsx    # Auth usage examples
-│   └── trpc-usage-examples.tsx  # API usage examples
-├── .env.example             # Environment template
-└── README.md
-```
-
-## 🔧 Configuration
-
-### Environment Variables
-
-Create `.env` file:
-```bash
-API_URL=http://localhost:3000
-```
-
-**For testing on physical device:**
-1. Find your computer's local IP:
    ```bash
-   # macOS/Linux
-   ifconfig | grep "inet "
-   
-   # Windows
-   ipconfig
+   npm install
    ```
 
-2. Update `.env`:
+2. Start the app
+
    ```bash
-   API_URL=http://192.168.1.100:3000
+   npx expo start
    ```
 
-3. Ensure backend allows connections:
-   ```typescript
-   // In your Next.js server
-   app.listen(3000, '0.0.0.0', () => {
-     console.log('Server running on all interfaces');
-   });
-   ```
+In the output, you'll find options to open the app in a
 
-### Backend Configuration
+- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
+- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
+- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
+- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
 
-Update `packages/api/src/auth.ts`:
-```typescript
-trustedOrigins: [
-  "http://localhost:3000",
-  "exp://",                    // Expo Go
-  "myapp://",                  // Your custom scheme
-  "http://192.168.1.100:3000", // Your local IP
-],
-```
+You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
 
-## 📖 Usage Examples
+## Get a fresh project
 
-### Authentication
+When you're ready, run:
 
-```typescript
-import { signIn, useSession } from './lib/auth-client';
-
-function LoginScreen() {
-  const handleLogin = async () => {
-    const result = await signIn.email({
-      email: 'user@example.com',
-      password: 'password123',
-    });
-    
-    if (result.error) {
-      console.error(result.error.message);
-    }
-  };
-}
-
-function ProfileScreen() {
-  const { data: session } = useSession();
-  
-  if (session?.user) {
-    return <Text>Welcome, {session.user.name}!</Text>;
-  }
-}
-```
-
-### API Calls
-
-```typescript
-import { trpc } from './lib/trpc';
-
-function FacilitiesList() {
-  const { data, isLoading } = trpc.facilityProfiles.getFacilities.useQuery({
-    type: 'hospitals_&_clinics',
-  });
-  
-  return (
-    <FlatList
-      data={data?.facilities}
-      renderItem={({ item }) => <Text>{item.facilityName}</Text>}
-    />
-  );
-}
-```
-
-### Image Loading
-
-```typescript
-import { trpc } from './lib/trpc';
-
-function FacilityImages({ imagePaths }) {
-  const { data: images } = trpc.mediaStorage.getImageUrl.useQuery({
-    paths: imagePaths,
-    isFacility: true,
-    width: 800,
-  });
-  
-  return (
-    <View>
-      {images?.map((img, i) => (
-        <Image key={i} source={{ uri: img.url }} />
-      ))}
-    </View>
-  );
-}
-```
-
-### Mutations
-
-```typescript
-import { trpc } from './lib/trpc';
-
-function CreateFacilityForm() {
-  const mutation = trpc.facilityProfiles.insertFacility.useMutation({
-    onSuccess: () => {
-      console.log('Facility created!');
-    },
-  });
-  
-  const handleSubmit = () => {
-    mutation.mutate({
-      facilityName: 'New Hospital',
-      facilityType: 'hospitals_&_clinics',
-      // ... other fields
-    });
-  };
-}
-```
-
-## 🔐 Protected Routes
-
-```typescript
-import { useSession } from './lib/auth-client';
-
-function ProtectedScreen() {
-  const { data: session, isLoading } = useSession();
-  
-  if (isLoading) {
-    return <ActivityIndicator />;
-  }
-  
-  if (!session?.user) {
-    return <Text>Please login</Text>;
-  }
-  
-  return <YourProtectedContent />;
-}
-```
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-**1. "Network request failed"**
-- Check API_URL in `.env`
-- Ensure backend is running
-- For physical device: use local IP, not localhost
-
-**2. "Unauthorized" errors**
-- Check if you're logged in
-- Verify token in SecureStore
-- Check backend CORS settings
-
-**3. Images not loading**
-- Use React Native's `<Image>` component
-- Check image URLs are valid
-- Verify network permissions
-
-**4. "expo-secure-store not found"**
 ```bash
-expo install expo-secure-store
+npm run reset-project
 ```
 
-### Debugging
+This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
 
-Enable detailed logging in `lib/trpc-client.ts`:
-```typescript
-fetch(url, options) {
-  console.log('Request:', url, options);
-  return fetch(url, options).then(res => {
-    console.log('Response:', res.status);
-    return res;
-  });
-}
-```
+## Learn more
 
-## 📱 Testing
+To learn more about developing your project with Expo, look at the following resources:
 
-### iOS Simulator
-```bash
-pnpm ios
-```
+- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
+- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
 
-### Android Emulator
-```bash
-pnpm android
-```
+## Join the community
 
-### Physical Device
-1. Install Expo Go app
-2. Scan QR code from terminal
-3. Update `.env` with your local IP
+Join our community of developers creating universal apps.
 
-## 🚀 Building for Production
-
-### Create Build
-```bash
-# iOS
-eas build --platform ios
-
-# Android
-eas build --platform android
-```
-
-### Update Environment
-```bash
-# Production .env
-API_URL=https://your-production-api.com
-```
-
-## 📚 Resources
-
-- [tRPC Documentation](https://trpc.io)
-- [Better Auth Documentation](https://www.better-auth.com)
-- [React Native Documentation](https://reactnative.dev)
-- [Expo Documentation](https://docs.expo.dev)
-- [React Query Documentation](https://tanstack.com/query)
-
-## 🤝 Need Help?
-
-Check the example files:
-- `examples/auth-examples.tsx` - Authentication patterns
-- `examples/trpc-usage-examples.tsx` - API call patterns
-
-## 📝 Next Steps
-
-1. ✅ Set up environment
-2. ✅ Configure authentication
-3. ✅ Test API connection
-4. 🚧 Build your screens
-5. 🚧 Add navigation
-6. 🚧 Implement features
-7. 🚧 Test on device
-8. 🚧 Deploy to stores
-
-Happy coding! 🎉
+- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
+- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.

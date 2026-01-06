@@ -30,22 +30,10 @@ export const facilityProfileRouter = router({
       if (userExists) {
         result = userExists;
       } else {
-        const authResult = await auth.api.signUpEmail({
-          body: {
-            name: `${input.firstName} ${input.lastName}`,
-            email: input.ownerEmail,
-            password: input.gpsAddress,
-          },
+        throw new TRPCError({
+          message: "Error creating betterAuth user",
+          code: "INTERNAL_SERVER_ERROR",
         });
-
-        if (!authResult.user) {
-          throw new TRPCError({
-            message: "Error creating betterAuth user",
-            code: "INTERNAL_SERVER_ERROR",
-          });
-        }
-
-        result = authResult.user;
       }
 
       try {
@@ -53,7 +41,7 @@ export const facilityProfileRouter = router({
           const existingProfile = await tx.query.user_profiles.findFirst({
             where: (up, { eq }) => eq(up.userId, result.id),
           });
-          // console.log("User : ", result);
+
           const newUserProfile = {
             userId: result.user ? result.user.id : result.id,
             firstName: input.firstName,
