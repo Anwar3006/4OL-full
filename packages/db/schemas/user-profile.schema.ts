@@ -6,7 +6,6 @@ import { Session } from "@4ol/api/src/auth";
 // For input validation
 export const userRegistrationSchema = z
   .object({
-    // userId: z.string(),
     firstName: z.string().min(2, "First name must be at least 2 characters"),
     lastName: z.string().min(2, "Last name must be at least 2 characters"),
     email: z.email("Invalid email address"),
@@ -23,7 +22,12 @@ export const userRegistrationSchema = z
     path: ["confirmPassword"],
   });
 
-export type UserRegistrationSchema = z.infer<typeof userRegistrationSchema>;
+const userRegistrationSchemaWithId = userRegistrationSchema.extend({
+  userId: z.string().optional(),
+});
+export type TUserProfileRegistrationInput = z.infer<
+  typeof userRegistrationSchemaWithId
+>;
 
 // Will be used by expo
 // User profile creation schema (for backend)
@@ -48,15 +52,15 @@ export const adminInviteSchema = z.object({
   email: z.email("Invalid email address"),
   role: z.enum(ROLE_ENUM),
   token: z.string(),
-  expiresAt: z.date(),
+  expires_at: z.date(),
 });
-export type AdminInviteSchema = z.infer<typeof adminInviteSchema>;
+export type TAdminInviteSchema = z.infer<typeof adminInviteSchema>;
 
 export const adminInviteInputSchema = z.object({
   role: z.enum(ROLE_ENUM),
   email: z.email(),
 });
-export type AdminInviteInputSchema = z.infer<typeof adminInviteInputSchema>;
+export type TAdminInviteInputSchema = z.infer<typeof adminInviteInputSchema>;
 //The above are for Form input validations
 
 //The below are actual types

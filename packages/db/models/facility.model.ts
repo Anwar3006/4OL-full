@@ -8,6 +8,7 @@ import {
   pgTable,
   text,
   timestamp,
+  uuid,
 } from "drizzle-orm/pg-core";
 import { nanoid } from "nanoid";
 import {
@@ -31,9 +32,7 @@ export const facilityTypeEnum = pgEnum(
 export const facilityProfile = pgTable(
   "facility_profile",
   {
-    id: text("id")
-      .primaryKey()
-      .$defaultFn(() => nanoid(10)),
+    id: uuid("id").primaryKey().defaultRandom(),
     ownerId: text("owner_id")
       .notNull()
       .references(() => user_profiles.userId, { onDelete: "cascade" }),

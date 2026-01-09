@@ -92,6 +92,20 @@
       "when": 1767655420366,
       "tag": "0012_AddDateToHealthyLivingTable",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1767711270577,
+      "tag": "0013_AddFAQTable",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1767960796949,
+      "tag": "0014_AddRoleToUserTable",
+      "breakpoints": true
     }
   ]
 }

@@ -1,10 +1,10 @@
 "use client";
 import { StatusMap } from "@/constants/facility.const";
-import { TFacilityTable } from "@4ol/db/schemas/facility-profile.schema";
+import { TFacilityProfileOutput } from "@4ol/db/schemas/facility-profile.schema";
 import { ColumnDef } from "@tanstack/react-table";
 import { Mail, Phone } from "lucide-react";
 
-export const facilityColumns: ColumnDef<TFacilityTable>[] = [
+export const facilityColumns: ColumnDef<TFacilityProfileOutput>[] = [
   {
     accessorKey: "type",
     header: () => (
@@ -12,7 +12,7 @@ export const facilityColumns: ColumnDef<TFacilityTable>[] = [
     ),
     cell: ({ row }) => (
       <div className="hidden 2xl:table-cell min-w-25">
-        <span className="text-sm">{row.original.facilityType}</span>
+        <span className="text-sm">{row.original.facility_type}</span>
       </div>
     ),
   },
@@ -21,7 +21,7 @@ export const facilityColumns: ColumnDef<TFacilityTable>[] = [
     header: () => <div className="font-semibold">Name</div>,
     cell: ({ row }) => (
       <div className="flex flex-col min-w-37.5">
-        <div className="font-medium text-sm">{row.original.facilityName}</div>
+        <div className="font-medium text-sm">{row.original.facility_name}</div>
       </div>
     ),
   },
@@ -48,7 +48,7 @@ export const facilityColumns: ColumnDef<TFacilityTable>[] = [
       <div className="hidden lg:table-cell min-w-35">
         <div className="flex items-center gap-2">
           <Phone className="h-3.5 w-3.5 text-muted-foreground" />
-          <span className="text-sm">{row.original.contactNumber}</span>
+          <span className="text-sm">{row.original.contact_number}</span>
         </div>
       </div>
     ),

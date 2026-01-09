@@ -16,6 +16,7 @@
   "type": "module",
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
+    "postgres": "^3.4.8",
     "zod": "^4.2.1"
   }
 }

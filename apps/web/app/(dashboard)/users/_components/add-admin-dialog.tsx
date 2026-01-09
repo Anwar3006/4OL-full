@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
 import { useAddAdminDialog } from "@/stores/dialog-store";
 import {
   adminInviteInputSchema,
-  AdminInviteInputSchema,
+  TAdminInviteInputSchema,
 } from "@4ol/db/schemas/user-profile.schema";
 import { ROLE_OPTIONS } from "@4ol/db/types/formInput";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -27,7 +27,7 @@ const AddAdminDialog = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const addAdminDialog = useAddAdminDialog();
 
-  const form = useForm<AdminInviteInputSchema>({
+  const form = useForm<TAdminInviteInputSchema>({
     resolver: zodResolver(adminInviteInputSchema),
     defaultValues: {
       role: "registrar",
@@ -35,7 +35,7 @@ const AddAdminDialog = () => {
     },
   });
 
-  const handleSubmit = async (data: AdminInviteInputSchema) => {
+  const handleSubmit = async (data: TAdminInviteInputSchema) => {
     try {
       setIsSubmitting(true);
 

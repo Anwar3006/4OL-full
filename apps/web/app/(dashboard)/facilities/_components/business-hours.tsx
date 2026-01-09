@@ -21,19 +21,19 @@ const TIME_OPTIONS = Array.from({ length: 48 }).map((_, i) => {
 
 export function BusinessHoursSection() {
   const { control, watch, setValue } = useFormContext();
-  const { fields } = useFieldArray({ control, name: "businessHours" });
+  const { fields } = useFieldArray({ control, name: "business_hours" });
 
   const sameForWeekdays = watch("sameForWeekdays");
-  const mondayHours = watch("businessHours.0"); // Monday is index 0
+  const mondayHours = watch("business_hours.0"); // Monday is index 0
 
   // ✅ The "Auto-populate" Logic
   useEffect(() => {
     if (sameForWeekdays && mondayHours) {
       // Indices 1 to 4 are Tue, Wed, Thu, Fri
       [1, 2, 3, 4].forEach((index) => {
-        setValue(`businessHours.${index}.open`, mondayHours.open);
-        setValue(`businessHours.${index}.close`, mondayHours.close);
-        setValue(`businessHours.${index}.isClosed`, mondayHours.isClosed);
+        setValue(`business_hours.${index}.open`, mondayHours.open);
+        setValue(`business_hours.${index}.close`, mondayHours.close);
+        setValue(`business_hours.${index}.isClosed`, mondayHours.isClosed);
       });
     }
   }, [sameForWeekdays, mondayHours, setValue]);
@@ -66,13 +66,13 @@ export function BusinessHoursSection() {
             <div className="flex items-center gap-2 flex-1">
               <Select
                 disabled={
-                  watch(`businessHours.${index}.isClosed`) ||
+                  watch(`business_hours.${index}.isClosed`) ||
                   (index > 0 && sameForWeekdays && index < 5)
                 }
                 onValueChange={(v) =>
-                  setValue(`businessHours.${index}.open`, v)
+                  setValue(`business_hours.${index}.open`, v)
                 }
-                value={watch(`businessHours.${index}.open`)}
+                value={watch(`business_hours.${index}.open`)}
               >
                 <SelectTrigger className="min-w-19 w-full text-xs md:text-sm">
                   <SelectValue />
@@ -92,13 +92,13 @@ export function BusinessHoursSection() {
 
               <Select
                 disabled={
-                  watch(`businessHours.${index}.isClosed`) ||
+                  watch(`business_hours.${index}.isClosed`) ||
                   (index > 0 && sameForWeekdays && index < 5)
                 }
                 onValueChange={(v) =>
-                  setValue(`businessHours.${index}.close`, v)
+                  setValue(`business_hours.${index}.close`, v)
                 }
-                value={watch(`businessHours.${index}.close`)}
+                value={watch(`business_hours.${index}.close`)}
               >
                 <SelectTrigger className="min-w-19 w-full text-xs md:text-sm">
                   <SelectValue />
@@ -116,9 +116,9 @@ export function BusinessHoursSection() {
             <div className="flex items-center gap-2">
               <Checkbox
                 onCheckedChange={(v: any) =>
-                  setValue(`businessHours.${index}.isClosed`, !!v)
+                  setValue(`business_hours.${index}.isClosed`, !!v)
                 }
-                checked={watch(`businessHours.${index}.isClosed`)}
+                checked={watch(`business_hours.${index}.isClosed`)}
               />
               <Label className="text-[0.5rem] md:text-xs">Closed</Label>
             </div>

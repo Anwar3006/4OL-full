@@ -32,57 +32,56 @@ import {
 } from "@/stores/dialog-store";
 import BusinessHoursDisplay from "@/app/(dashboard)/facilities/_components/business-hours-display";
 import { Button } from "../ui/button";
+import { toUppercaseFirstLetter } from "@/lib/utils";
+import {
+  useApproveFacility,
+  useFacilityProfile,
+} from "@/hooks/supabase-calls/useFacilities";
+import { useGetSignedUrls } from "@/hooks/supabase-calls/useMediaStorage";
 
 export function FacilityViewDialog() {
   const viewDialog = useViewFacilityDialog();
   const addDialog = useAddFacilityDialog();
 
-  const { data: facilityData, isLoading } =
-    trpc.facilityProfiles.getById.useQuery(
-      { id: viewDialog.entityId! },
-      { enabled: !!viewDialog.entityId }
-    );
+  const { data: facilityData, isLoading: isFacilityLoading } =
+    useFacilityProfile({
+      id: viewDialog.entityId!,
+      enabled: !!viewDialog.entityId,
+    });
 
-  const { data: imageUrls } = trpc.mediaStorage.getImageUrl.useQuery(
-    {
-      isFacility: true,
-      paths: facilityData?.mediaUrls as string[],
-      width: 800,
-    },
-    {
-      enabled: viewDialog.isOpen && !!facilityData?.mediaUrls,
-    }
+  const { data: imageUrls, isLoading: isImagesLoading } = useGetSignedUrls(
+    facilityData?.media_urls as string[],
+    viewDialog.isOpen && !!facilityData
   );
 
-  const { mutateAsync, isPending } =
-    trpc.facilityProfiles.approveFacility.useMutation();
-  const utils = trpc.useUtils();
+  const { mutateAsync: approveFacilityMutation, isPending: isApprovePending } =
+    useApproveFacility();
+
+  const isLoading = isFacilityLoading || isImagesLoading;
+
+  console.log("Data : ", facilityData);
 
   const facility = {
     ...facilityData,
     region: facilityData?.region
       ?.split(" ")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .map(toUppercaseFirstLetter)
       .join(" "),
   };
 
   //   Approve Registered Facility
   const handleApproval = async () => {
     try {
-      const result = await mutateAsync({
-        facilityId: facility.id as string,
-        imageKeys: facility.mediaUrls as string[],
+      const result = await approveFacilityMutation({
+        id: facility.id as string,
+        status: facility.status as string,
+        media_urls: facility.media_urls as string[],
       });
-      if (result.code !== "OK") {
-        throw new Error(result.message);
-      }
-      utils.facilityProfiles.invalidate();
-      toast.success("Facility approved successfully!");
-      viewDialog.close();
     } catch (error) {
       console.error("Error approving facility: ", error);
-      toast.error("Error approving facility: " + (error as Error).message);
       return;
+    } finally {
+      viewDialog.close();
     }
   };
   //   Edit Registered Facility
@@ -100,17 +99,18 @@ export function FacilityViewDialog() {
         <SheetHeader>
           <VisuallyHidden.Root>
             <SheetTitle>
-              Facility Details for {facility.facilityName}
+              Facility Details for {facility.facility_name}
             </SheetTitle>
           </VisuallyHidden.Root>
         </SheetHeader>
-        {isLoading ? (
+        {isLoading && (
           <div className="p-10 animate-pulse space-y-4">
             <div className="h-64 bg-muted rounded-xl" />
             <div className="h-10 w-1/2 bg-muted rounded" />
             <div className="h-4 w-1/4 bg-muted rounded" />
           </div>
-        ) : facility ? (
+        )}
+        {facility ? (
           <>
             <ScrollArea className="flex-1">
               {/* 1. Immersive Hero Gallery */}
@@ -175,10 +175,10 @@ export function FacilityViewDialog() {
                     <div className="space-y-1">
                       <div className="flex items-center gap-2 text-primary font-semibold text-sm uppercase tracking-wider">
                         <Building2 className="w-4 h-4" />
-                        {facility.facilityType}
+                        {facility.facility_type}
                       </div>
                       <SheetTitle className="text-4xl font-black tracking-tight text-foreground">
-                        {facility.facilityName}
+                        {facility.facility_name}
                       </SheetTitle>
                     </div>
                     <Badge
@@ -201,10 +201,10 @@ export function FacilityViewDialog() {
                       <Globe className="w-4 h-4" /> {facility.country}
                     </span>
                     {/* </div> */}
-                    {facility.contactNumber && (
+                    {facility.contact_number && (
                       <span className="flex items-center gap-2">
                         <PhoneCall className="w-4 h-4" />
-                        {facility.contactNumber}
+                        {facility.contact_number}
                       </span>
                     )}
                     {facility.email && (
@@ -256,7 +256,7 @@ export function FacilityViewDialog() {
 
                   <section className="space-y-4">
                     <BusinessHoursDisplay
-                      businessHours={facility.businessHours as any}
+                      businessHours={facility.business_hours as any}
                     />
                   </section>
                 </div>
@@ -276,23 +276,23 @@ export function FacilityViewDialog() {
                     <DetailItem
                       icon={User}
                       label="Primary Contact"
-                      value={`${facility.firstName} ${facility.lastName}`}
+                      value={`${facility.first_name} ${facility.last_name}`}
                       subValue={facility.position || "Administrator"}
                     />
                     <DetailItem
                       icon={Mail}
                       label="Official Correspondence"
-                      value={facility.ownerEmail}
+                      value={facility.owner_email}
                     />
                     <DetailItem
                       icon={Phone}
                       label="Direct Line"
-                      value={facility.personContactNumber}
+                      value={facility.person_contact_number}
                     />
                     <DetailItem
                       icon={Calendar}
                       label="Registration Date"
-                      value={new Date(facility.createdAt!).toLocaleDateString(
+                      value={new Date(facility.created_at!).toLocaleDateString(
                         undefined,
                         {
                           dateStyle: "long",
@@ -325,10 +325,10 @@ export function FacilityViewDialog() {
                 <>
                   <button
                     onClick={handleApproval}
-                    disabled={isPending}
+                    disabled={isApprovePending}
                     className="flex-1 bg-emerald-600 text-white font-bold py-3 rounded-xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-200 flex items-center justify-center"
                   >
-                    {isPending ? (
+                    {isApprovePending ? (
                       <Loader2 size={16} className="animate-spin" />
                     ) : (
                       "Approve Registration"

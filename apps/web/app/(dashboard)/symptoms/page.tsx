@@ -1,18 +1,18 @@
 "use client";
 import SectionHeader from "@/components/SectionHeader";
 import { PlusCircleIcon } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import ConditionsStats from "../diseases_&_conditions/_components/ConditionStats";
 import {
   useAddConditionDialog,
   useViewConditionDialog,
 } from "@/stores/dialog-store";
 import AddSymptomDialog from "./_components/add-symptom-dialog";
-import { trpc } from "@/lib/trpc";
 import ViewSymptomDialog from "./_components/view-symptom-dialog";
 import { createPaginationHandlers } from "@/lib/utils";
 import { DataTable } from "@/components/Data-Table/data-table";
 import { symptomsColumns } from "@/components/Data-Table/columns/symptomsColumns";
+import { useSymptoms } from "@/hooks/supabase-calls/useSymptoms";
 
 const SymptomsPage = () => {
   const addSymptom = useAddConditionDialog();
@@ -22,13 +22,16 @@ const SymptomsPage = () => {
   const [page, setPage] = useState<number>(1);
   const [bodyPart, setBodyPart] = useState<string | null>();
 
-  //============== TRPC calls
-  const { data, isLoading } = trpc.symptomsRouter.getAll.useQuery({
+  //============== Supabase hook invocation
+  const { data, isLoading } = useSymptoms({
     limit,
     page,
   });
 
-  const pagination = createPaginationHandlers(page, setPage);
+  const pagination = useMemo(
+    () => createPaginationHandlers(page, setPage, data?.meta.totalPages),
+    [page, data?.meta.totalPages]
+  );
 
   useEffect(() => {
     if (data?.analytics?.mostAffectedBodyParts) {

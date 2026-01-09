@@ -3,18 +3,31 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
 // import { expo } from "@better-auth/expo"; install this later when you setup expo
 
-import { db } from "@4ol/db/index";
-import { user_profiles } from "@4ol/db/models/auth.model";
+import { db, dbTransact } from "@4ol/db/index";
+import { admin } from "better-auth/plugins";
 
 const isProd = process.env.NODE_ENV === "production";
 
 export const auth = betterAuth({
-  database: drizzleAdapter(db, {
+  database: drizzleAdapter(dbTransact, {
     provider: "pg", // or "mysql", "sqlite"
   }),
   emailAndPassword: {
     enabled: true,
     // autoSignIn: false,
+  },
+  user: {
+    additionalFields: {
+      role: {
+        type: "string",
+        defaultValue: "user", // Match your DB default
+        input: false, // Prevents users from setting their own role during sign-up
+      },
+      banned: {
+        type: "boolean",
+        defaultValue: false,
+      },
+    },
   },
 
   trustedOrigins: [
@@ -26,6 +39,7 @@ export const auth = betterAuth({
   plugins: [
     nextCookies(),
     // expo() //uncomment when you setup expo and install @better-auth/expo
+    admin(),
   ],
 });
 

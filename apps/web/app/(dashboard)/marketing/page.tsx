@@ -3,7 +3,7 @@ import { StatsCard, TableSkeleton } from "@/components/Data-Table/helpers";
 import SectionHeader from "@/components/SectionHeader";
 import { Input } from "@/components/ui/input";
 import { PlusSquare, Search } from "lucide-react";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import AddFacilityDialog from "@/app/(dashboard)/facilities/_components/add-facility-dialog";
 import MarketingDialog from "./_components/marketing-dialog";
 import { trpc } from "@/lib/trpc";
@@ -18,6 +18,7 @@ import {
   useViewMarketingDialog,
 } from "@/stores/dialog-store";
 import AddMarketingDialog from "./_components/marketing-dialog";
+import { useMarketingProfiles } from "@/hooks/supabase-calls/useMarketing";
 
 const MarketingPage = () => {
   const addMarket = useAddMarketingDialog();
@@ -25,22 +26,20 @@ const MarketingPage = () => {
 
   const [adsSearch, setAdsSearch] = useState("");
   const [adsPage, setAdsPage] = useState(1);
-  //   const [openDialog, setOpenDialog] = useState(false);
   const limit = 10;
 
   // Call trpc procedure
-  const { data: adsData, isLoading } =
-    trpc.marketingProfiles.getCampaigns.useQuery({
-      search: adsSearch,
-      page: adsPage,
-      limit: limit,
-      status: "active",
-    });
+  const { data: adsData, isLoading } = useMarketingProfiles({
+    search: adsSearch,
+    page: adsPage,
+    limit: limit,
+    status: "live",
+  });
 
-  const adsPagination = createPaginationHandlers(
-    adsPage,
-    setAdsPage,
-    adsData?.totalPages
+  const adsPagination = useMemo(
+    () =>
+      createPaginationHandlers(adsPage, setAdsPage, adsData?.meta.totalPages),
+    [adsPage, adsData?.meta.totalPages]
   );
 
   const fetchingAds = false;
@@ -88,30 +87,33 @@ const MarketingPage = () => {
 
             {/* Stats Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-              <StatsCard label="Total Campaigns" value={adsData?.total || 0} />
+              <StatsCard
+                label="Total Campaigns"
+                value={adsData?.meta.total || 0}
+              />
               <StatsCard
                 label="Draft"
-                value={adsData?.stats?.draft || 0}
+                value={adsData?.analytics?.draft || 0}
                 variant="neutral"
               />
               <StatsCard
                 label="Scheduled"
-                value={adsData?.stats?.scheduled || 0}
+                value={adsData?.analytics?.scheduled || 0}
                 variant="info"
               />
               <StatsCard
                 label="Live"
-                value={adsData?.stats?.live || 0}
+                value={adsData?.analytics?.live || 0}
                 variant="success"
               />
               <StatsCard
                 label="Paused"
-                value={adsData?.stats?.paused || 0}
+                value={adsData?.analytics?.paused || 0}
                 variant="warning"
               />
               <StatsCard
                 label="Ended"
-                value={adsData?.stats?.ended || 0}
+                value={adsData?.analytics?.ended || 0}
                 variant="red"
               />
             </div>
@@ -120,18 +122,18 @@ const MarketingPage = () => {
 
             <DataTable
               columns={marketingColumns}
-              data={adsData?.campaigns || []}
+              data={adsData?.data || []}
               cardConfig={marketingCardConfig}
               onRowClick={(campaign) => viewMarket.open(campaign.id)}
               pagination={{
                 currentPage: adsPage,
-                totalPages: adsData?.totalPages || 1,
-                totalItems: adsData?.total || 0,
+                totalPages: adsData?.meta.totalPages || 1,
+                totalItems: adsData?.meta.total || 0,
                 pageSize: limit,
                 onPageChange: adsPagination.goTo,
                 onNextPage: adsPagination.next,
                 onPreviousPage: adsPagination.previous,
-                canNextPage: adsPage < (adsData?.totalPages || 1),
+                canNextPage: adsPage < (adsData?.meta.totalPages || 1),
                 canPreviousPage: adsPage > 1,
               }}
               isLoading={isLoading} // Show loading indicator during refetch

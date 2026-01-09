@@ -15,10 +15,10 @@ export const marketingProfileSchema = z.object({
   cta: z.string().min(1, "Please select a Call to Action"),
 });
 
-export type MarketingProfileInput = z.infer<typeof marketingProfileSchema>;
+export type TMarketingProfileInput = z.infer<typeof marketingProfileSchema>;
 
 const selectSchema = createSelectSchema(marketingProfile).omit({
   createdAt: true,
   updatedAt: true,
 });
-export type TMarketingProfile = z.infer<typeof selectSchema>;
+export type TMarketingProfileOutput = z.infer<typeof selectSchema>;

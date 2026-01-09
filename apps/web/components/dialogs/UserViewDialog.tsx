@@ -28,6 +28,7 @@ import { StatusMap, RoleMap } from "@/constants/users.const";
 import { TUserProfile } from "@4ol/db/schemas/user-profile.schema";
 import { useState } from "react";
 import { useViewUserDialog } from "@/stores/dialog-store";
+import { useUser } from "@/hooks/supabase-calls/useUser";
 
 export function UserViewDialog({
   Dialog,
@@ -37,10 +38,10 @@ export function UserViewDialog({
   const { isOpen, entityId, close } = useViewUserDialog();
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  const { data: user, isLoading } = trpc.userProfiles.getById.useQuery(
-    { id: entityId! },
-    { enabled: isOpen && !!entityId }
-  );
+  const { data: user, isLoading } = useUser({
+    id: entityId!,
+    enabled: isOpen && !!entityId,
+  });
 
   const userData = user as TUserProfile;
 

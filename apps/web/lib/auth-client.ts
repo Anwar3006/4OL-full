@@ -1,5 +1,6 @@
 import { createAuthClient } from "better-auth/react"; // make sure to import from better-auth/react
 import { adminClient } from "better-auth/client/plugins";
+import { admin } from "better-auth/plugins";
 
 const API_URL =
   process.env.NODE_ENV === "production"

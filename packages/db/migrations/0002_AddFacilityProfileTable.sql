@@ -3,7 +3,7 @@ CREATE TYPE "public"."facility_status_enum" AS ENUM('pending', 'active', 'reject
 CREATE TYPE "public"."facility_type_enum" AS ENUM('hospitals_&_clinics', 'herbal_centers', 'diagnostic_labs', 'pharmacies', 'dental_clinics', 'homes', 'eye_clinics', 'osteopathy_centers', 'physiotherapy_centers', 'prosthetics_centers', 'psychiatric_centers', 'ibps');--> statement-breakpoint
 CREATE TYPE "public"."region_enum" AS ENUM('ahafo', 'ashanti', 'bono', 'bono east', 'central', 'eastern', 'greater accra', 'north east', 'northern', 'oti', 'savannah', 'upper east', 'upper west', 'volta', 'western', 'western north');--> statement-breakpoint
 CREATE TABLE "facility_profile" (
-	"id" text PRIMARY KEY NOT NULL,
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"owner_id" text NOT NULL,
 	"facility_type" text NOT NULL,
 	"facility_name" text NOT NULL,
@@ -21,8 +21,8 @@ CREATE TABLE "facility_profile" (
 	"latitude" double precision NOT NULL,
 	"longitude" double precision NOT NULL,
 	"location" geometry(point),
-	"hospital_services" jsonb,
-	"hospital_amenities" jsonb,
+	"services" jsonb,
+	"amenities" jsonb,
 	"first_name" text NOT NULL,
 	"last_name" text NOT NULL,
 	"owner_email" text NOT NULL,

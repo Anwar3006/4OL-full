@@ -1,4 +1,11 @@
-import { jsonb, pgEnum, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import {
+  jsonb,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+} from "drizzle-orm/pg-core";
 import { MARKETING_STATUS_ENUM, MARKETING_TYPE_ENUM } from "../types/formInput";
 import { sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
@@ -13,9 +20,7 @@ export const marketingStatusEnum = pgEnum(
 );
 
 export const marketingProfile = pgTable("marketing_profile", {
-  id: text()
-    .primaryKey()
-    .$defaultFn(() => nanoid(6)),
+  id: uuid().primaryKey().defaultRandom(),
   marketingType: marketingTypeEnum().notNull(),
   status: marketingStatusEnum("status").default("draft").notNull(),
   headline: text().notNull(),

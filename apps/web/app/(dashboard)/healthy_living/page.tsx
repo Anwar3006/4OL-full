@@ -1,10 +1,10 @@
 "use client";
 import SectionHeader from "@/components/SectionHeader";
 import { PlusCircleIcon } from "lucide-react";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import ConditionsStats from "../diseases_&_conditions/_components/ConditionStats";
 import { DataTable } from "@/components/Data-Table/data-table";
-import { trpc } from "@/lib/trpc";
+
 import { createPaginationHandlers } from "@/lib/utils";
 import {
   useAddHealthyLivingDialog,
@@ -13,18 +13,21 @@ import {
 import { healthyLivingColumns } from "@/components/Data-Table/columns/healthyLivingColumns";
 import { healthyLivingCardConfig } from "@/components/Data-Table/mobile-table-configs/healthyLivingCardConfig";
 import AddHealthyLivingDialog from "./_components/add-healthyLiving-dialog";
+import { useHealthyLivings } from "@/hooks/supabase-calls/useHealthyLiving";
+import ViewHealthyLivingDialog from "./_components/view-healthyLiving-dialog";
 
 const HealthyLivingPage = () => {
   const addHealthLiving = useAddHealthyLivingDialog();
   const viewHealthyLiving = useViewHealthyLivingDialog();
   const [page, setPage] = useState(1);
-  const pagination = createPaginationHandlers(page, setPage);
   const limit = 10;
 
-  const { data, isLoading } = trpc.healthyLivingRouter.getAll.useQuery({
-    page,
-    limit,
-  });
+  const { data, isLoading } = useHealthyLivings({ page, limit });
+
+  const pagination = useMemo(
+    () => createPaginationHandlers(page, setPage, data?.meta.totalPages),
+    [page, data?.meta.totalPages]
+  );
 
   return (
     <section className="container mx-auto lg:px-4 py-4 sm:py-6 lg:pb-10 lg:pt-2 max-w-7xl">
@@ -68,6 +71,7 @@ const HealthyLivingPage = () => {
       />
 
       <AddHealthyLivingDialog />
+      <ViewHealthyLivingDialog />
     </section>
   );
 };

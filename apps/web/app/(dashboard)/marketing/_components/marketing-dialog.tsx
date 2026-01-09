@@ -12,7 +12,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import {
-  MarketingProfileInput,
+  TMarketingProfileInput,
   marketingProfileSchema,
 } from "@4ol/db/schemas/marketing-profile.schema";
 import { toast } from "sonner";
@@ -33,8 +33,12 @@ import { Card } from "@/components/ui/card";
 import { Phone, ExternalLink, Calendar } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAddMarketingDialog } from "@/stores/dialog-store";
+import {
+  useCreateMarketingProfile,
+  useUpdateMarketingProfile,
+} from "@/hooks/supabase-calls/useMarketing";
 
-const STEP_1_FIELDS: (keyof MarketingProfileInput)[] = [
+const STEP_1_FIELDS: (keyof TMarketingProfileInput)[] = [
   "marketingType",
   "headline",
   "cta",
@@ -48,7 +52,7 @@ const STEP_1_FIELDS: (keyof MarketingProfileInput)[] = [
 const AddMarketingDialog = () => {
   const addMarketingDialog = useAddMarketingDialog();
 
-  const form = useForm<MarketingProfileInput>({
+  const form = useForm<TMarketingProfileInput>({
     resolver: zodResolver(marketingProfileSchema),
     defaultValues: {
       marketingType: "ads",
@@ -82,9 +86,10 @@ const AddMarketingDialog = () => {
   const formValues = form.watch();
   const uploadedImagePath = formValues.imageUrl;
 
-  // trpc
-  const { mutateAsync, isPending } =
-    trpc.marketingProfiles.createCampaign.useMutation();
+  const { mutateAsync, isPending } = useCreateMarketingProfile();
+  const { mutateAsync: mutateAsyncEdit, isPending: isPendingEdit } =
+    useUpdateMarketingProfile();
+
   const { data, isLoading } = trpc.mediaStorage.getImageUrl.useQuery(
     {
       paths: [uploadedImagePath as string],
@@ -94,7 +99,6 @@ const AddMarketingDialog = () => {
       enabled: hasUploadedImage,
     }
   );
-  const utils = trpc.useUtils(); // Access the tRPC utility helper
 
   useEffect(() => {
     if (!addMarketingDialog.isOpen) {
@@ -116,18 +120,24 @@ const AddMarketingDialog = () => {
     setStep(2);
   };
 
-  const handleSubmit = async (data: MarketingProfileInput) => {
+  const handleSubmit = async (data: TMarketingProfileInput) => {
     try {
       console.log("Marketing: ", data);
-      await mutateAsync(data);
-      toast.success("Campaign created successfully!");
 
-      // ✅ Invalidate the list query to trigger an automatic refetch
-      utils.marketingProfiles.getCampaigns.invalidate();
+      if (addMarketingDialog.isEditMode && addMarketingDialog.data?.id) {
+        await mutateAsyncEdit({
+          id: addMarketingDialog.data.id,
+          data,
+        });
+      }
+
+      await mutateAsync(data);
       addMarketingDialog.close();
     } catch (error) {
       console.error("Error: ", error);
-      toast.error("Error: " + (error as Error).message);
+    } finally {
+      form.reset();
+      setStep(1);
     }
   };
 

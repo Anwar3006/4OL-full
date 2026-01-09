@@ -106,3 +106,7 @@ export const canAccessRoute = (role: TUserProfile["role"], route: string) => {
   }
   return allowedRoutes.includes(route);
 };
+
+export const toUppercaseFirstLetter = (str: string) => {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+};

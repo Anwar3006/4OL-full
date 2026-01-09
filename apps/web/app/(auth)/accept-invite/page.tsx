@@ -2,6 +2,7 @@ import RegisterForm from "../_components/RegisterForm";
 
 import { redirect } from "next/navigation";
 import { serverApi } from "@/lib/trpc-serverCaller";
+import { useGetInvitedAdmin } from "@/hooks/supabase-calls/useUser";
 
 export default async function AcceptInvitePage({
   searchParams,
@@ -14,10 +15,19 @@ export default async function AcceptInvitePage({
     return redirect("/register");
   }
 
-  const api = serverApi();
-  const invite = await (await api).userProfiles.getInvitedAdmin({ token });
+  const { data: invite, isLoading } = useGetInvitedAdmin({ token });
 
-  const expiresAt = invite?.expiresAt
+  if (isLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-gray-50 p-4 text-center">
+        <div className="max-w-md rounded-lg bg-white p-8 shadow-sm border border-emerald-100">
+          <h1 className="text-xl font-semibold text-gray-900">Loading...</h1>
+        </div>
+      </div>
+    );
+  }
+
+  const expiresAt = invite?.expires_at
     ? typeof invite.expiresAt === "string"
       ? new Date(invite.expiresAt)
       : invite.expiresAt

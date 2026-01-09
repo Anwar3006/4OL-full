@@ -1,7 +1,7 @@
 CREATE TYPE "public"."marketing_status_enum" AS ENUM('draft', 'scheduled', 'live', 'paused', 'ended');--> statement-breakpoint
 CREATE TYPE "public"."marketing_type_enum" AS ENUM('ads', 'events', 'news', 'health', 'other');--> statement-breakpoint
 CREATE TABLE "marketing_profile" (
-	"id" text PRIMARY KEY NOT NULL,
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"marketingType" "marketing_type_enum" NOT NULL,
 	"status" "marketing_status_enum" DEFAULT 'draft' NOT NULL,
 	"headline" text NOT NULL,

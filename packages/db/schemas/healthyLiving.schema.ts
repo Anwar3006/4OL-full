@@ -7,15 +7,15 @@ export const healthyLivingSchema = z.object({
   about: richTextSchema,
   types: z.array(
     z.object({
-      typeName: z.string(),
-      aboutType: richTextSchema,
+      type_name: z.string(),
+      about_type: richTextSchema,
     })
   ),
   category: richTextSchema,
-  contactYourDoctor: richTextSchema,
-  moreInformation: richTextSchema,
+  contact_your_doctor: richTextSchema,
+  more_information: richTextSchema,
   attribution: richTextSchema,
-  imageUrl: z.string(),
+  image_url: z.string(),
 });
 
 export type THealthyLivingInput = z.infer<typeof healthyLivingSchema>;

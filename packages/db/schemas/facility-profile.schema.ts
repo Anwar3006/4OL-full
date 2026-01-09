@@ -23,55 +23,59 @@ export const businessDaySchema = z.object({
 });
 export type BusinessDay = z.infer<typeof businessDaySchema>;
 
-export const facilityProfileSchema = z
-  .object({
-    // ownerId: z.string(),
-    facilityType: z.enum(FACILITY_TYPE_ENUM),
-    facilityName: z.string().min(1, "Please enter facility name"),
-    contactNumber: z.string().min(1, "Please enter facility contact number"),
-    whatsappNumber: z.string().optional(),
-    email: z.email().optional(),
-    mediaUrls: z.array(z.string()),
+export const facilityProfileSchema = z.object({
+  ownerId: z.string().optional(),
+  facility_type: z.enum(FACILITY_TYPE_ENUM),
+  facility_name: z.string().min(1, "Please enter facility name"),
+  contact_number: z.string().min(1, "Please enter facility contact number"),
+  whatsapp_number: z.string().optional(),
+  email: z.email().optional(),
+  media_urls: z.array(z.string()),
 
-    gpsAddress: z.string().min(1, "Please enter facility gps address"),
-    street: z.string().min(1, "Please enter facility street"),
-    postCode: z.string().min(1, "Please enter facility post code"),
-    area: z.string().min(1, "Please enter facility area"),
-    district: z.string().min(1, "Please enter facility district"),
-    region: z.enum(GHANA_REGIONS_ENUM).default("greater accra"),
-    country: z.string().default("Ghana"),
+  gps_address: z.string().min(1, "Please enter facility gps address"),
+  street: z.string().min(1, "Please enter facility street"),
+  post_code: z.string().min(1, "Please enter facility post code"),
+  area: z.string().min(1, "Please enter facility area"),
+  district: z.string().min(1, "Please enter facility district"),
+  region: z.enum(GHANA_REGIONS_ENUM).default("greater accra"),
+  country: z.string().default("Ghana"),
 
-    // Coordinates are numbers in Zod
-    latitude: z.number({ error: "Latitude must be a number" }),
-    longitude: z.number({ error: "Longitude must be a number" }),
+  // Coordinates are numbers in Zod
+  latitude: z.number({ error: "Latitude must be a number" }),
+  longitude: z.number({ error: "Longitude must be a number" }),
 
-    services: z.array(z.string()).min(1, "Please select at least one service"),
-    amenities: z.array(z.string()).min(1, "Please select at least one amenity"),
+  services: z.array(z.string()).min(1, "Please select at least one service"),
+  amenities: z.array(z.string()).min(1, "Please select at least one amenity"),
 
-    firstName: z.string().min(1, "First name is required"),
-    lastName: z.string().min(1, "Last name is required"),
-    ownerEmail: z.email("Invalid owner email"),
-    personContactNumber: z.string().min(1, "Personal contact is required"),
-    position: z.string().optional(),
+  first_name: z.string().min(1, "First name is required"),
+  last_name: z.string().min(1, "Last name is required"),
+  owner_email: z.email("Invalid owner email"),
+  person_contact_number: z.string().min(1, "Personal contact is required"),
+  position: z.string().optional(),
 
-    // ✅ Structured Business Hours
-    businessHours: z.array(businessDaySchema),
+  // ✅ Structured Business Hours
+  business_hours: z.array(businessDaySchema),
 
-    keywords: z.string(),
-  })
-  .refine((data) => data.mediaUrls.length >= 6, {
-    message: "Please ensure you upload at least 6 images",
-    path: ["mediaUrls"],
-  });
+  keywords: z.string(),
+});
+// .refine((data) => data.mediaUrls.length >= 6, {
+//   message: "Please ensure you upload at least 6 images",
+//   path: ["mediaUrls"],
+// });
 
-export type FacilityProfileInput = z.infer<typeof facilityProfileSchema>;
+export type TFacilityProfileInput = z.infer<typeof facilityProfileSchema>;
 
-const facilitySchema = createSelectSchema(facilityProfile).extend({
-  createdAt: z.string() || z.date(),
-  mediaUrls: z.array(z.string()),
+const facilitySchema = facilityProfileSchema.extend({
+  id: z.string(),
+  created_at: z.string() || z.date(),
+  media_urls: z.array(z.string()),
   amenities: z.array(z.string()),
   services: z.array(z.string()),
-  businessHours: z.array(businessDaySchema),
-  approvedAt: z.string() || z.date(),
+  business_hours: z.array(businessDaySchema),
+  approved_at: z.string() || z.date(),
+  avg_rating: z.number(),
+  keywords: z.array(z.string()),
+  location: z.any(),
+  status: z.string(),
 });
-export type TFacilityTable = z.infer<typeof facilitySchema>;
+export type TFacilityProfileOutput = z.infer<typeof facilitySchema>;

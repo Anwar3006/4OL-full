@@ -4,7 +4,7 @@ import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 type Props = {};
 const MedicalNetworkGrowth = ({}: Props) => {
   return (
-    <div>
+    <div className="w-full h-full">
       <div className="flex justify-between items-center mb-4">
         <div className="flex flex-col">
           <h3 className="font-semibold text-gray-700">
@@ -18,7 +18,8 @@ const MedicalNetworkGrowth = ({}: Props) => {
           Live updates
         </span>
       </div>
-      <div className="h-75 w-full">
+
+      <div className="h-80 w-full min-w-0">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
             data={[

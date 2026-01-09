@@ -2,7 +2,7 @@
 import SectionHeader from "@/components/SectionHeader";
 import { trpc } from "@/lib/trpc";
 import { useParams } from "next/navigation";
-import React from "react";
+import React, { useMemo } from "react";
 import AddFacilityDialog from "../_components/add-facility-dialog";
 import { Loader2, PlusCircleIcon } from "lucide-react";
 import { StatsCard } from "@/components/Data-Table/helpers";
@@ -15,6 +15,7 @@ import {
   useAddFacilityDialog,
   useViewFacilityDialog,
 } from "@/stores/dialog-store";
+import { useFacilityProfiles } from "@/hooks/supabase-calls/useFacilities";
 
 const FacilityPage = () => {
   const params = useParams();
@@ -24,11 +25,20 @@ const FacilityPage = () => {
 
   const [page, setPage] = React.useState(1);
   const limit = 10;
-  const facilitiesPagination = createPaginationHandlers(page, setPage);
 
-  const { data, isLoading } = trpc.facilityProfiles.getFacilities.useQuery({
+  const { data, isLoading } = useFacilityProfiles({
+    limit: limit,
+    page: page,
     type: type,
+    includeStatsOnly: false,
   });
+
+  const facilitiesPagination = useMemo(
+    () => createPaginationHandlers(page, setPage, data?.analytics?.totalPages),
+    [page, data?.analytics?.totalPages]
+  );
+
+  console.log(">>> ", data);
 
   const sectionTitle = type
     .replace(/_/g, " ") // Replace underscores with spaces
@@ -61,22 +71,22 @@ const FacilityPage = () => {
           <StatsCard label="Total Registered" value={data?.meta?.total || 0} />
           <StatsCard
             label="Active"
-            value={data?.stats?.active || 0}
+            value={data?.analytics?.active || 0}
             variant="success"
           />
           <StatsCard
             label="Pending"
-            value={data?.stats?.pending || 0}
+            value={data?.analytics?.pending || 0}
             variant="warning"
           />
           <StatsCard
             label="Inactive"
-            value={data?.stats?.inactive || 0}
+            value={data?.analytics?.inactive || 0}
             variant="neutral"
           />
           <StatsCard
             label="Rejected"
-            value={data?.stats?.rejected || 0}
+            value={data?.analytics?.rejected || 0}
             variant="red"
           />
         </div>

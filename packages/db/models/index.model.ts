@@ -60,3 +60,5 @@ export {
   healthyLivingTypes,
   healthyLivingRelations,
 } from "./healthyLiving.model";
+
+export { faqs } from "./faq.model";

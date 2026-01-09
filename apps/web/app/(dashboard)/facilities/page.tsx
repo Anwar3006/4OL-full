@@ -17,12 +17,16 @@ import { FACILITY_TYPE_OPTIONS } from "@4ol/db/types/formInput";
 import { useAddFacilityDialog } from "@/stores/dialog-store";
 import AddFacilityDialog from "./_components/add-facility-dialog";
 import { FacilityViewDialog } from "@/components/dialogs/FacilityViewDialog";
+import { useFacilityProfiles } from "@/hooks/supabase-calls/useFacilities";
 
 const FacilitiesPage = () => {
   const addFacility = useAddFacilityDialog();
 
-  const { data: usersData, isLoading } =
-    trpc.facilityProfiles.getFacilities.useQuery({});
+  const { data, isLoading } = useFacilityProfiles({
+    includeStatsOnly: true,
+  });
+
+  console.log("facilites ", data);
 
   return (
     <section className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10 space-y-10">
@@ -47,26 +51,26 @@ const FacilitiesPage = () => {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <StatsCard
               label="Total Registered"
-              value={usersData?.meta?.total || 0}
+              value={data?.meta?.total || 0}
             />
             <StatsCard
               label="Active"
-              value={usersData?.stats?.active || 0}
+              value={data?.analytics?.active || 0}
               variant="success"
             />
             <StatsCard
               label="Pending"
-              value={usersData?.stats?.pending || 0}
+              value={data?.analytics?.pending || 0}
               variant="warning"
             />
             <StatsCard
               label="Inactive"
-              value={usersData?.stats?.inactive || 0}
+              value={data?.analytics?.inactive || 0}
               variant="neutral"
             />
             <StatsCard
               label="Rejected"
-              value={usersData?.stats?.rejected || 0}
+              value={data?.analytics?.rejected || 0}
               variant="red"
             />
           </div>

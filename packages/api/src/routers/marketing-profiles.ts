@@ -5,7 +5,10 @@ import { marketingProfile } from "@4ol/db/models/marketing.model";
 import { db } from "@4ol/db";
 import { eq, like, or, sql } from "drizzle-orm";
 import z from "zod";
-import { TMarketingProfile } from "@4ol/db/schemas/marketing-profile.schema";
+import {
+  TMarketingProfileInput,
+  TMarketingProfileOutput,
+} from "@4ol/db/schemas/marketing-profile.schema";
 
 export const marketingProfileRouter = router({
   createCampaign: protectedProcedure
@@ -19,7 +22,7 @@ export const marketingProfileRouter = router({
         const inputData = {
           ...input,
           links: linksArray,
-          imageUrl: input.imageUrl ?? "",
+          imageUrl: input.image_url ?? "",
         };
 
         const [result] = await db
@@ -122,6 +125,6 @@ export const marketingProfileRouter = router({
       const campaign = await db.query.marketingProfile.findFirst({
         where: eq(marketingProfile.id, id),
       });
-      return campaign as TMarketingProfile & { createdAt: Date };
+      return campaign as TMarketingProfileOutput & { createdAt: Date };
     }),
 });

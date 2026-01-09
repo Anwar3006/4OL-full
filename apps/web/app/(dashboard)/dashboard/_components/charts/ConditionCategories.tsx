@@ -51,7 +51,7 @@ export default function ConditionCategoriesChart({
   return (
     <div>
       <h3 className="font-semibold text-gray-700 mb-4">Condition Categories</h3>
-      <div className="h-75 w-full">
+      <div className="h-full w-full min-w-0">
         <PieChart
           style={{
             width: "100%",

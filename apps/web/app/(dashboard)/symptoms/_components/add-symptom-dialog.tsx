@@ -29,6 +29,12 @@ import {
 import { TreeMultiSelectForm } from "@/components/TreeMultiSelect";
 import { RichTextEditor } from "@/components/RichTextInput";
 import { EMPTY_LEXICAL_STATE } from "@/constants/rich-text-editor";
+import {
+  useBodyPartsForSymptoms,
+  useCategoriesForSymptoms,
+  useCreateSymptom,
+  useUpdateSymptom,
+} from "@/hooks/supabase-calls/useSymptoms";
 
 // Step 1 Fields - To make sure we validate these fields before moving on to Step 2
 const STEP_1_FIELDS: (keyof TSymptomsInput)[] = [
@@ -45,18 +51,17 @@ const AddSymptomDialog = () => {
   const [step, setStep] = useState<number>(1);
 
   //TRPC Invocations
-  const symptomTrpc = trpc.symptomsRouter;
   const { data: bodyParts = [], isLoading: loadingParts } =
-    symptomTrpc.getAllBodyParts.useQuery(undefined, {
-      staleTime: Infinity,
-    });
+    useBodyPartsForSymptoms();
   const { data: categories = [], isLoading: loadingCats } =
-    symptomTrpc.getAllCategories.useQuery(undefined, {
-      staleTime: Infinity,
-    });
-  const { mutateAsync, isPending } = symptomTrpc.registerSymptom.useMutation();
+    useCategoriesForSymptoms();
+
+  const { mutateAsync, isPending } = useCreateSymptom();
+  const { mutateAsync: mutateAsyncEdit, isPending: submittingEdit } =
+    useUpdateSymptom();
 
   const isLoadingForm = loadingParts && loadingCats;
+  const isSubmitting = isPending || submittingEdit;
 
   const form = useForm({
     resolver: zodResolver(symptomsSchema),
@@ -148,19 +153,17 @@ const AddSymptomDialog = () => {
         categoryIds: optimizedCategoryIds,
         slug,
       };
-      // console.log("Payload: ", payload);
-      const result = await mutateAsync(payload);
-      if (result) {
-        toast.success(
-          isEditMode
-            ? "Symptoms updated successfully!"
-            : "Symptoms registered successfully!"
-        );
-        close();
+
+      if (isEditMode) {
+        await mutateAsyncEdit(payload);
       }
+
+      await mutateAsync(payload);
     } catch (error) {
       console.error("Registration Error: ", error);
-      toast.error("Registration failed! : " + (error as Error).message);
+    } finally {
+      form.reset();
+      close();
     }
   };
 
@@ -549,6 +552,7 @@ const AddSymptomDialog = () => {
                     type="button"
                     variant="outline"
                     onClick={() => setStep(4)}
+                    disabled={isSubmitting}
                   >
                     Back
                   </Button>
@@ -556,8 +560,9 @@ const AddSymptomDialog = () => {
                   <Button
                     type="submit"
                     className="md:col-span-2 bg-emerald-600"
+                    disabled={isSubmitting}
                   >
-                    {isPending ? (
+                    {isSubmitting ? (
                       <Loader2 size={16} className="animate-spin" />
                     ) : isEditMode ? (
                       "Update Symptom"

@@ -17,7 +17,9 @@ export type DialogTypes =
   | "add-condition"
   | "view-condition"
   | "add-healthy-living"
-  | "view-healthy-living";
+  | "view-healthy-living"
+  | "add-faq"
+  | "view-faq";
 
 /**
  * Generic dialog configuration
@@ -315,8 +317,37 @@ export const useViewHealthyLivingDialog = () => {
   return {
     isOpen,
     entityId,
-    open: (entityId: string) => openDialog("view-condition", { entityId }),
-    close: () => closeDialog("view-condition"),
+    open: (entityId: string) => openDialog("view-healthy-living", { entityId }),
+    close: () => closeDialog("view-healthy-living"),
+  };
+};
+
+export const useAddFAQDialog = () => {
+  const openDialog = useDialogStore((state) => state.openDialog);
+  const closeDialog = useDialogStore((state) => state.closeDialog);
+  const isOpen = useDialogStore((state) => state.isDialogOpen("add-faq"));
+  const data = useDialogStore((state) => state.getDialogData("add-faq"));
+
+  return {
+    isOpen,
+    data,
+    isEditMode: !!data,
+    open: (data?: any) => openDialog("add-faq", { data }),
+    close: () => closeDialog("add-faq"),
+  };
+};
+
+export const useViewFAQDialog = () => {
+  const openDialog = useDialogStore((state) => state.openDialog);
+  const closeDialog = useDialogStore((state) => state.closeDialog);
+  const isOpen = useDialogStore((state) => state.isDialogOpen("view-faq"));
+  const entityId = useDialogStore((state) => state.getEntityId("view-faq"));
+
+  return {
+    isOpen,
+    entityId,
+    open: (entityId: string) => openDialog("view-faq", { entityId }),
+    close: () => closeDialog("view-faq"),
   };
 };
 

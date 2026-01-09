@@ -16,8 +16,8 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import {
   TUserProfile,
+  TUserProfileRegistrationInput,
   userRegistrationSchema,
-  UserRegistrationSchema,
 } from "@4ol/db/schemas/user-profile.schema";
 import { Form } from "@/components/ui/form";
 import CustomSelect from "@/components/CustomSelect";
@@ -28,6 +28,7 @@ import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { trpc } from "@/lib/trpc";
 import { useEffect } from "react";
+import { useCreateUserProfile } from "@/hooks/supabase-calls/useUser";
 
 const RegisterForm = ({
   isInvited = false,
@@ -63,19 +64,11 @@ const RegisterForm = ({
   // }, [isInvited, form]);
 
   //============= tRPC mutation for profile creation
-  const createProfile = trpc.userProfiles.createProfile.useMutation({
-    onSuccess: () => {
-      console.log("TRPC - Profile created!");
-      toast.success("Registration successful!");
-    },
-    onError: (error) => {
-      console.error("TRPC - Profile creation failed:", error);
-      throw error;
-    },
-  });
+  const { mutateAsync, isPending } = useCreateUserProfile();
   //===================================
 
-  const handleSubmit = async (data: UserRegistrationSchema) => {
+  const handleSubmit = async (data: TUserProfileRegistrationInput) => {
+    console.log("handle submit click ");
     try {
       // Step 1: Create auth user with Better Auth
       const authResult = await authClient.signUp.email({
@@ -89,8 +82,8 @@ const RegisterForm = ({
         return;
       }
 
-      // 2. Create user profile with tRPC
-      await createProfile.mutateAsync({
+      // 2. Create user profile with hook
+      await mutateAsync({
         userId: authResult.data.user.id,
         firstName: data.firstName,
         lastName: data.lastName,
@@ -183,6 +176,7 @@ const RegisterForm = ({
             description="This email address will be your primary form of contact.
               Periodically check your inbox."
             disabled={isInvited} //disable if invited
+            readOnly={isInvited}
           />
 
           {/* Phone Number */}
@@ -233,12 +227,17 @@ const RegisterForm = ({
             <Button
               type="submit"
               className="py-5 bg-emerald-600"
-              disabled={createProfile.isPending}
+              disabled={isPending}
+              onClick={() => {
+                console.log("I am clicked but: ", form.formState.errors);
+              }}
             >
-              {createProfile.isPending ? "Creating..." : "Register an Account"}
+              {isPending ? "Creating..." : "Register an Account"}
             </Button>
           </Field>
+
           <FieldSeparator>Or continue with</FieldSeparator>
+
           <Field>
             <FieldDescription className="px-6 text-center">
               Already have an account?{" "}

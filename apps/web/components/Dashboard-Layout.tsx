@@ -12,6 +12,7 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { trpc } from "@/lib/trpc";
 import { useRouter } from "next/navigation";
 import DashboardLoading from "@/app/(dashboard)/loading";
+import { useUser } from "@/hooks/supabase-calls/useUser";
 
 export const DashboardLayoutClient = ({
   children,
@@ -21,8 +22,9 @@ export const DashboardLayoutClient = ({
   user: any;
 }) => {
   const router = useRouter();
-  const { data, isLoading } = trpc.userProfiles.getById.useQuery({
+  const { data, isLoading } = useUser({
     id: user.id,
+    enabled: !!user.id,
   });
 
   if (isLoading) {

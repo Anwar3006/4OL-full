@@ -42,6 +42,7 @@ import { LexicalErrorBoundary } from "@lexical/react/LexicalErrorBoundary";
 import { SerializedEditorState } from "lexical";
 import { nodes } from "@/components/blocks/editor-x/nodes";
 import { hasLexicalContent } from "@/lib/utils";
+import { LexicalRenderer } from "@/components/LexicalRenderer";
 
 export function ViewConditionDialog() {
   const { isOpen, entityId, close } = useViewConditionDialog();
@@ -59,14 +60,18 @@ export function ViewConditionDialog() {
     addDialog.open(condition as TConditionsOutput);
   };
 
+  if (isLoading) {
+    return (
+      <div className="p-6">
+        <ConditionSkeleton />
+      </div>
+    );
+  }
+
   return (
     <Sheet open={isOpen} onOpenChange={close}>
       <SheetContent className="w-full sm:max-w-2xl p-0 flex flex-col bg-slate-50 border-l shadow-2xl">
-        {isLoading ? (
-          <div className="p-6">
-            <ConditionSkeleton />
-          </div>
-        ) : condition ? (
+        {condition ? (
           <>
             {/* 1. Impactful Header Section */}
             <div className="bg-white p-6 md:p-8 pt-12 border-b border-slate-200">
@@ -298,79 +303,6 @@ function MetaItem({
       </div>
       <p className="text-sm font-semibold text-slate-700">{value}</p>
     </div>
-  );
-}
-
-function LexicalRenderer({
-  initialState,
-}: {
-  initialState: SerializedEditorState | null | undefined;
-}) {
-  const [isMounted, setIsMounted] = useState(false);
-  const [editorState, setEditorState] = useState<string | null>(null);
-
-  // Only render on client to avoid hydration mismatch
-  useEffect(() => {
-    setIsMounted(true);
-
-    if (initialState) {
-      try {
-        const stateString = JSON.stringify(initialState);
-        setEditorState(stateString);
-      } catch (error) {
-        console.error("Error serializing editor state:", error);
-        setEditorState(null);
-      }
-    }
-  }, [initialState]);
-
-  const config = useMemo(
-    () => ({
-      namespace: "Read-Only-Viewer",
-      editable: false,
-      editorState: editorState,
-      theme: {
-        paragraph: "mb-3 last:mb-0",
-        text: {
-          bold: "font-bold text-slate-900",
-          italic: "italic",
-          underline: "underline",
-        },
-        list: {
-          ol: "list-decimal ml-6 space-y-1",
-          ul: "list-disc ml-6 space-y-1",
-          listitem: "pl-1",
-        },
-      },
-      nodes: nodes,
-      onError: (error: Error) => {
-        // Handle missing node types gracefully
-        if (
-          error.message.includes("not found") ||
-          error.message.includes("parseEditorState")
-        ) {
-          console.warn("Lexical parsing warning:", error.message);
-        } else {
-          console.error("Lexical error:", error);
-        }
-      },
-    }),
-    [editorState]
-  );
-
-  // Don't render during SSR or if no state
-  if (!isMounted || !editorState) {
-    return null;
-  }
-
-  return (
-    <LexicalComposer initialConfig={config}>
-      <RichTextPlugin
-        contentEditable={<ContentEditable className="outline-none" />}
-        placeholder={null}
-        ErrorBoundary={LexicalErrorBoundary}
-      />
-    </LexicalComposer>
   );
 }
 

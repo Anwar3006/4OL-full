@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -9,7 +9,7 @@ import { Form } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
-  FacilityProfileInput,
+  TFacilityProfileInput,
   facilityProfileSchema,
 } from "@4ol/db/schemas/facility-profile.schema";
 import {
@@ -34,22 +34,23 @@ import { nanoid } from "nanoid";
 import { useAddFacilityDialog } from "@/stores/dialog-store";
 import { authClient } from "@/lib/auth-client";
 import FacilityCredentialsModal from "./facility-credentials-modal";
+import { useCreateFacilityProfile } from "@/hooks/supabase-calls/useFacilities";
 
 // Step 1 Fields - To make sure we validate these fields before moving on to Step 2
-const STEP_1_FIELDS: (keyof FacilityProfileInput)[] = [
-  "facilityType",
-  "facilityName",
-  "contactNumber",
+const STEP_1_FIELDS: (keyof TFacilityProfileInput)[] = [
+  "facility_type",
+  "facility_name",
+  "contact_number",
   "email",
-  "gpsAddress",
+  "gps_address",
   "area",
   "district",
   "region",
   "amenities",
   "services",
-  "firstName",
-  "lastName",
-  "ownerEmail",
+  "first_name",
+  "last_name",
+  "owner_email",
 ];
 
 const AddFacilityDialog = () => {
@@ -63,7 +64,6 @@ const AddFacilityDialog = () => {
     password: string;
     facilityName: string;
   } | null>(null);
-  const queryUtils = trpc.useUtils();
 
   // Hooks to fetch location and Ghana Post Address
   const {
@@ -84,49 +84,58 @@ const AddFacilityDialog = () => {
       })
     ),
     defaultValues: {
-      facilityType: "hospitals_&_clinics",
-      facilityName: "",
-      contactNumber: "",
-      whatsappNumber: "",
+      facility_type: "hospitals_&_clinics",
+      facility_name: "",
+      contact_number: "",
+      whatsapp_number: "",
       email: "",
-      gpsAddress: "",
+      gps_address: "",
       street: "",
-      postCode: "",
+      post_code: "",
       area: "",
       district: "",
       region: "greater accra",
       country: "Ghana",
-      firstName: "",
-      lastName: "",
-      ownerEmail: "",
-      personContactNumber: "",
+      first_name: "",
+      last_name: "",
+      owner_email: "",
+      person_contact_number: "",
       position: "",
-      mediaUrls: [],
+      media_urls: [],
       services: [],
       amenities: [],
-      businessHours: DEFAULT_BUSINESS_HOURS,
+      business_hours: DEFAULT_BUSINESS_HOURS,
       sameForWeekdays: false,
       keywords: "",
     },
   });
 
-  // PREVENT LAG: Use a clean reset when the dialog opens/closes
-  // We no longer call getLocationCoordinates here
+  // Use a clean reset when the dialog opens/closes
   useEffect(() => {
     if (isOpen) {
       if (isEditMode && data) {
-        form.reset({ ...form.getValues(), ...data });
+        form.reset({
+          ...form.getValues(),
+          ...data,
+          business_hours: DEFAULT_BUSINESS_HOURS,
+        });
       } else {
         form.reset({
-          facilityName: "",
-          contactNumber: "",
+          facility_name: "",
+          contact_number: "",
+          email: "",
           region: "greater accra",
           country: "Ghana",
           sameForWeekdays: false,
-          businessHours: DEFAULT_BUSINESS_HOURS,
-          mediaUrls: [],
+          business_hours: DEFAULT_BUSINESS_HOURS,
+          media_urls: [],
           services: [],
           amenities: [],
+          keywords: "",
+          first_name: "",
+          last_name: "",
+          owner_email: "",
+          person_contact_number: "",
         });
       }
     }
@@ -142,7 +151,7 @@ const AddFacilityDialog = () => {
 
             // console.log("Lo ", location);
             // Use { shouldValidate: true } to ensure Zod picks up the changes
-            form.setValue("gpsAddress", location.GPSName, {
+            form.setValue("gps_address", location.GPSName, {
               shouldValidate: true,
             });
 
@@ -151,7 +160,7 @@ const AddFacilityDialog = () => {
               location.Street === "[UNKNOWN]" ? location.Area : location.Street,
               { shouldValidate: true }
             );
-            form.setValue("postCode", location.PostCode, {
+            form.setValue("post_code", location.PostCode, {
               shouldValidate: true,
             });
             form.setValue("area", location.Area, { shouldValidate: true });
@@ -163,7 +172,7 @@ const AddFacilityDialog = () => {
             if (location.Region) {
               form.setValue(
                 "region",
-                location.Region.toLowerCase() as FacilityProfileInput["region"],
+                location.Region.toLowerCase() as TFacilityProfileInput["region"],
                 { shouldValidate: true }
               );
             }
@@ -182,10 +191,11 @@ const AddFacilityDialog = () => {
   }, [coordinates, form.setValue]);
 
   const [uploadSessionId] = useState(() => `pending_${nanoid(12)}`);
-  const filePath = `temporary/${uploadSessionId}/${Date.now()}-${nanoid(4)}`;
+  const filePath = `facilities/temporary/${uploadSessionId}`;
 
+  // Watch facility type to automatically populate amenities and services
   const selectedType = form.watch(
-    "facilityType"
+    "facility_type"
   ) as keyof typeof FACILITY_REQUIREMENTS;
 
   const availableAmenities = useMemo(
@@ -196,50 +206,102 @@ const AddFacilityDialog = () => {
     () => FACILITY_REQUIREMENTS[selectedType]?.services || [],
     [selectedType]
   );
+  //////////////////
 
-  const facilityMutation = trpc.facilityProfiles.insertFacility.useMutation();
+  const facilityMutation = useCreateFacilityProfile();
+
+  const handleFilesChange = useCallback(
+    (urls: string[]) => {
+      // Use setTimeout to defer the state update to the next tick
+      // This prevents updating parent state during child render
+      setTimeout(() => {
+        form.setValue("media_urls", urls, { shouldValidate: true });
+      }, 0);
+    },
+    [form]
+  );
 
   const handleDialogClose = () => {
     setStep(1);
     close();
   };
   const handleSubmit = async (
-    data: FacilityProfileInput & { sameForWeekdays: boolean }
+    data: TFacilityProfileInput & { sameForWeekdays: boolean }
   ) => {
     setSubmitting(true);
     const { sameForWeekdays, ...payload } = data;
+    // const targetEmail = payload.email || payload.ownerEmail;
 
     try {
+      let ownerId: string | null = null;
+      let isNewUser = false;
+
+      // 1. Attempt to create the user via Admin API
       const newAuthUser = await authClient.admin.createUser({
-        name: `${payload.firstName} ${payload.lastName}`,
-        email: payload.email ? payload.email : payload.ownerEmail,
-        password: payload.gpsAddress,
+        name: `${payload.first_name} ${payload.last_name}`,
+        email: payload.owner_email,
+        password: payload.gps_address, // Temporary password
       });
 
-      if (newAuthUser) {
-        const result = await facilityMutation.mutateAsync(payload);
-        if (result) {
-          toast.success(isEditMode ? "Updated!" : "Registered!");
+      if (newAuthUser.data?.user) {
+        // SCENARIO A: User created successfully
+        ownerId = newAuthUser.data.user.id;
+        isNewUser = true;
+      } else if (
+        newAuthUser.error?.status === 422 ||
+        newAuthUser.error?.code === "USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL"
+      ) {
+        // SCENARIO B: User already exists - Fetch their ID
+        // You may need a small tRPC query or a direct authClient call to get the user by email
+        const existingUser = await authClient.admin.listUsers({
+          query: {
+            limit: 1,
+            searchField: "email",
+            searchValue: payload.owner_email.trim().toLowerCase(),
+          },
+        });
 
-          // 1. Prepare credential data
+        ownerId = existingUser.data?.users[0]?.id || null;
+
+        if (!ownerId) {
+          throw new Error("User exists but could not be retrieved.");
+        }
+
+        toast.info("Existing user found. Linking facility to their account.");
+      } else {
+        // SCENARIO C: A different error occurred
+        throw newAuthUser.error;
+      }
+
+      // 2. Mutate the facility with the found/created ownerId
+      const result = await facilityMutation.mutateAsync({
+        ...payload,
+        ownerId: ownerId,
+      });
+
+      if (result) {
+        toast.success(
+          isEditMode ? "Facility Updated!" : "Facility Registered!"
+        );
+
+        // 3. Only show credentials modal if the user was actually created now
+        if (isNewUser) {
           setCredentials({
-            email: payload.email ? payload.email : payload.ownerEmail,
-            password: payload.gpsAddress,
-            facilityName: payload.facilityName,
+            email: payload.owner_email,
+            password: payload.gps_address,
+            facilityName: payload.facility_name,
           });
-
-          // 2. Open the credentials modal
           setFacilityModal(true);
-
-          // 3. Close this registration dialog
+        } else {
+          // If user already existed, just close or reset
           close();
         }
       }
-    } catch (error) {
-      toast.error("Registration failed!");
+    } catch (error: any) {
+      console.error("Registration Flow Error: ", error);
+      toast.error(error.message || "Registration failed!");
     } finally {
       setSubmitting(false);
-      queryUtils.facilityProfiles.getFacilities.invalidate();
     }
   };
 
@@ -304,7 +366,7 @@ const AddFacilityDialog = () => {
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <CustomSelect
-                    name="facilityType"
+                    name="facility_type"
                     options={FACILITY_TYPE_OPTIONS}
                     control={form.control}
                     label="Facility Type"
@@ -313,7 +375,7 @@ const AddFacilityDialog = () => {
 
                   <CustomInput
                     type="text"
-                    name="facilityName"
+                    name="facility_name"
                     control={form.control}
                     label="Facility Name"
                     readOnly={false}
@@ -324,7 +386,7 @@ const AddFacilityDialog = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <CustomInput
                     type="text"
-                    name="contactNumber"
+                    name="contact_number"
                     control={form.control}
                     label="Facility Contact Number"
                     readOnly={false}
@@ -332,7 +394,7 @@ const AddFacilityDialog = () => {
 
                   <CustomInput
                     type="text"
-                    name="whatsappNumber"
+                    name="whatsapp_number"
                     control={form.control}
                     label="Whatsapp Number"
                     readOnly={false}
@@ -350,7 +412,7 @@ const AddFacilityDialog = () => {
                 <h3 className="font-semibold mb-2 underline text-center">
                   Location Details(Auto-Populated)
                 </h3>
-                {isLoadingLocation ? (
+                {isLoadingLocation && (
                   // State A: Active Fetching (Unified for GPS + Address)
                   <div className="flex flex-col items-center justify-center p-10 border-2 border-dashed rounded-xl bg-muted/20">
                     <Loader2 className="h-10 w-10 animate-spin text-primary mb-2" />
@@ -358,11 +420,13 @@ const AddFacilityDialog = () => {
                       Accessing GPS & Resolving Address...
                     </p>
                   </div>
-                ) : form.getValues("gpsAddress") ? (
+                )}
+
+                {form.getValues("gps_address") ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in slide-in-from-bottom-2 duration-700">
                     <CustomInput
                       type="text"
-                      name="gpsAddress"
+                      name="gps_address"
                       control={form.control}
                       label="GPS Address"
                       readOnly
@@ -376,7 +440,7 @@ const AddFacilityDialog = () => {
                     />
                     <CustomInput
                       type="text"
-                      name="postCode"
+                      name="post_code"
                       control={form.control}
                       label="Post Code"
                       readOnly
@@ -485,28 +549,28 @@ const AddFacilityDialog = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
                   <CustomInput
                     type="text"
-                    name="firstName"
+                    name="first_name"
                     control={form.control}
                     label="Facility Owner First Name"
                     readOnly={false}
                   />
                   <CustomInput
                     type="text"
-                    name="lastName"
+                    name="last_name"
                     control={form.control}
                     label="Facility Owner Last Name"
                     readOnly={false}
                   />
                   <CustomInput
                     type="email"
-                    name="ownerEmail"
+                    name="owner_email"
                     control={form.control}
                     label="Facility Owner Email"
                     readOnly={false}
                   />
                   <CustomInput
                     type="text"
-                    name="personContactNumber"
+                    name="person_contact_number"
                     control={form.control}
                     label="Facility Owner Contact Number"
                     readOnly={false}
@@ -556,9 +620,9 @@ const AddFacilityDialog = () => {
                 {/* Example upload section */}
                 <ImageDropZone
                   filePath={filePath}
-                  initialFiles={form.watch("mediaUrls")}
+                  initialFiles={form.watch("media_urls")}
                   text="Upload clear photos of your facility (front view, interior, signage, opposite)"
-                  onFilesChange={(urls) => form.setValue("mediaUrls", urls)}
+                  onFilesChange={handleFilesChange}
                 />
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-6">
@@ -574,13 +638,10 @@ const AddFacilityDialog = () => {
                     type="submit"
                     className="md:col-span-2 bg-emerald-600"
                   >
-                    {submitting ? (
+                    {submitting && (
                       <Loader2 size={16} className="animate-spin" />
-                    ) : isEditMode ? (
-                      "Update Facility"
-                    ) : (
-                      "Register Facility"
                     )}
+                    {isEditMode ? "Update Facility" : "Register Facility"}
                   </Button>
                 </div>
               </>

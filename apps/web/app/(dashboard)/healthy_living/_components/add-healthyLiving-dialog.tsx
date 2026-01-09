@@ -12,12 +12,12 @@ import slugify from "slugify";
 import { Button } from "@/components/ui/button";
 
 import CustomInput from "@/components/CustomInput";
-import CustomSelect from "@/components/CustomSelect";
+
 import { toast } from "sonner";
 import { Loader2, MapPinHouse } from "lucide-react";
 import z from "zod";
-import { MultiSelect } from "@/components/MultiSelect";
-import { cn, getDeepestNodes, rehydrateHierarchy } from "@/lib/utils";
+
+import { cn } from "@/lib/utils";
 import ImageDropZone from "@/components/ImageDropZone";
 import { trpc } from "@/lib/trpc";
 import { nanoid } from "nanoid";
@@ -29,6 +29,10 @@ import {
   healthyLivingSchema,
   THealthyLivingInput,
 } from "@4ol/db/schemas/healthyLiving.schema";
+import {
+  useCreateHealthyLiving,
+  useUpdateHealthyLiving,
+} from "@/hooks/supabase-calls/useHealthyLiving";
 
 // Step 1 Fields - To make sure we validate these fields before moving on to Step 2
 const STEP_1_FIELDS: (keyof THealthyLivingInput)[] = [
@@ -38,19 +42,18 @@ const STEP_1_FIELDS: (keyof THealthyLivingInput)[] = [
   "types",
 ];
 
+type THealthyLivingInputWithId = THealthyLivingInput & { id: string };
+
 const AddHealthyLivingDialog = () => {
   //has the same input fields as conditions so reuse the conditions dialog
   const { isOpen, data, isEditMode, close } = useAddHealthyLivingDialog();
   // Progress Step Management
   const [step, setStep] = useState<number>(1);
-  console.log("Editing: ", isEditMode);
 
-  const queryUtils = trpc.useUtils();
-
-  //TRPC Invocations
-  const healthyLivingTrpc = trpc.healthyLivingRouter;
-  const { mutateAsync, isPending } =
-    healthyLivingTrpc.createHealthyLiving.useMutation();
+  //Supabase hook Invocation
+  const { mutateAsync, isPending } = useCreateHealthyLiving();
+  const { mutateAsync: mutateAsyncEdit, isPending: submittingEdit } =
+    useUpdateHealthyLiving();
 
   const form = useForm({
     resolver: zodResolver(healthyLivingSchema),
@@ -58,10 +61,10 @@ const AddHealthyLivingDialog = () => {
       name: "",
       about: EMPTY_LEXICAL_STATE,
       category: EMPTY_LEXICAL_STATE,
-      contactYourDoctor: EMPTY_LEXICAL_STATE,
-      moreInformation: EMPTY_LEXICAL_STATE,
-      imageUrl: "",
-      types: [{ typeName: "", aboutType: EMPTY_LEXICAL_STATE }],
+      contact_your_doctor: EMPTY_LEXICAL_STATE,
+      more_information: EMPTY_LEXICAL_STATE,
+      image_url: "",
+      types: [{ type_name: "", about_type: EMPTY_LEXICAL_STATE }],
       attribution: EMPTY_LEXICAL_STATE,
     },
   });
@@ -83,24 +86,26 @@ const AddHealthyLivingDialog = () => {
           name: "",
           about: EMPTY_LEXICAL_STATE,
           category: EMPTY_LEXICAL_STATE,
-          contactYourDoctor: EMPTY_LEXICAL_STATE,
-          moreInformation: EMPTY_LEXICAL_STATE,
-          imageUrl: "",
-          types: [{ typeName: "", aboutType: EMPTY_LEXICAL_STATE }],
+          contact_your_doctor: EMPTY_LEXICAL_STATE,
+          more_information: EMPTY_LEXICAL_STATE,
+          image_url: "",
+          types: [{ type_name: "", about_type: EMPTY_LEXICAL_STATE }],
         });
       }
     }
   }, [isOpen, isEditMode, data, form]);
 
   const name = form.watch("name") ?? "";
-  const filename = name.replace(/\s+/g, "");
+  const filename = name.replaceAll(/\s+/g, "");
   const filePath = `${filename}-${nanoid(8)}`;
+
+  const isSubmitting = isPending || submittingEdit;
 
   const handleDialogClose = () => {
     setStep(1);
     close();
   };
-  const handleSubmit = async (data: THealthyLivingInput) => {
+  const handleSubmit = async (data: any) => {
     try {
       const slug = slugify(data.name, {
         lower: true,
@@ -109,22 +114,20 @@ const AddHealthyLivingDialog = () => {
         ...data,
         slug,
       };
-      // console.log("Payload: ", payload);
-      const result = await mutateAsync(payload);
-      if (result) {
-        toast.success(
-          isEditMode
-            ? "Healthy Living Info updated successfully!"
-            : "Healthy Living Info registered successfully!"
-        );
-        close();
+
+      if (isEditMode) {
+        mutateAsyncEdit({
+          id: data.id,
+          data: payload,
+        });
       }
+
+      await mutateAsync(payload);
     } catch (error) {
       console.error("Registration Error: ", error);
-      toast.error("Registration failed! : " + (error as Error).message);
     } finally {
       form.reset();
-      queryUtils.healthyLivingRouter.getAll.invalidate();
+      setStep(1);
       close();
     }
   };
@@ -172,11 +175,6 @@ const AddHealthyLivingDialog = () => {
             )}
             className="space-y-6"
           >
-            {/* {isLoadingForm && (
-              <div className="flex items-center w-full h-full justify-center">
-                Loading Form...
-              </div>
-            )} */}
             {step === 1 && (
               <>
                 <h3 className="font-semibold mb-2 underline text-center">
@@ -188,7 +186,7 @@ const AddHealthyLivingDialog = () => {
                     type="text"
                     name="name"
                     control={form.control}
-                    label="Symptom Name"
+                    label="Name"
                     readOnly={false}
                   />
                 </div>
@@ -205,7 +203,10 @@ const AddHealthyLivingDialog = () => {
                       size="sm"
                       className="bg-green-100"
                       onClick={() =>
-                        append({ typeName: "", aboutType: EMPTY_LEXICAL_STATE })
+                        append({
+                          type_name: "",
+                          about_type: EMPTY_LEXICAL_STATE,
+                        })
                       }
                     >
                       Add Type
@@ -218,7 +219,7 @@ const AddHealthyLivingDialog = () => {
                         {/* Type Name Input */}
                         <CustomInput
                           type="text"
-                          name={`types.${index}.typeName`} // Important: include index
+                          name={`types.${index}.type_name`} // Important: include index
                           control={form.control}
                           label="Type Name"
                           readOnly={false}
@@ -226,7 +227,7 @@ const AddHealthyLivingDialog = () => {
 
                         {/* About Type Input (RichText logic usually goes here) */}
                         <RichTextEditor
-                          name={`types.${index}.aboutType`}
+                          name={`types.${index}.about_type`}
                           control={form.control}
                           label="About Type"
                         />
@@ -296,14 +297,14 @@ const AddHealthyLivingDialog = () => {
                   <RichTextEditor
                     label="Contact Your Doctor"
                     control={form.control}
-                    name="contactYourDoctor"
+                    name="contact_your_doctor"
                   />
 
                   {/* More Information */}
                   <RichTextEditor
                     label="More Information"
                     control={form.control}
-                    name="moreInformation"
+                    name="more_information"
                   />
 
                   {/* Attribution */}
@@ -317,7 +318,7 @@ const AddHealthyLivingDialog = () => {
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => setStep(3)}
+                    onClick={() => setStep(1)}
                   >
                     Back
                   </Button>
@@ -345,7 +346,7 @@ const AddHealthyLivingDialog = () => {
                   filePath={filePath}
                   text="Drop media for the Symptom"
                   onFilesChange={(url) =>
-                    url.map((u) => form.setValue("imageUrl", u))
+                    url.map((u) => form.setValue("image_url", u))
                   }
                   initialFiles={[]}
                 />
@@ -363,7 +364,7 @@ const AddHealthyLivingDialog = () => {
                     type="submit"
                     className="md:col-span-2 bg-emerald-600"
                   >
-                    {isPending ? (
+                    {isSubmitting ? (
                       <Loader2 size={16} className="animate-spin" />
                     ) : isEditMode ? (
                       "Update"

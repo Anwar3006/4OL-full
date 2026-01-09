@@ -1,7 +1,6 @@
 "use client";
 import { useState, useMemo } from "react";
-import { trpc } from "@/lib/trpc";
-import { Search, Filter, MailPlus, Users } from "lucide-react";
+import { Search, Filter, Users } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/Data-Table/data-table";
@@ -11,12 +10,13 @@ import {
   TableSkeleton,
 } from "@/components/Data-Table/helpers";
 import SectionHeader from "@/components/SectionHeader";
-import { useAdminPermissions } from "@/hooks/use-admin-permissions";
+
 import { useAddAdminDialog, useViewUserDialog } from "@/stores/dialog-store";
 
 import { userColumns } from "@/components/Data-Table/columns/userColumns";
 import { createPaginationHandlers } from "@/lib/utils";
 import { useDebounce } from "@/hooks/use-debounce";
+import { useUsers } from "@/hooks/supabase-calls/useUser";
 
 export default function UserSection() {
   const addAdminDialog = useAddAdminDialog();
@@ -27,17 +27,16 @@ export default function UserSection() {
   const debouncedSearch = useDebounce(search, 400);
   const limit = 10;
 
-  const { data, isLoading, isFetching, error } =
-    trpc.userProfiles.allUsers.useQuery({
-      page,
-      limit,
-      search: debouncedSearch,
-    });
-
-  const userPagination = createPaginationHandlers(
+  const { data, isLoading, isFetching, error } = useUsers({
     page,
-    setPage,
-    data?.totalPages
+    limit,
+    search: debouncedSearch,
+    admin: false,
+  });
+
+  const userPagination = useMemo(
+    () => createPaginationHandlers(page, setPage, data?.meta.totalPages),
+    [page, data?.meta.totalPages]
   );
 
   if (isLoading) return <TableSkeleton />;
@@ -75,20 +74,20 @@ export default function UserSection() {
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <StatsCard label="Total App Users" value={data?.total || 0} />
+        <StatsCard label="Total App Users" value={data?.meta.total || 0} />
         <StatsCard
           label="Active"
-          value={data?.stats?.active || 0}
+          value={data?.analytics?.active || 0}
           variant="success"
         />
         <StatsCard
           label="Pending"
-          value={data?.stats?.pending || 0}
+          value={data?.analytics?.pending || 0}
           variant="warning"
         />
         <StatsCard
           label="Inactive"
-          value={data?.stats?.inactive || 0}
+          value={data?.analytics?.inactive || 0}
           variant="neutral"
         />
       </div>
@@ -100,13 +99,13 @@ export default function UserSection() {
         onRowClick={(user) => viewDialog.open(user.userId)}
         pagination={{
           currentPage: page,
-          totalPages: data?.totalPages || 1,
-          totalItems: data?.total || 0,
+          totalPages: data?.meta.totalPages || 1,
+          totalItems: data?.meta.total || 0,
           pageSize: limit,
           onPageChange: userPagination.goTo,
           onNextPage: userPagination.next,
           onPreviousPage: userPagination.previous,
-          canNextPage: page < (data?.totalPages || 1),
+          canNextPage: page < (data?.meta.totalPages || 1),
           canPreviousPage: page > 1,
         }}
       />
