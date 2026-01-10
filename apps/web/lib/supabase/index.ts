@@ -1,15 +1,31 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL as string;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY as string;
+let supabaseInstance: SupabaseClient | null = null;
 
-// Fail gracefully during build, but throw during runtime
-if (!supabaseUrl || !supabaseKey) {
-  // If we're in production/runtime, this is a real error.
-  // During build (CI), we might want to just return a dummy or null to let the build finish.
-  if (process.env.NODE_ENV === "production" && typeof window !== "undefined") {
-    throw new Error("Supabase environment variables are missing!");
+/**
+ * Lazy-loaded Supabase client
+ * Only initializes when actually needed (at runtime)
+ */
+export function getSupabaseClient(): SupabaseClient {
+  if (!supabaseInstance) {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+
+    if (!supabaseUrl || !supabaseKey) {
+      throw new Error(
+        "Missing required Supabase environment variables: NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"
+      );
+    }
+
+    supabaseInstance = createClient(supabaseUrl, supabaseKey);
   }
+
+  return supabaseInstance;
 }
 
-export const supabase = createClient(supabaseUrl, supabaseKey);
+// Export for backward compatibility (use getSupabaseClient() instead for better lazy loading)
+export const supabase = new Proxy({} as SupabaseClient, {
+  get(_target, prop) {
+    return getSupabaseClient()[prop as keyof SupabaseClient];
+  }
+});
