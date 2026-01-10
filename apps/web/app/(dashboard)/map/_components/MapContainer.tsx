@@ -3,9 +3,10 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import Map, { Source, Layer, NavigationControl } from "@vis.gl/react-maplibre";
 import FacilityPopup, { FacilityPopupProps } from "./FacilityPopup";
 import { useMemo, useState, useCallback } from "react";
-import { trpc } from "@/lib/trpc";
+
 import FacilitiesLayer from "../_layers/FacilitiesLayer";
 import RegistrarPathLayer from "../_layers/RegistrarPathLayer";
+import { useGetFacilitiesMapData } from "@/hooks/supabase-calls/useFacilities";
 
 const MapContainer = () => {
   const [hoverInfo, setHoverInfo] = useState<FacilityPopupProps | null>(null);
@@ -19,23 +20,15 @@ const MapContainer = () => {
     null
   );
 
-  const { data: geojson, isFetching } =
-    trpc.facilityProfiles.getFacilitiesMapData.useQuery(
-      {
-        // Safe access with fallbacks
-        minLng: bounds?.[0] ?? 0,
-        minLat: bounds?.[1] ?? 0,
-        maxLng: bounds?.[2] ?? 0,
-        maxLat: bounds?.[3] ?? 0,
-        zoom: Math.round(viewState.zoom),
-      },
-      {
-        enabled: !!bounds,
-        // CRITICAL: keeps previous markers visible while fetching new ones
-        placeholderData: (prev: any) => prev,
-        staleTime: 1000 * 60, // Consider data fresh for 1 minute
-      }
-    );
+  const { data: geojson, isLoading } = useGetFacilitiesMapData({
+    // Safe access with fallbacks
+    minLng: bounds?.[0] ?? 0,
+    minLat: bounds?.[1] ?? 0,
+    maxLng: bounds?.[2] ?? 0,
+    maxLat: bounds?.[3] ?? 0,
+    zoom: Math.round(viewState.zoom),
+    enabled: !!bounds,
+  });
 
   // Use useCallback to prevent unnecessary re-renders of the Map component
   const onMove = useCallback((evt: any) => {
@@ -74,14 +67,14 @@ const MapContainer = () => {
       >
         <NavigationControl position="top-right" />
 
-        <FacilitiesLayer data={geojson} isLoading={isFetching} />
+        <FacilitiesLayer data={geojson} isLoading={isLoading} />
 
         {hoverInfo && <FacilityPopup {...hoverInfo} />}
 
         {/* <RegistrarPathLayer /> TODO: Add this back*/}
 
         {/* Slimmer Fetching Indicator (Top Center) */}
-        {isFetching && (
+        {isLoading && (
           <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50">
             <div className="flex items-center gap-2 bg-white/90 px-4 py-2 rounded-full shadow-lg border border-emerald-100">
               <div className="h-3 w-3 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent" />

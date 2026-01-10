@@ -150,6 +150,22 @@ export const useUser = ({ id, enabled }: { id: string; enabled: boolean }) => {
     },
   });
 };
+
+export const useGetInvitedAdmin = ({ token }: { token: string }) => {
+  return useQuery<any, Error>({
+    queryKey: USER_QUERY_KEYS.invites,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("user_invites")
+        .select()
+        .eq("token", token)
+        .order("created_at", { ascending: false });
+      if (error) throw new Error(error.message);
+      return data;
+    },
+  });
+};
+
 //================= Mutation Hooks ==============
 export const useCreateUserProfile = () => {
   const queryClient = useQueryClient();
@@ -225,18 +241,3 @@ export const useCreateUserProfile = () => {
 //     },
 //   });
 // };
-
-export const useGetInvitedAdmin = ({ token }: { token: string }) => {
-  return useQuery<any, Error>({
-    queryKey: USER_QUERY_KEYS.invites,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("user_invites")
-        .select()
-        .eq("token", token)
-        .order("created_at", { ascending: false });
-      if (error) throw new Error(error.message);
-      return data;
-    },
-  });
-};

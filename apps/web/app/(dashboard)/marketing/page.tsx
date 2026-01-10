@@ -4,11 +4,9 @@ import SectionHeader from "@/components/SectionHeader";
 import { Input } from "@/components/ui/input";
 import { PlusSquare, Search } from "lucide-react";
 import React, { useMemo, useState } from "react";
-import AddFacilityDialog from "@/app/(dashboard)/facilities/_components/add-facility-dialog";
-import MarketingDialog from "./_components/marketing-dialog";
-import { trpc } from "@/lib/trpc";
+
 import { createPaginationHandlers } from "@/lib/utils";
-import { marketingColumns } from "@/components/Data-Table/marketingColumns";
+
 import { DataTable } from "@/components/Data-Table/data-table";
 import { marketingCardConfig } from "@/components/Data-Table/mobile-table-configs/marketingCardConfig";
 
@@ -19,6 +17,7 @@ import {
 } from "@/stores/dialog-store";
 import AddMarketingDialog from "./_components/marketing-dialog";
 import { useMarketingProfiles } from "@/hooks/supabase-calls/useMarketing";
+import { marketingColumns } from "@/components/Data-Table/columns/marketingColumns";
 
 const MarketingPage = () => {
   const addMarket = useAddMarketingDialog();

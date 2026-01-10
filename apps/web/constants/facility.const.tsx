@@ -1,4 +1,4 @@
-import { TFacilityTable } from "@4ol/db/schemas/facility-profile.schema";
+import { TFacilityProfileOutput } from "@4ol/db/schemas/facility-profile.schema";
 import { JSX } from "react";
 
 // export const FacilityTabs: TFacilityTabs = [
@@ -64,26 +64,27 @@ import { JSX } from "react";
 //   },
 // ];
 
-export const StatusMap: Record<TFacilityTable["status"], JSX.Element> = {
-  pending: (
-    <span className="inline-flex items-center rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800">
-      Pending
-    </span>
-  ),
-  active: (
-    <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
-      Active
-    </span>
-  ),
+export const StatusMap: Record<TFacilityProfileOutput["status"], JSX.Element> =
+  {
+    pending: (
+      <span className="inline-flex items-center rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800">
+        Pending
+      </span>
+    ),
+    active: (
+      <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+        Active
+      </span>
+    ),
 
-  inactive: (
-    <span className="inline-flex items-center rounded-full bg-orange-100 px-2.5 py-0.5 text-xs font-medium text-orange-800">
-      Inactive
-    </span>
-  ),
-  rejected: (
-    <span className="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800">
-      Rejected
-    </span>
-  ),
-};
+    inactive: (
+      <span className="inline-flex items-center rounded-full bg-orange-100 px-2.5 py-0.5 text-xs font-medium text-orange-800">
+        Inactive
+      </span>
+    ),
+    rejected: (
+      <span className="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800">
+        Rejected
+      </span>
+    ),
+  };

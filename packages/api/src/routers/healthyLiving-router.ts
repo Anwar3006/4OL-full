@@ -23,9 +23,9 @@ export const healthyLivingRouter = router({
               slug: input.slug,
               about: input.about,
               category: input.category,
-              imageUrl: input.imageUrl,
-              contactYourDoctor: input.contactYourDoctor,
-              moreInformation: input.moreInformation,
+              imageUrl: input.image_url,
+              contactYourDoctor: input.contact_your_doctor,
+              moreInformation: input.more_information,
               attribution: input.attribution,
             })
             .returning({ id: healthyLiving.id });
@@ -96,9 +96,9 @@ export const healthyLivingRouter = router({
               name: input.name,
               about: input.about,
               category: input.category,
-              imageUrl: input.imageUrl,
-              contactYourDoctor: input.contactYourDoctor,
-              moreInformation: input.moreInformation,
+              imageUrl: input.image_url,
+              contactYourDoctor: input.contact_your_doctor,
+              moreInformation: input.more_information,
               attribution: input.attribution,
             })
             .where(eq(healthyLiving.id, input.id))

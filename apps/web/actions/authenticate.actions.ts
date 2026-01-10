@@ -1,6 +1,5 @@
 "use server";
 import { supabase } from "@/lib/supabase";
-import { serverApi } from "@/lib/trpc-serverCaller";
 import {
   TAdminInviteSchema,
   TUserProfile,
@@ -18,7 +17,7 @@ const createAdminInvite = async (input: TAdminInviteSchema) => {
       .from("user_invites")
       .select("id")
       .eq("email", input.email)
-      .single();
+      .maybeSingle();
 
     if (error) throw new Error(error.message);
     if (data) throw new Error("Invite already sent");
@@ -46,7 +45,7 @@ export async function inviteAdminAction(email: string, role: string) {
     const token = nanoid(24);
     const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7);
 
-    createAdminInvite({
+    await createAdminInvite({
       email,
       role: role as TUserProfile["role"],
       token,

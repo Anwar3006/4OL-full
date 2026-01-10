@@ -1,8 +1,8 @@
-import { TMarketingProfile } from "@4ol/db/schemas/marketing-profile.schema";
+import { TMarketingProfileOutput } from "@4ol/db/schemas/marketing-profile.schema";
 import { JSX } from "react";
 
 export const MarkrtingStatusMap: Record<
-  TMarketingProfile["status"],
+  TMarketingProfileOutput["status"],
   JSX.Element
 > = {
   draft: (

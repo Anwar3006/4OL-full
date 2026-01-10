@@ -1,17 +1,14 @@
 import { router } from "./trpc";
-import { userProfilesRouter } from "./routers/user-profiles";
+
 import { storageRouter } from "./routers/media-storage";
-import { facilityProfileRouter } from "./routers/facility-profiles";
-import { marketingProfileRouter } from "./routers/marketing-profiles";
+
 import { conditionsRouter } from "./routers/conditions-router";
 import { symptomsRouter } from "./routers/symptoms-router";
 import { healthyLivingRouter } from "./routers/healthyLiving-router";
 
 export const appRouter = router({
-  userProfiles: userProfilesRouter,
   mediaStorage: storageRouter,
-  facilityProfiles: facilityProfileRouter,
-  marketingProfiles: marketingProfileRouter,
+
   conditionsRouter: conditionsRouter,
   symptomsRouter: symptomsRouter,
   healthyLivingRouter: healthyLivingRouter,

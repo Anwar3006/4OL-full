@@ -27,8 +27,8 @@ export const healthyLivingTypes = pgTable("healthy_living_types", {
       onDelete: "cascade",
     }
   ),
-  typeName: text("type_name").notNull(),
-  aboutType: jsonb("about_type"),
+  type_name: text("type_name").notNull(),
+  about_type: jsonb("about_type"),
 });
 
 export const healthyLivingRelations = relations(healthyLiving, ({ many }) => ({

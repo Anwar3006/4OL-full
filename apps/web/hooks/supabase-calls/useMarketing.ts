@@ -102,7 +102,13 @@ export const useMarketingProfiles = ({
   });
 };
 
-export const useMarketingProfile = (id: string) => {
+export const useMarketingProfile = ({
+  id,
+  enabled,
+}: {
+  id: string;
+  enabled: boolean;
+}) => {
   return useQuery<TMarketingProfileOutput, Error>({
     queryKey: MARKETING_PROFILE_QUERY_KEYS.detail(id),
     queryFn: async () => {
@@ -115,6 +121,7 @@ export const useMarketingProfile = (id: string) => {
       if (error) throw new Error(error.message);
       return data as TMarketingProfileOutput;
     },
+    enabled: enabled,
   });
 };
 

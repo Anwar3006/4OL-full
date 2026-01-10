@@ -30,19 +30,23 @@ import {
 import { MarkrtingStatusMap } from "@/constants/marketing.const";
 import { useViewMarketingDialog } from "@/stores/dialog-store";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
+import { useMarketingProfile } from "@/hooks/supabase-calls/useMarketing";
+import { useGetSignedUrls } from "@/hooks/supabase-calls/useMediaStorage";
 
 export function MarketingViewDialog() {
   const { isOpen, entityId, close } = useViewMarketingDialog();
 
-  const { data: campaign, isLoading } = trpc.marketingProfiles.getById.useQuery(
-    { id: entityId! },
-    { enabled: isOpen && !!entityId }
-  );
+  const { data: campaign, isLoading } = useMarketingProfile({
+    id: entityId!,
+    enabled: isOpen && !!entityId,
+  });
 
   const { data: imageData } = trpc.mediaStorage.getImageUrl.useQuery(
     { paths: [campaign?.imageUrl || ""], width: 800 },
     { enabled: !!campaign?.imageUrl }
   );
+
+  //  const { data: imageData2 } = useGetSignedUrls([campaign?.imageUrl || ""], !!campaign?.imageUrl);
 
   if (!isOpen) return null;
 
@@ -62,11 +66,12 @@ export function MarketingViewDialog() {
             <SheetTitle>Campaign Details for {campaign?.headline}</SheetTitle>
           </VisuallyHidden.Root>
         </SheetHeader>
-        {isLoading ? (
+        {isLoading && (
           <div className="p-6">
             <CampaignSkeleton />
           </div>
-        ) : campaign ? (
+        )}{" "}
+        {campaign ? (
           <>
             {/* Responsive Header Padding */}
             <SheetHeader className="p-4 md:p-6 border-b bg-muted/20">
@@ -217,11 +222,11 @@ export function MarketingViewDialog() {
                       value={campaign.organization || "N/A"}
                       icon={Building2}
                     />
-                    <DetailBlock
+                    {/* <DetailBlock
                       label="Created"
-                      value={new Date(campaign.createdAt).toLocaleDateString()}
+                      value={new Date(campaign.created_at).toLocaleDateString()}
                       icon={FileText}
-                    />
+                    /> TODO: add createdAt field to campaign output */}
                   </div>
                 </div>
 

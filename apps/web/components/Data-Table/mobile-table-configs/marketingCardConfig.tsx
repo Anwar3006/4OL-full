@@ -3,13 +3,13 @@
 import { Calendar, Building2, FileText } from "lucide-react";
 import { MobileCardConfig } from "../mobile-card-types";
 import { MarkrtingStatusMap } from "@/constants/marketing.const";
-import { TMarketingProfile } from "@4ol/db/schemas/marketing-profile.schema";
+import { TMarketingProfileOutput } from "@4ol/db/schemas/marketing-profile.schema";
 
 /**
  * Mobile card configuration for Marketing entities
  * This defines how marketing campaign data should be displayed in card format on mobile devices
  */
-export const marketingCardConfig: MobileCardConfig<TMarketingProfile> = {
+export const marketingCardConfig: MobileCardConfig<TMarketingProfileOutput> = {
   // Header configuration
   header: {
     title: (campaign) => campaign.headline,

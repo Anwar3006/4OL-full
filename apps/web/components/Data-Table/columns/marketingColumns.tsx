@@ -1,19 +1,10 @@
 "use client";
 import { ColumnDef } from "@tanstack/react-table";
 import { MoreHorizontal, Mail, Phone, BriefcaseBusiness } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { TMarketingProfile } from "@4ol/db/schemas/marketing-profile.schema";
+import { TMarketingProfileOutput } from "@4ol/db/schemas/marketing-profile.schema";
 import { MarkrtingStatusMap } from "@/constants/marketing.const";
 
-export const marketingColumns: ColumnDef<TMarketingProfile>[] = [
+export const marketingColumns: ColumnDef<TMarketingProfileOutput>[] = [
   {
     accessorKey: "type",
     header: () => <div className="font-semibold">Type</div>,

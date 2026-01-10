@@ -33,6 +33,7 @@ type Pagination = {
 
 export const FACILITY_PROFILE_QUERY_KEYS = {
   all: ["facilities"] as const,
+  map: ["map"] as const,
   lists: () => [...FACILITY_PROFILE_QUERY_KEYS.all, "lists"] as const,
   list: (params: Pagination) =>
     [...FACILITY_PROFILE_QUERY_KEYS.lists(), { ...params }] as const,
@@ -51,7 +52,14 @@ export const useFacilityProfiles = (params: Pagination) => {
       const from = ((page || 1) - 1) * (limit || 10);
       const to = from + (limit || 10) - 1;
 
-      const query = supabase.from("facility_profile").select("*");
+      const query = supabase
+        .from("facility_profile")
+        .select("*", { count: "exact" });
+
+      // 2. We ALWAYS need stats for the analytics cards
+      // Note: We don't filter stats by search/status because cards show GLOBAL totals
+      const statsQuery = supabase.from("facility_profile").select("status");
+
       if (search) {
         query.or(
           `facility_name.ilike.%${search}%,district.ilike.%${search}%,region.ilike.%${search}%`
@@ -62,62 +70,48 @@ export const useFacilityProfiles = (params: Pagination) => {
       }
       if (type) {
         query.eq("facility_type", type);
+        statsQuery.eq("facility_type", type);
       }
 
       if (includeStatsOnly) {
-        const statsResult = await supabase
+        const {
+          data: statsData,
+          count: totalCount,
+          error,
+        } = await supabase
           .from("facility_profile")
-          .select("status");
+          .select("status", { count: "exact" }); // Must add count option here
 
-        if (statsResult.error) throw statsResult.error;
-        //Process Stats (Client-side aggregation is faster than a 3rd query)
-        const rawStats = statsResult.data;
-        const statsMap = {
-          active: rawStats.filter((s) => s.status === "active").length,
-          inactive: rawStats.filter((s) => s.status === "inactive").length,
-          pending: rawStats.filter((s) => s.status === "pending").length,
-          rejected: rawStats.filter((s) => s.status === "rejected").length,
-        };
-
-        const totalCount = statsResult.count ?? 0;
-        return {
-          meta: {
-            total: totalCount,
-            totalPages: Math.ceil(totalCount / (limit || 10)),
-            currentPage: page,
-          },
-          analytics: statsMap,
-        };
-      } else {
-        const [facilitiesResult, statsResult] = await Promise.all([
-          query.order("created_at", { ascending: false }).range(from, to),
-          supabase.from("facility_profile").select("status"),
-        ]);
-
-        if (facilitiesResult.error) throw facilitiesResult.error;
-        if (statsResult.error) throw statsResult.error;
-
-        //Process Stats (Client-side aggregation is faster than a 3rd query)
-        const rawStats = statsResult.data;
-        const statsMap = {
-          active: rawStats.filter((s) => s.status === "active").length,
-          inactive: rawStats.filter((s) => s.status === "inactive").length,
-          pending: rawStats.filter((s) => s.status === "pending").length,
-          rejected: rawStats.filter((s) => s.status === "rejected").length,
-        };
-
-        const totalCount = facilitiesResult.count ?? 0;
+        if (error) throw error;
 
         return {
-          facilities: facilitiesResult.data as TFacilityProfileInput[],
           meta: {
-            total: facilitiesResult.count,
-            totalPages: Math.ceil(totalCount / (limit || 10)),
+            total: totalCount || 0,
+            totalPages: Math.ceil((totalCount || 0) / (limit || 10)),
             currentPage: page,
           },
-          analytics: statsMap,
+          analytics: aggregateStats(statsData),
         };
       }
+      const [facilitiesResponse, statsResponse] = await Promise.all([
+        query.order("created_at", { ascending: false }).range(from, to),
+        statsQuery,
+      ]);
+
+      if (facilitiesResponse.error) throw facilitiesResponse.error;
+      if (statsResponse.error) throw statsResponse.error;
+
+      return {
+        facilities: facilitiesResponse.data,
+        meta: {
+          total: facilitiesResponse.count || 0, // Extract count from the data query
+          totalPages: Math.ceil(
+            (facilitiesResponse.count || 0) / (limit || 10)
+          ),
+          currentPage: page,
+        },
+        analytics: aggregateStats(statsResponse.data),
+      };
     },
   });
 };
@@ -144,7 +138,40 @@ export const useFacilityProfile = ({
 };
 
 //TODO: Complete this hook
-export const getFacilitiesMapData = async () => {};
+export const useGetFacilitiesMapData = ({
+  minLng,
+  minLat,
+  maxLng,
+  maxLat,
+  zoom,
+  enabled,
+}: {
+  minLng: number;
+  minLat: number;
+  maxLng: number;
+  maxLat: number;
+  zoom: number;
+  enabled: boolean;
+}) => {
+  return useQuery<any, Error>({
+    queryKey: FACILITY_PROFILE_QUERY_KEYS.map,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("get_facilities_map", {
+        minLng,
+        minLat,
+        maxLng,
+        maxLat,
+        zoom_level: Math.round(zoom),
+      });
+
+      if (error) throw error;
+      return data; // This is a perfectly formatted GeoJSON object
+    },
+    enabled: enabled,
+    placeholderData: (prev: any) => prev,
+    staleTime: 1000 * 60, //Every 1 min
+  });
+};
 
 //TODO: Complete this hook
 export const getTopRatedFacilities = async () => {};
@@ -325,4 +352,15 @@ export const useDeleteFacility = () => {
       toast.success("Failed to delete facility: " + error.message);
     },
   });
+};
+
+///// ========== Helper Function
+const aggregateStats = (rawStats: any[] | null) => {
+  if (!rawStats) return { active: 0, inactive: 0, pending: 0, rejected: 0 };
+  return {
+    active: rawStats.filter((s) => s.status === "active").length,
+    inactive: rawStats.filter((s) => s.status === "inactive").length,
+    pending: rawStats.filter((s) => s.status === "pending").length,
+    rejected: rawStats.filter((s) => s.status === "rejected").length,
+  };
 };
