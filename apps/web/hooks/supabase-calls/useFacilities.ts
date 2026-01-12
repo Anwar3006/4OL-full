@@ -1,4 +1,4 @@
-import { moveFile } from "@/actions/media-storage.actions";
+import { deleteFiles, moveFile } from "@/actions/media-storage.actions";
 import { supabase } from "@/lib/supabase";
 import {
   TFacilityProfileInput,
@@ -241,28 +241,67 @@ export const useCreateFacilityProfile = () => {
   });
 };
 
-//TODO: Complete this hook - create the rpc function in supabase
 export const useUpdateFacilityProfile = () => {
   const queryClient = useQueryClient();
 
-  return useMutation<any, Error, any>({
-    mutationFn: async (input: TFacilityProfileInput) => {
-      const { data, error } = await supabase.from("facility_profile").update({
-        ...input,
-      });
+  return useMutation<
+    any,
+    Error,
+    TFacilityProfileInput & {
+      imagesToDelete?: string[];
+      newlyUploadedFiles?: string[];
+      id: string;
+    }
+  >({
+    mutationFn: async (input) => {
+      const { imagesToDelete, newlyUploadedFiles, id, ...updatePayload } =
+        input;
+
+      // 1. Delete images marked for removal
+      if (imagesToDelete && imagesToDelete.length > 0) {
+        await deleteFiles(imagesToDelete);
+      }
+
+      // 2. Move newly uploaded files from temp to permanent storage
+      const newFilePaths = await Promise.all(
+        (newlyUploadedFiles || []).map(async (tempPath) => {
+          const newPath = `facilities/approved/${id}/${tempPath
+            .split("/")
+            .pop()}`;
+          await moveFile(tempPath, newPath);
+          return newPath;
+        })
+      );
+
+      // 3. Update the database record
+      const finalMediaUrls = [
+        ...(input.media_urls || []).filter(
+          (url) => !imagesToDelete?.includes(url)
+        ),
+        ...newFilePaths,
+      ];
+
+      const { data, error } = await supabase
+        .from("facility_profile")
+        .update({ ...updatePayload, media_urls: finalMediaUrls })
+        .eq("id", input.id!);
 
       if (error) throw new Error(error.message);
 
-      return { success: true, data };
+      return data;
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
+      // Invalidate queries to refetch data
       queryClient.invalidateQueries({
-        queryKey: FACILITY_PROFILE_QUERY_KEYS.all,
+        queryKey: FACILITY_PROFILE_QUERY_KEYS.lists(),
       });
-      toast.success("Facility profile created successfully!");
+      queryClient.invalidateQueries({
+        queryKey: FACILITY_PROFILE_QUERY_KEYS.detail(variables.id!),
+      });
+      toast.success("Facility profile updated successfully!");
     },
     onError: (error) => {
-      toast.error(`Failed to create facility profile: ${error.message}`);
+      toast.error(`Failed to update facility profile: ${error.message}`);
     },
   });
 };

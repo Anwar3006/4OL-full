@@ -144,6 +144,57 @@ export async function deleteFile(filePath: string) {
 }
 
 /**
+ * Delete multiple files from Supabase Storage
+ * Requires authentication
+ */
+export async function deleteFiles(filePaths: string[]) {
+  try {
+    // Verify user is authenticated
+    const session = await authClient.getSession({
+      fetchOptions: {
+        headers: await headers(),
+      },
+    });
+
+    if (!session?.data?.user) {
+      return {
+        success: false,
+        error: "Unauthorized: You must be logged in to delete files",
+      };
+    }
+    if (!filePaths || filePaths.length === 0) {
+      return { success: true, message: "No files to delete." };
+    }
+
+    const bucketName = process.env.NEXT_PUBLIC_SUPABASE_BUCKET_NAME!;
+
+    // Delete files using admin client
+    const { error } = await supabaseAdmin.storage
+      .from(bucketName)
+      .remove(filePaths);
+
+    if (error) {
+      console.error("Supabase batch delete error:", error);
+      return {
+        success: false,
+        error: error.message || "Failed to delete files",
+      };
+    }
+
+    return {
+      success: true,
+      message: "Files deleted successfully",
+    };
+  } catch (error) {
+    console.error("Delete files action error:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error occurred",
+    };
+  }
+}
+
+/**
  * Get signed URL for downloading/viewing private files
  * Requires authentication
  */

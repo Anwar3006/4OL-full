@@ -22,30 +22,56 @@ import { Badge } from "@/components/ui/badge";
 interface MultiSelectProps {
   name: string;
   label: string;
-  options: string[]; // These are passed based on facility type
-  selected: string[];
+  options: string[];
+  selected: string[] | null | undefined; // Handle potential nulls
   onChange: (value: string[]) => void;
   placeholder?: string;
 }
 
 export function MultiSelect({
   label,
-  options,
-  selected,
+  options = [],
+  selected = [], // Default to empty array
   onChange,
-  placeholder,
+  placeholder = "Select items...",
 }: MultiSelectProps) {
   const [open, setOpen] = React.useState(false);
 
-  const handleUnselect = (item: string) => {
-    onChange(selected.filter((i) => i !== item));
-  };
+  // 1. Fix null errors & optimize lookups
+  // Converting the array to a Set makes .has() an O(1) operation
+  const safeSelected = React.useMemo(
+    () => (Array.isArray(selected) ? selected : []),
+    [selected]
+  );
+
+  const selectedSet = React.useMemo(
+    () => new Set(safeSelected),
+    [safeSelected]
+  );
+
+  // 2. Memoized toggle handler
+  const toggleOption = React.useCallback(
+    (option: string) => {
+      const newSelected = selectedSet.has(option)
+        ? safeSelected.filter((item) => item !== option)
+        : [...safeSelected, option];
+      onChange(newSelected);
+    },
+    [selectedSet, safeSelected, onChange]
+  );
+
+  const handleUnselect = React.useCallback(
+    (e: React.MouseEvent, item: string) => {
+      e.preventDefault();
+      e.stopPropagation();
+      onChange(safeSelected.filter((i) => i !== item));
+    },
+    [safeSelected, onChange]
+  );
 
   return (
     <div className="flex flex-col gap-2 w-full">
-      <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-        {label}
-      </label>
+      <label className="text-sm font-medium leading-none">{label}</label>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
@@ -55,16 +81,14 @@ export function MultiSelect({
             className="w-full justify-between h-auto min-h-10 py-2 px-3"
           >
             <div className="flex flex-wrap gap-1">
-              {selected?.length > 0 ? (
-                selected.map((item) => (
+              {safeSelected.length > 0 ? (
+                safeSelected.map((item) => (
                   <Badge
                     variant="secondary"
                     key={item}
-                    className="mr-1 mb-1"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleUnselect(item);
-                    }}
+                    className="mr-1"
+                    // Important: use the memoized handler
+                    onClick={(e) => handleUnselect(e, item)}
                   >
                     {item}
                     <X className="ml-1 h-3 w-3 hover:text-destructive" />
@@ -77,36 +101,36 @@ export function MultiSelect({
             <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="min-w-50 p-0" align="start">
+        <PopoverContent
+          className="w-full min-w-[var(--radix-popover-trigger-width)] p-0"
+          align="start"
+        >
           <Command>
             <CommandInput placeholder={`Search ${label}...`} />
-            <CommandEmpty>No item found.</CommandEmpty>
             <CommandList>
+              <CommandEmpty>No item found.</CommandEmpty>
               <CommandGroup className="max-h-64 overflow-y-auto">
-                {options.map((option) => (
-                  <CommandItem
-                    key={option}
-                    onSelect={() => {
-                      onChange(
-                        selected.includes(option)
-                          ? selected.filter((item) => item !== option)
-                          : [...selected, option]
-                      );
-                    }}
-                  >
-                    <div
-                      className={cn(
-                        "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
-                        selected?.includes(option)
-                          ? "bg-primary text-primary-foreground"
-                          : "opacity-50 [&_svg]:invisible"
-                      )}
+                {options.map((option) => {
+                  const isSelected = selectedSet.has(option);
+                  return (
+                    <CommandItem
+                      key={option}
+                      onSelect={() => toggleOption(option)}
                     >
-                      <Check className={cn("h-4 w-4")} />
-                    </div>
-                    <span>{option}</span>
-                  </CommandItem>
-                ))}
+                      <div
+                        className={cn(
+                          "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
+                          isSelected
+                            ? "bg-primary text-primary-foreground"
+                            : "opacity-50 [&_svg]:invisible"
+                        )}
+                      >
+                        <Check className="h-4 w-4" />
+                      </div>
+                      <span>{option}</span>
+                    </CommandItem>
+                  );
+                })}
               </CommandGroup>
             </CommandList>
           </Command>

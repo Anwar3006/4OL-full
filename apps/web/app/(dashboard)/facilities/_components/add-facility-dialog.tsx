@@ -24,7 +24,7 @@ import CustomSelect from "@/components/CustomSelect";
 import { useGeolocation } from "@/hooks/use-geolocation";
 import useGhanaPostGPS from "@/hooks/useGhanaPostGPS";
 import { toast } from "sonner";
-import { Loader2, MapPinHouse } from "lucide-react";
+import { Loader2, MapPinHouse, Trash, X } from "lucide-react";
 import z from "zod";
 import { MultiSelect } from "@/components/MultiSelect";
 import { cn } from "@/lib/utils";
@@ -38,6 +38,7 @@ import {
   useCreateFacilityProfile,
   useUpdateFacilityProfile,
 } from "@/hooks/supabase-calls/useFacilities";
+import { useGetSignedUrls } from "@/hooks/supabase-calls/useMediaStorage";
 
 // Step 1 Fields - To make sure we validate these fields before moving on to Step 2
 const STEP_1_FIELDS: (keyof TFacilityProfileInput)[] = [
@@ -67,6 +68,11 @@ const AddFacilityDialog = () => {
     password: string;
     facilityName: string;
   } | null>(null);
+
+  // New state for advanced image management in edit mode
+  const [existingImages, setExistingImages] = useState<string[]>([]);
+  const [imagesToDelete, setImagesToDelete] = useState<string[]>([]);
+  const [newlyUploadedFiles, setNewlyUploadedFiles] = useState<string[]>([]);
 
   const [uploadSessionId] = useState(() => `pending_${nanoid(12)}`);
   const filePath = `facilities/temporary/${uploadSessionId}`;
@@ -116,36 +122,60 @@ const AddFacilityDialog = () => {
   });
 
   // --- Effects ---
-  // Use a clean reset when the dialog opens/closes
+  // When the dialog opens for editing, wait for data to be available, then reset the form.
   useEffect(() => {
-    if (isOpen) {
-      if (isEditMode && data) {
-        form.reset({
-          ...form.getValues(),
-          ...data,
-          business_hours: DEFAULT_BUSINESS_HOURS,
-        });
-      } else {
-        form.reset({
-          facility_name: "",
-          contact_number: "",
-          email: "",
-          region: "greater accra",
-          country: "Ghana",
-          sameForWeekdays: false,
-          business_hours: DEFAULT_BUSINESS_HOURS,
-          media_urls: [],
-          services: [],
-          amenities: [],
-          keywords: "",
-          first_name: "",
-          last_name: "",
-          owner_email: "",
-          person_contact_number: "",
-        });
-      }
+    if (isOpen && isEditMode && data) {
+      form.reset({
+        ...form.getValues(),
+        ...data,
+        business_hours: data.business_hours || DEFAULT_BUSINESS_HOURS,
+        sameForWeekdays: false, // Explicitly reset this view-only field
+        keywords: data.keywords || "",
+      });
+
+      // Populate existing images state
+      setExistingImages(data.media_urls || []);
+      // Clear deletion and new upload lists on open
+      setImagesToDelete([]);
+      setNewlyUploadedFiles([]);
     }
-  }, [isOpen, isEditMode, data, form]);
+  }, [isOpen, isEditMode, data, form.reset]);
+
+  // When the dialog opens for creating, reset to default values.
+  useEffect(() => {
+    if (isOpen && !isEditMode) {
+      form.reset({
+        facility_type: "hospitals_&_clinics",
+        facility_name: "",
+        contact_number: "",
+        whatsapp_number: "",
+        email: "",
+        gps_address: "",
+        street: "",
+        post_code: "",
+        area: "",
+        district: "",
+        region: "greater accra",
+        country: "Ghana",
+        first_name: "",
+        last_name: "",
+        owner_email: "",
+        person_contact_number: "",
+        position: "",
+        media_urls: [],
+        services: [],
+        amenities: [],
+        business_hours: DEFAULT_BUSINESS_HOURS,
+        sameForWeekdays: false,
+        keywords: "",
+      });
+
+      // Also reset image management state
+      setExistingImages([]);
+      setImagesToDelete([]);
+      setNewlyUploadedFiles([]);
+    }
+  }, [isOpen, isEditMode, form.reset]);
 
   // 2. Fetch address only when coordinates are acquired
   useEffect(() => {
@@ -224,7 +254,11 @@ const AddFacilityDialog = () => {
       // Use setTimeout to defer the state update to the next tick
       // This prevents updating parent state during child render
       setTimeout(() => {
-        form.setValue("media_urls", urls, { shouldValidate: true });
+        if (isEditMode) {
+          setNewlyUploadedFiles(urls);
+        } else {
+          form.setValue("media_urls", urls, { shouldValidate: true });
+        }
       }, 0);
     },
     [form]
@@ -235,6 +269,17 @@ const AddFacilityDialog = () => {
     close();
   };
   //////////////////
+
+  // Hook to get temporary, viewable URLs for existing images
+  const { data: existingImageUrls, isLoading: isUrlsLoading } =
+    useGetSignedUrls(existingImages, isOpen && isEditMode);
+
+  // Handlers for image management
+  const handleDeleteExistingImage = (imagePath: string) => {
+    setExistingImages((prev) => prev.filter((p) => p !== imagePath));
+    setImagesToDelete((prev) => [...prev, imagePath]);
+    toast.info("Image marked for deletion. Save changes to confirm.");
+  };
 
   const facilityMutation = useCreateFacilityProfile();
   const facilityUpdateMutation = useUpdateFacilityProfile();
@@ -249,8 +294,17 @@ const AddFacilityDialog = () => {
     try {
       // SCENARIO 1: EDIT MODE
       if (isEditMode) {
-        await facilityUpdateMutation.mutateAsync(payload);
-        toast.success("Facility updated successfully");
+        const finalImageUrls = [...existingImages, ...newlyUploadedFiles];
+        await facilityUpdateMutation.mutateAsync({
+          id: data.id,
+          ...payload,
+
+          media_urls: finalImageUrls,
+          imagesToDelete,
+          newlyUploadedFiles,
+        });
+        toast.success("Facility Updated!");
+        setStep(1);
         close();
         return;
       }
@@ -296,9 +350,8 @@ const AddFacilityDialog = () => {
             facilityName: payload.facility_name,
           });
           setFacilityModal(true);
-        } else {
-          close();
         }
+        close();
       }
     } catch (error: any) {
       toast.error(error.message || "Operation failed");
@@ -309,6 +362,7 @@ const AddFacilityDialog = () => {
 
   return (
     <Dialog open={isOpen} onOpenChange={handleDialogClose}>
+      {/* Dialog after successful registration of facility */}
       {credentials && (
         <FacilityCredentialsModal
           isOpen={facilityModal}
@@ -614,17 +668,62 @@ const AddFacilityDialog = () => {
               </>
             )}
 
-            {!isEditMode && step === 2 && (
+            {step === 2 && (
               <>
                 {/* ---------------- STEP 2 ---------------- */}
                 <h3 className="font-semibold mb-4 underline text-center">
                   Facility Images
                 </h3>
 
-                {/* Example upload section */}
+                {isEditMode && (
+                  <div className="mb-6">
+                    <h4 className="text-sm font-semibold text-muted-foreground mb-2">
+                      Existing Images
+                    </h4>
+                    {isUrlsLoading ? (
+                      <div className="flex items-center justify-center p-4">
+                        <Loader2 className="h-6 w-6 animate-spin" />
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        {existingImageUrls?.map(({ url, path }) => (
+                          <div
+                            key={path}
+                            className="relative group aspect-video"
+                          >
+                            <img
+                              src={url}
+                              alt="Existing facility"
+                              className="object-cover w-full h-full rounded-md"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteExistingImage(path)}
+                              className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                              aria-label="Delete image"
+                            >
+                              <Trash className="h-3 w-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {existingImages.length === 0 && !isUrlsLoading && (
+                      <p className="text-sm text-muted-foreground text-center py-4">
+                        No existing images.
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                <h4 className="text-sm font-semibold text-muted-foreground mb-2">
+                  {isEditMode ? "Upload New Images" : "Upload Facility Images"}
+                </h4>
                 <ImageDropZone
                   filePath={filePath}
-                  initialFiles={form.watch("media_urls")}
+                  initialFiles={
+                    isEditMode ? newlyUploadedFiles : form.watch("media_urls")
+                  }
                   text="Upload clear photos of your facility (front view, interior, signage, opposite)"
                   onFilesChange={handleFilesChange}
                 />
