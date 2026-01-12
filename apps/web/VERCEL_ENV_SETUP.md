@@ -45,12 +45,12 @@ You MUST add these environment variables in your Vercel project settings:
 
 #### Required Variables:
 ```
-NEXT_PUBLIC_SUPABASE_URL=https://pyzddsvvazfrhohghuki.supabase.co
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_zCZoVHG5OxAgnM5RIBfp7A_mJeyLYYS
-SUPABASE_SECRET_KEY=sb_secret_RHeG77gcsHOOZMU1RUPClg_hq5EpNSV
-NEXT_PUBLIC_SUPABASE_BUCKET_NAME=bucket4ol
-RESEND_API_KEY=re_U2Tpiis3_CceGWEVnTjhQUVUvHk2ktnZh
-NEXT_PUBLIC_APP_URL=https://4-ol-full-web-myzx.vercel.app
+NEXT_PUBLIC_SUPABASE_URL=<your_supabase_url>
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<your_supabase_publishable_key>
+SUPABASE_SECRET_KEY=<your_secret_key>
+NEXT_PUBLIC_SUPABASE_BUCKET_NAME=<your_bucket_name>
+RESEND_API_KEY=<your_resend_api_key>
+NEXT_PUBLIC_APP_URL=<your_app_url>
 ```
 
 4. Make sure to set them for all environments (Production, Preview, Development)
