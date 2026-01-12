@@ -42,12 +42,12 @@ const createAdminInvite = async (input: TAdminInviteSchema) => {
   }
 };
 
-export async function inviteAdminAction(email: string, role:string) {
+export async function inviteAdminAction(email: string, role: string) {
   try {
-    const requestHeaders = headers();
+    const requestHeaders = await headers();
     const session = await auth.api.getSession({
       headers: {
-        cookie: requestHeaders.get("cookie"),
+        cookie: requestHeaders.get("cookie") as string,
       },
     });
 
