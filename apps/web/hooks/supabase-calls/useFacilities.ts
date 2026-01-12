@@ -247,8 +247,8 @@ export const useUpdateFacilityProfile = () => {
 
   return useMutation<any, Error, any>({
     mutationFn: async (input: TFacilityProfileInput) => {
-      const { data, error } = await supabase.rpc("update_facility_profile", {
-        input,
+      const { data, error } = await supabase.from("facility_profile").update({
+        ...input,
       });
 
       if (error) throw new Error(error.message);
@@ -284,14 +284,6 @@ export const useApproveFacility = () => {
       status: string;
       media_urls: string[];
     }) => {
-      //   const { data, error } = await supabase
-      //     .from("facility_profiles")
-      //     .select("id, status, media_urls")
-      //     .eq("id", id)
-      //     .single();
-
-      //   if (error) throw new Error(error.message);
-
       if (status !== "pending") {
         throw new Error("Facility is not in pending status");
       }

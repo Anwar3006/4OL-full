@@ -34,7 +34,10 @@ import { nanoid } from "nanoid";
 import { useAddFacilityDialog } from "@/stores/dialog-store";
 import { authClient } from "@/lib/auth-client";
 import FacilityCredentialsModal from "./facility-credentials-modal";
-import { useCreateFacilityProfile } from "@/hooks/supabase-calls/useFacilities";
+import {
+  useCreateFacilityProfile,
+  useUpdateFacilityProfile,
+} from "@/hooks/supabase-calls/useFacilities";
 
 // Step 1 Fields - To make sure we validate these fields before moving on to Step 2
 const STEP_1_FIELDS: (keyof TFacilityProfileInput)[] = [
@@ -65,6 +68,9 @@ const AddFacilityDialog = () => {
     facilityName: string;
   } | null>(null);
 
+  const [uploadSessionId] = useState(() => `pending_${nanoid(12)}`);
+  const filePath = `facilities/temporary/${uploadSessionId}`;
+
   // Hooks to fetch location and Ghana Post Address
   const {
     getLocationCoordinates,
@@ -72,10 +78,9 @@ const AddFacilityDialog = () => {
     loading: coordinatesLoading,
     error: coordintatesError,
   } = useGeolocation();
-
   const { fetchGhanaPostAddress, loading: addressLoading } = useGhanaPostGPS();
-
   const isLoadingLocation = coordinatesLoading || addressLoading;
+  ////////////
 
   const form = useForm({
     resolver: zodResolver(
@@ -110,6 +115,7 @@ const AddFacilityDialog = () => {
     },
   });
 
+  // --- Effects ---
   // Use a clean reset when the dialog opens/closes
   useEffect(() => {
     if (isOpen) {
@@ -190,14 +196,11 @@ const AddFacilityDialog = () => {
     }
   }, [coordinates, form.setValue]);
 
-  const [uploadSessionId] = useState(() => `pending_${nanoid(12)}`);
-  const filePath = `facilities/temporary/${uploadSessionId}`;
-
+  // --- Helpers ---
   // Watch facility type to automatically populate amenities and services
   const selectedType = form.watch(
     "facility_type"
   ) as keyof typeof FACILITY_REQUIREMENTS;
-
   const availableAmenities = useMemo(
     () => FACILITY_REQUIREMENTS[selectedType]?.amenities || [],
     [selectedType]
@@ -206,9 +209,15 @@ const AddFacilityDialog = () => {
     () => FACILITY_REQUIREMENTS[selectedType]?.services || [],
     [selectedType]
   );
-  //////////////////
 
-  const facilityMutation = useCreateFacilityProfile();
+  const handleContinue = async () => {
+    const isValid = await form.trigger(STEP_1_FIELDS);
+    if (!isValid) {
+      toast.error("Please complete all required fields");
+      return;
+    }
+    setStep(2);
+  };
 
   const handleFilesChange = useCallback(
     (urls: string[]) => {
@@ -225,34 +234,41 @@ const AddFacilityDialog = () => {
     setStep(1);
     close();
   };
+  //////////////////
+
+  const facilityMutation = useCreateFacilityProfile();
+  const facilityUpdateMutation = useUpdateFacilityProfile();
+
+  // --- Submission Logic ---
   const handleSubmit = async (
-    data: TFacilityProfileInput & { sameForWeekdays: boolean }
+    values: TFacilityProfileInput & { sameForWeekdays: boolean }
   ) => {
     setSubmitting(true);
-    const { sameForWeekdays, ...payload } = data;
-    // const targetEmail = payload.email || payload.ownerEmail;
+    const { sameForWeekdays, ...payload } = values;
 
     try {
+      // SCENARIO 1: EDIT MODE
+      if (isEditMode) {
+        await facilityUpdateMutation.mutateAsync(payload);
+        toast.success("Facility updated successfully");
+        close();
+        return;
+      }
+
+      // SCENARIO 2: CREATE MODE
       let ownerId: string | null = null;
       let isNewUser = false;
 
-      // 1. Attempt to create the user via Admin API
       const newAuthUser = await authClient.admin.createUser({
         name: `${payload.first_name} ${payload.last_name}`,
         email: payload.owner_email,
-        password: payload.gps_address, // Temporary password
+        password: payload.gps_address,
       });
 
       if (newAuthUser.data?.user) {
-        // SCENARIO A: User created successfully
         ownerId = newAuthUser.data.user.id;
         isNewUser = true;
-      } else if (
-        newAuthUser.error?.status === 422 ||
-        newAuthUser.error?.code === "USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL"
-      ) {
-        // SCENARIO B: User already exists - Fetch their ID
-        // You may need a small tRPC query or a direct authClient call to get the user by email
+      } else {
         const existingUser = await authClient.admin.listUsers({
           query: {
             limit: 1,
@@ -260,31 +276,19 @@ const AddFacilityDialog = () => {
             searchValue: payload.owner_email.trim().toLowerCase(),
           },
         });
-
         ownerId = existingUser.data?.users[0]?.id || null;
-
-        if (!ownerId) {
-          throw new Error("User exists but could not be retrieved.");
-        }
-
-        toast.info("Existing user found. Linking facility to their account.");
-      } else {
-        // SCENARIO C: A different error occurred
-        throw newAuthUser.error;
       }
 
-      // 2. Mutate the facility with the found/created ownerId
+      if (!ownerId)
+        throw new Error("Could not assign an owner to this facility.");
+
       const result = await facilityMutation.mutateAsync({
         ...payload,
-        ownerId: ownerId,
+        ownerId,
       });
 
       if (result) {
-        toast.success(
-          isEditMode ? "Facility Updated!" : "Facility Registered!"
-        );
-
-        // 3. Only show credentials modal if the user was actually created now
+        toast.success("Facility Registered!");
         if (isNewUser) {
           setCredentials({
             email: payload.owner_email,
@@ -293,25 +297,14 @@ const AddFacilityDialog = () => {
           });
           setFacilityModal(true);
         } else {
-          // If user already existed, just close or reset
           close();
         }
       }
     } catch (error: any) {
-      console.error("Registration Flow Error: ", error);
-      toast.error(error.message || "Registration failed!");
+      toast.error(error.message || "Operation failed");
     } finally {
       setSubmitting(false);
     }
-  };
-
-  const handleContinue = async () => {
-    const isValid = await form.trigger(STEP_1_FIELDS);
-    if (!isValid) {
-      toast.error("Please complete all required fields");
-      return;
-    }
-    setStep(2);
   };
 
   return (
@@ -410,90 +403,101 @@ const AddFacilityDialog = () => {
                 </div>
 
                 <h3 className="font-semibold mb-2 underline text-center">
-                  Location Details(Auto-Populated)
+                  Location Details (Auto-Populated)
                 </h3>
-                {isLoadingLocation && (
-                  // State A: Active Fetching (Unified for GPS + Address)
-                  <div className="flex flex-col items-center justify-center p-10 border-2 border-dashed rounded-xl bg-muted/20">
-                    <Loader2 className="h-10 w-10 animate-spin text-primary mb-2" />
-                    <p className="text-sm text-muted-foreground">
-                      Accessing GPS & Resolving Address...
-                    </p>
-                  </div>
-                )}
 
-                {form.getValues("gps_address") ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in slide-in-from-bottom-2 duration-700">
-                    <CustomInput
-                      type="text"
-                      name="gps_address"
-                      control={form.control}
-                      label="GPS Address"
-                      readOnly
-                    />
-                    <CustomInput
-                      type="text"
-                      name="street"
-                      control={form.control}
-                      label="Street Name"
-                      readOnly
-                    />
-                    <CustomInput
-                      type="text"
-                      name="post_code"
-                      control={form.control}
-                      label="Post Code"
-                      readOnly
-                    />
-                    <CustomInput
-                      type="text"
-                      name="area"
-                      control={form.control}
-                      label="Area"
-                      readOnly
-                    />
-                    <CustomInput
-                      type="text"
-                      name="district"
-                      control={form.control}
-                      label="District"
-                      readOnly
-                    />
-                    <CustomInput
-                      type="text"
-                      name="region"
-                      control={form.control}
-                      label="Region"
-                      readOnly
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="text-xs bg-zinc-600 text-white"
-                      onClick={() => getLocationCoordinates()}
-                    >
-                      Incorrect? Re-detect Location
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-xl bg-primary/5">
-                    <MapPinHouse className="h-8 w-8 text-primary/40 mb-3" />
-                    <p className="text-sm text-muted-foreground mb-4 text-center">
-                      Auto-populate location details using your current GPS
-                      coordinates.
-                    </p>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="gap-2 border-primary text-primary hover:bg-primary/10"
-                      onClick={() => getLocationCoordinates()}
-                    >
-                      <MapPinHouse className="h-4 w-4" />
-                      Detect My Location
-                    </Button>
-                  </div>
-                )}
+                {(() => {
+                  // 1. Show Loader if we are currently fetching
+                  if (isLoadingLocation) {
+                    return (
+                      <div className="flex flex-col items-center justify-center p-10 border-2 border-dashed rounded-xl bg-muted/20">
+                        <Loader2 className="h-10 w-10 animate-spin text-primary mb-2" />
+                        <p className="text-sm text-muted-foreground">
+                          Accessing GPS & Resolving Address...
+                        </p>
+                      </div>
+                    );
+                  }
+
+                  // 2. Show the Data Form if we have a GPS address
+                  if (form.watch("gps_address")) {
+                    return (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in slide-in-from-bottom-2 duration-700">
+                        <CustomInput
+                          type="text"
+                          name="gps_address"
+                          control={form.control}
+                          label="GPS Address"
+                          readOnly
+                        />
+                        <CustomInput
+                          type="text"
+                          name="street"
+                          control={form.control}
+                          label="Street Name"
+                          readOnly
+                        />
+                        <CustomInput
+                          type="text"
+                          name="post_code"
+                          control={form.control}
+                          label="Post Code"
+                          readOnly
+                        />
+                        <CustomInput
+                          type="text"
+                          name="area"
+                          control={form.control}
+                          label="Area"
+                          readOnly
+                        />
+                        <CustomInput
+                          type="text"
+                          name="district"
+                          control={form.control}
+                          label="District"
+                          readOnly
+                        />
+                        <CustomInput
+                          type="text"
+                          name="region"
+                          control={form.control}
+                          label="Region"
+                          readOnly
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="text-xs bg-zinc-600 text-white"
+                          onClick={() => getLocationCoordinates()}
+                        >
+                          Incorrect? Re-detect Location
+                        </Button>
+                      </div>
+                    );
+                  }
+
+                  // 3. Show the "Detect" button if we aren't loading and have no data
+                  return (
+                    <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-xl bg-primary/5">
+                      <MapPinHouse className="h-8 w-8 text-primary/40 mb-3" />
+                      <p className="text-sm text-muted-foreground mb-4 text-center">
+                        Auto-populate location details using your current GPS
+                        coordinates.
+                      </p>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="gap-2 border-primary text-primary hover:bg-primary/10"
+                        onClick={() => getLocationCoordinates()}
+                      >
+                        <MapPinHouse className="h-4 w-4" />
+                        Detect My Location
+                      </Button>
+                    </div>
+                  );
+                })()}
 
                 {/* Facility Amenities and Services */}
                 <h3 className="font-semibold mb-2 underline text-center">

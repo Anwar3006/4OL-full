@@ -68,96 +68,99 @@ const ImageDropZone = ({
     [onFilesChange]
   );
 
-  const uploadFile = async (file: File) => {
-    const fileId = nanoid(6);
-    const timestamp = Date.now();
-    const sanitizedFileName = file.name.replace(/\s/g, "_");
+  const uploadFile = useCallback(
+    async (file: File) => {
+      const fileId = nanoid(6);
+      const timestamp = Date.now();
+      const sanitizedFileName = file.name.replace(/\s/g, "_");
 
-    const fileKey = `${filePath}/${timestamp}-${sanitizedFileName}`;
+      const fileKey = `${filePath}/${nanoid(4)}-${sanitizedFileName}`;
 
-    // Add file to state with uploading status
-    setFiles((prevFiles) => [
-      ...prevFiles,
-      {
-        id: fileId,
-        file,
-        uploading: true,
-        progress: 0,
-        isDeleting: false,
-        error: false,
-        objectUrl: URL.createObjectURL(file),
-      },
-    ]);
+      // Add file to state with uploading status
+      setFiles((prevFiles) => [
+        ...prevFiles,
+        {
+          id: fileId,
+          file,
+          uploading: true,
+          progress: 0,
+          isDeleting: false,
+          error: false,
+          objectUrl: URL.createObjectURL(file),
+        },
+      ]);
 
-    try {
-      // Step 1: Get presigned URL from server action
-      const { signedUrl, token, path } =
-        await getPresignedUrlMutation.mutateAsync(fileKey);
+      try {
+        // Step 1: Get presigned URL from server action
+        const { signedUrl, token, path } =
+          await getPresignedUrlMutation.mutateAsync(fileKey);
 
-      // Step 2: Upload to Supabase with progress tracking
-      await new Promise<void>((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
+        // Step 2: Upload to Supabase with progress tracking
+        await new Promise<void>((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
 
-        // Track upload progress
-        xhr.upload.addEventListener("progress", (e) => {
-          if (e.lengthComputable) {
-            const percentComplete = (e.loaded / e.total) * 100;
-            setFiles((prevFiles) =>
-              prevFiles.map((f) =>
-                f.id === fileId ? { ...f, progress: percentComplete } : f
-              )
-            );
-          }
-        });
-
-        // Handle successful upload
-        xhr.addEventListener("load", () => {
-          if (xhr.status === 200) {
-            setFiles((prevFiles) => {
-              const updated = prevFiles.map((f) =>
-                f.id === fileId
-                  ? { ...f, uploading: false, progress: 100, key: path }
-                  : f
+          // Track upload progress
+          xhr.upload.addEventListener("progress", (e) => {
+            if (e.lengthComputable) {
+              const percentComplete = (e.loaded / e.total) * 100;
+              setFiles((prevFiles) =>
+                prevFiles.map((f) =>
+                  f.id === fileId ? { ...f, progress: percentComplete } : f
+                )
               );
-              notifyParent(updated);
-              return updated;
-            });
-            toast.success(`${file.name} uploaded successfully!`);
-            resolve();
-          } else {
-            reject(new Error(`Upload failed with status ${xhr.status}`));
-          }
-        });
+            }
+          });
 
-        // Handle network errors
-        xhr.addEventListener("error", () => {
-          reject(new Error("Network error during upload"));
-        });
+          // Handle successful upload
+          xhr.addEventListener("load", () => {
+            if (xhr.status === 200) {
+              setFiles((prevFiles) => {
+                const updated = prevFiles.map((f) =>
+                  f.id === fileId
+                    ? { ...f, uploading: false, progress: 100, key: path }
+                    : f
+                );
+                notifyParent(updated);
+                return updated;
+              });
+              toast.success(`${file.name} uploaded successfully!`);
+              resolve();
+            } else {
+              reject(new Error(`Upload failed with status ${xhr.status}`));
+            }
+          });
 
-        // Open connection and send file
-        xhr.open("PUT", signedUrl);
-        xhr.setRequestHeader("Content-Type", file.type);
-        xhr.setRequestHeader("x-upsert", "true");
-        xhr.send(file);
-      });
-    } catch (error) {
-      console.error("Upload error:", error);
-      setFiles((prevFiles) => {
-        const updated = prevFiles.map((f) =>
-          f.id === fileId
-            ? { ...f, error: true, uploading: false, progress: 0 }
-            : f
+          // Handle network errors
+          xhr.addEventListener("error", () => {
+            reject(new Error("Network error during upload"));
+          });
+
+          // Open connection and send file
+          xhr.open("PUT", signedUrl);
+          xhr.setRequestHeader("Content-Type", file.type);
+          xhr.setRequestHeader("x-upsert", "true");
+          xhr.send(file);
+        });
+      } catch (error) {
+        console.error("Upload error:", error);
+        setFiles((prevFiles) => {
+          const updated = prevFiles.map((f) =>
+            f.id === fileId
+              ? { ...f, error: true, uploading: false, progress: 0 }
+              : f
+          );
+          notifyParent(updated);
+          return updated;
+        });
+        toast.error(
+          `Failed to upload ${file.name}: ${
+            error instanceof Error ? error.message : "Unknown error"
+          }`
         );
-        notifyParent(updated);
-        return updated;
-      });
-      toast.error(
-        `Failed to upload ${file.name}: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`
-      );
-    }
-  };
+      }
+    },
+    [filePath, getPresignedUrlMutation, notifyParent]
+  );
 
   const removeFile = useCallback(
     async (fileId: string) => {
