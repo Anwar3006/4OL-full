@@ -6,7 +6,9 @@ import {
 } from "@4ol/db/schemas/user-profile.schema";
 import { InviteAdminEmail } from "@4ol/email-sender/emails/admins/invite-admin";
 
+import { auth } from "@4ol/api/auth";
 import { nanoid } from "nanoid";
+import { headers } from "next/headers";
 import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -42,6 +44,16 @@ const createAdminInvite = async (input: TAdminInviteSchema) => {
 
 export async function inviteAdminAction(email: string, role: string) {
   try {
+    const session = await auth.api.getSession({
+      headers: {
+        cookie: headers().get("cookie"),
+      },
+    });
+
+    if (session?.user?.role !== "admin") {
+      throw new Error("Unauthorized: You do not have permission to invite admins.");
+    }
+
     const token = nanoid(24);
     const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7);
 
