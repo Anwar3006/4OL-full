@@ -42,16 +42,19 @@ const createAdminInvite = async (input: TAdminInviteSchema) => {
   }
 };
 
-export async function inviteAdminAction(email: string, role: string) {
+export async function inviteAdminAction(email: string, role:string) {
   try {
+    const requestHeaders = headers();
     const session = await auth.api.getSession({
       headers: {
-        cookie: headers().get("cookie"),
+        cookie: requestHeaders.get("cookie"),
       },
     });
 
     if (session?.user?.role !== "admin") {
-      throw new Error("Unauthorized: You do not have permission to invite admins.");
+      throw new Error(
+        "Unauthorized: You do not have permission to invite admins."
+      );
     }
 
     const token = nanoid(24);
