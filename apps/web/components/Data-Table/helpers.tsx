@@ -6,10 +6,14 @@ export const StatsCard = ({
   label,
   value,
   variant = "default",
+  onClick,
+  active,
 }: {
   label: string;
   value: number;
   variant?: "default" | "success" | "warning" | "neutral" | "info" | "red";
+  onClick?: () => void;
+  active?: boolean;
 }) => {
   const colorClasses = {
     default: "text-foreground",
@@ -21,12 +25,22 @@ export const StatsCard = ({
   };
 
   return (
-    <div className="bg-white border rounded-lg p-4">
-      <div className={cn("text-2xl font-bold", colorClasses[variant])}>
-        {value}
+    <button
+      onClick={onClick}
+      className="hover:scale-110 cursor-pointer transition-transform duration-500 ease-in-out"
+    >
+      <div
+        className={cn(
+          "bg-white border rounded-lg p-4",
+          active && "shadow-md border-green-600"
+        )}
+      >
+        <div className={cn("text-2xl font-bold", colorClasses[variant])}>
+          {value}
+        </div>
+        <div className="text-sm text-muted-foreground">{label}</div>
       </div>
-      <div className="text-sm text-muted-foreground">{label}</div>
-    </div>
+    </button>
   );
 };
 

@@ -1,7 +1,7 @@
 "use client";
 import SectionHeader from "@/components/SectionHeader";
 import { trpc } from "@/lib/trpc";
-import { useParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import React, { useMemo } from "react";
 import AddFacilityDialog from "../_components/add-facility-dialog";
 import { Loader2, PlusCircleIcon } from "lucide-react";
@@ -23,22 +23,34 @@ const FacilityPage = () => {
   const addFacilityDialog = useAddFacilityDialog();
   const viewFacilityDialog = useViewFacilityDialog();
 
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [page, setPage] = React.useState(1);
   const limit = 10;
+  const currentStatus = searchParams.get("status");
 
   const { data, isLoading } = useFacilityProfiles({
     limit: limit,
     page: page,
     type: type,
     includeStatsOnly: false,
+    status: currentStatus || undefined,
   });
+
+  const handleStatusChange = (status: string | null) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (status) {
+      params.set("status", status);
+    } else {
+      params.delete("status"); // For "Total Registered" to show all
+    }
+    router.push(`?${params.toString()}`);
+  };
 
   const facilitiesPagination = useMemo(
     () => createPaginationHandlers(page, setPage, data?.analytics?.totalPages),
     [page, data?.analytics?.totalPages]
   );
-
-  console.log(">>> ", data);
 
   const sectionTitle = type
     .replace(/_/g, " ") // Replace underscores with spaces
@@ -68,26 +80,39 @@ const FacilityPage = () => {
         </div>
       ) : (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <StatsCard label="Total Registered" value={data?.meta?.total || 0} />
+          <StatsCard
+            label="Total Registered"
+            value={data?.meta?.total || 0}
+            onClick={() => handleStatusChange(null)}
+            active={!currentStatus}
+          />
           <StatsCard
             label="Active"
             value={data?.analytics?.active || 0}
             variant="success"
+            onClick={() => handleStatusChange("active")}
+            active={currentStatus === "active"}
           />
           <StatsCard
             label="Pending"
             value={data?.analytics?.pending || 0}
             variant="warning"
+            onClick={() => handleStatusChange("pending")}
+            active={currentStatus === "pending"}
           />
           <StatsCard
             label="Inactive"
             value={data?.analytics?.inactive || 0}
             variant="neutral"
+            onClick={() => handleStatusChange("inactive")}
+            active={currentStatus === "inactive"}
           />
           <StatsCard
             label="Rejected"
             value={data?.analytics?.rejected || 0}
             variant="red"
+            onClick={() => handleStatusChange("rejected")}
+            active={currentStatus === "rejected"}
           />
         </div>
       )}

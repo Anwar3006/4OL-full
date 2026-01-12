@@ -6,25 +6,57 @@ import {
   PlusCircleIcon,
   SquareArrowOutUpRight,
 } from "lucide-react";
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 import { trpc } from "@/lib/trpc";
 
 import SectionHeader from "@/components/SectionHeader";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { StatsCard } from "@/components/Data-Table/helpers";
 import { FACILITY_TYPE_OPTIONS } from "@4ol/db/types/formInput";
-import { useAddFacilityDialog } from "@/stores/dialog-store";
+import {
+  useAddFacilityDialog,
+  useViewFacilityDialog,
+} from "@/stores/dialog-store";
 import AddFacilityDialog from "./_components/add-facility-dialog";
 import { FacilityViewDialog } from "@/components/dialogs/FacilityViewDialog";
 import { useFacilityProfiles } from "@/hooks/supabase-calls/useFacilities";
+import { createPaginationHandlers } from "@/lib/utils";
+import { DataTable } from "@/components/Data-Table/data-table";
+import { facilityColumns } from "@/components/Data-Table/columns/facilityColumns";
+import { facilityCardConfig } from "@/components/Data-Table/mobile-table-configs/facilityCardConfig";
 
 const FacilitiesPage = () => {
   const addFacility = useAddFacilityDialog();
+  const viewFacilityDialog = useViewFacilityDialog();
 
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [page, setPage] = React.useState(1);
+  const limit = 10;
+
+  const currentStatus = searchParams.get("status");
   const { data, isLoading } = useFacilityProfiles({
-    includeStatsOnly: true,
+    limit: limit,
+    page: page,
+    includeStatsOnly: currentStatus === null, //if status is not set, only return stats
+    status: currentStatus || undefined,
   });
+
+  const handleStatusChange = (status: string | null) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (status) {
+      params.set("status", status);
+    } else {
+      params.delete("status"); // For "Total Registered" to show all
+    }
+    router.push(`?${params.toString()}`);
+  };
+
+  const facilitiesPagination = useMemo(
+    () => createPaginationHandlers(page, setPage, data?.analytics?.totalPages),
+    [page, data?.analytics?.totalPages]
+  );
 
   console.log("facilites ", data);
 
@@ -52,26 +84,36 @@ const FacilitiesPage = () => {
             <StatsCard
               label="Total Registered"
               value={data?.meta?.total || 0}
+              onClick={() => handleStatusChange(null)}
+              active={!currentStatus}
             />
             <StatsCard
               label="Active"
               value={data?.analytics?.active || 0}
               variant="success"
+              onClick={() => handleStatusChange("active")}
+              active={currentStatus === "active"}
             />
             <StatsCard
               label="Pending"
               value={data?.analytics?.pending || 0}
               variant="warning"
+              onClick={() => handleStatusChange("pending")}
+              active={currentStatus === "pending"}
             />
             <StatsCard
               label="Inactive"
               value={data?.analytics?.inactive || 0}
               variant="neutral"
+              onClick={() => handleStatusChange("inactive")}
+              active={currentStatus === "inactive"}
             />
             <StatsCard
               label="Rejected"
               value={data?.analytics?.rejected || 0}
               variant="red"
+              onClick={() => handleStatusChange("rejected")}
+              active={currentStatus === "rejected"}
             />
           </div>
         )}
@@ -89,7 +131,31 @@ const FacilitiesPage = () => {
         </div>
       </div>
 
+      {/* Facilities Table */}
+      {currentStatus && (
+        <DataTable
+          columns={facilityColumns}
+          data={data?.facilities || []}
+          cardConfig={facilityCardConfig}
+          // route="facilities"
+          onRowClick={(facility: any) => viewFacilityDialog.open(facility.id)}
+          pagination={{
+            currentPage: page,
+            totalPages: data?.meta?.totalPages || 1,
+            totalItems: data?.meta?.total || 0,
+            pageSize: limit,
+            onPageChange: facilitiesPagination.goTo,
+            onNextPage: facilitiesPagination.next,
+            onPreviousPage: facilitiesPagination.previous,
+            canNextPage: page < (data?.meta?.totalPages || 1),
+            canPreviousPage: page > 1,
+          }}
+          isLoading={isLoading}
+        />
+      )}
+
       <AddFacilityDialog />
+      <FacilityViewDialog />
     </section>
   );
 };

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -10,16 +10,11 @@ import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import slugify from "slugify";
 import { Button } from "@/components/ui/button";
-
 import CustomInput from "@/components/CustomInput";
-import CustomSelect from "@/components/CustomSelect";
 import { toast } from "sonner";
-import { Loader2, MapPinHouse } from "lucide-react";
-import z from "zod";
-import { MultiSelect } from "@/components/MultiSelect";
+import { Loader2 } from "lucide-react";
 import { cn, getDeepestNodes, rehydrateHierarchy } from "@/lib/utils";
 import ImageDropZone from "@/components/ImageDropZone";
-import { trpc } from "@/lib/trpc";
 import { nanoid } from "nanoid";
 import { useAddConditionDialog } from "@/stores/dialog-store";
 import {
@@ -50,7 +45,7 @@ const AddSymptomDialog = () => {
   // Progress Step Management
   const [step, setStep] = useState<number>(1);
 
-  //TRPC Invocations
+  //Supabase Hooks Invocation
   const { data: bodyParts = [], isLoading: loadingParts } =
     useBodyPartsForSymptoms();
   const { data: categories = [], isLoading: loadingCats } =
@@ -130,7 +125,7 @@ const AddSymptomDialog = () => {
   }, [isOpen, isEditMode, data, form]);
 
   const name = form.watch("name") ?? "";
-  const filename = name.replace(/\s+/g, "");
+  const filename = name.replaceAll(/\s+/g, "");
   const filePath = `${filename}-${nanoid(8)}`;
 
   const handleDialogClose = () => {
@@ -197,6 +192,7 @@ const AddSymptomDialog = () => {
             {isEditMode ? `Edit Symptom` : `Register New Symptom`}
           </DialogTitle>
         </DialogHeader>
+
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(

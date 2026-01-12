@@ -58,7 +58,9 @@ export const useFacilityProfiles = (params: Pagination) => {
 
       // 2. We ALWAYS need stats for the analytics cards
       // Note: We don't filter stats by search/status because cards show GLOBAL totals
-      const statsQuery = supabase.from("facility_profile").select("status");
+      const statsQuery = supabase
+        .from("facility_profile")
+        .select("status", { count: "exact" });
 
       if (search) {
         query.or(
@@ -74,13 +76,7 @@ export const useFacilityProfiles = (params: Pagination) => {
       }
 
       if (includeStatsOnly) {
-        const {
-          data: statsData,
-          count: totalCount,
-          error,
-        } = await supabase
-          .from("facility_profile")
-          .select("status", { count: "exact" }); // Must add count option here
+        const { data: statsData, count: totalCount, error } = await statsQuery; // Must add count option here
 
         if (error) throw error;
 
@@ -93,6 +89,7 @@ export const useFacilityProfiles = (params: Pagination) => {
           analytics: aggregateStats(statsData),
         };
       }
+
       const [facilitiesResponse, statsResponse] = await Promise.all([
         query.order("created_at", { ascending: false }).range(from, to),
         statsQuery,
@@ -101,14 +98,19 @@ export const useFacilityProfiles = (params: Pagination) => {
       if (facilitiesResponse.error) throw facilitiesResponse.error;
       if (statsResponse.error) throw statsResponse.error;
 
+      const totalCount = type
+        ? facilitiesResponse.count
+        : (statsResponse.count ?? 0);
+
       return {
         facilities: facilitiesResponse.data,
         meta: {
-          total: facilitiesResponse.count || 0, // Extract count from the data query
+          total: totalCount, // Extract count from the data query
           totalPages: Math.ceil(
             (facilitiesResponse.count || 0) / (limit || 10)
           ),
           currentPage: page,
+          totalCount,
         },
         analytics: aggregateStats(statsResponse.data),
       };
@@ -137,7 +139,6 @@ export const useFacilityProfile = ({
   });
 };
 
-//TODO: Complete this hook
 export const useGetFacilitiesMapData = ({
   minLng,
   minLat,
@@ -154,13 +155,20 @@ export const useGetFacilitiesMapData = ({
   enabled: boolean;
 }) => {
   return useQuery<any, Error>({
-    queryKey: FACILITY_PROFILE_QUERY_KEYS.map,
+    queryKey: [
+      FACILITY_PROFILE_QUERY_KEYS.map,
+      minLng,
+      minLat,
+      maxLng,
+      maxLat,
+      Math.round(zoom),
+    ],
     queryFn: async () => {
       const { data, error } = await supabase.rpc("get_facilities_map", {
-        minLng,
-        minLat,
-        maxLng,
-        maxLat,
+        minlng: minLng,
+        minlat: minLat,
+        maxlng: maxLng,
+        maxlat: maxLat,
         zoom_level: Math.round(zoom),
       });
 
@@ -173,8 +181,21 @@ export const useGetFacilitiesMapData = ({
   });
 };
 
-//TODO: Complete this hook
-export const getTopRatedFacilities = async () => {};
+//TODO: Test this hook
+export const getTopRatedFacilities = async () => {
+  return useQuery<TFacilityProfileOutput[], Error>({
+    queryKey: FACILITY_PROFILE_QUERY_KEYS.all,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("facility_profile")
+        .select("*")
+        .gte("rating", 4)
+        .order("avg_rating", { ascending: false });
+      if (error) throw new Error(error.message);
+      return data;
+    },
+  });
+};
 
 //=================== Mutation Hooks ================
 export const useCreateFacilityProfile = () => {
@@ -184,25 +205,11 @@ export const useCreateFacilityProfile = () => {
     mutationFn: async (data: TFacilityProfileInput) => {
       const payload = {
         ...data,
-        // facility_name: data.facilityName,
-        // facility_type: data.facilityType,
-        // first_name: data.firstName,
-        // last_name: data.lastName,
-        // owner_email: data.ownerEmail,
-        // contact_number: data.contactNumber,
-        // person_contact_number: data.personContactNumber,
-        // whatsapp_number: data.whatsappNumber,
-        // gps_address: data.gpsAddress,
-        // post_code: data.postCode,
-        // media_urls: data.mediaUrls,
         keywords:
           typeof data.keywords === "string"
             ? data.keywords.split(",")
             : data.keywords,
-
-        firstName: undefined,
       };
-      //   console.log(">>>: ", payload);
 
       const { data: facility, error } = await supabase.rpc(
         "register_facility_with_profile",
@@ -234,7 +241,7 @@ export const useCreateFacilityProfile = () => {
   });
 };
 
-//TODO: Complete this hook
+//TODO: Complete this hook - create the rpc function in supabase
 export const useUpdateFacilityProfile = () => {
   const queryClient = useQueryClient();
 
@@ -247,6 +254,15 @@ export const useUpdateFacilityProfile = () => {
       if (error) throw new Error(error.message);
 
       return { success: true, data };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: FACILITY_PROFILE_QUERY_KEYS.all,
+      });
+      toast.success("Facility profile created successfully!");
+    },
+    onError: (error) => {
+      toast.error(`Failed to create facility profile: ${error.message}`);
     },
   });
 };

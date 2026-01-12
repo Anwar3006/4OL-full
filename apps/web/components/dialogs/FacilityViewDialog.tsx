@@ -262,7 +262,7 @@ export function FacilityViewDialog() {
                 </div>
 
                 {/* 4. Owner & Governance Section (High Contrast) */}
-                <section className="bg-secondary/40 border border-secondary p-6 rounded-2xl space-y-6">
+                <section className="bg-[#ebf9e6] border border-secondary p-6 rounded-2xl space-y-6">
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-background rounded-lg shadow-sm">
                       <ShieldCheck className="w-5 h-5 text-primary" />
@@ -308,7 +308,7 @@ export function FacilityViewDialog() {
                     {facility.keywords?.map((k: string) => (
                       <span
                         key={k}
-                        className="text-[10px] font-medium bg-muted px-2 py-0.5 rounded"
+                        className="text-[10px] font-medium bg-gray-200 px-2 py-0.5 rounded"
                       >
                         #{k.trim()}
                       </span>

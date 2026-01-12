@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -12,11 +12,8 @@ import slugify from "slugify";
 import { Button } from "@/components/ui/button";
 
 import CustomInput from "@/components/CustomInput";
-import CustomSelect from "@/components/CustomSelect";
 import { toast } from "sonner";
-import { Loader2, MapPinHouse } from "lucide-react";
-import z from "zod";
-import { MultiSelect } from "@/components/MultiSelect";
+import { Loader2 } from "lucide-react";
 import { cn, getDeepestNodes, rehydrateHierarchy } from "@/lib/utils";
 import ImageDropZone from "@/components/ImageDropZone";
 import { trpc } from "@/lib/trpc";
@@ -29,6 +26,14 @@ import {
 import { TreeMultiSelectForm } from "@/components/TreeMultiSelect";
 import { RichTextEditor } from "@/components/RichTextInput";
 import { EMPTY_LEXICAL_STATE } from "@/constants/rich-text-editor";
+import {
+  useBodyPartsForSymptoms,
+  useCategoriesForSymptoms,
+} from "@/hooks/supabase-calls/useSymptoms";
+import {
+  useCreateCondition,
+  useUpdateCondition,
+} from "@/hooks/supabase-calls/useCondition";
 
 // Step 1 Fields - To make sure we validate these fields before moving on to Step 2
 const STEP_1_FIELDS: (keyof TConditionsInput)[] = [
@@ -43,18 +48,15 @@ const AddConditionDialog = () => {
   // Progress Step Management
   const [step, setStep] = useState<number>(1);
 
-  //TRPC Invocations
-  const conditionTrpc = trpc.conditionsRouter;
+  //Supabase Invocations
   const { data: bodyParts = [], isLoading: loadingParts } =
-    conditionTrpc.getAllBodyParts.useQuery(undefined, {
-      staleTime: Infinity,
-    });
+    useBodyPartsForSymptoms();
   const { data: categories = [], isLoading: loadingCats } =
-    conditionTrpc.getAllCategories.useQuery(undefined, {
-      staleTime: Infinity,
-    });
-  const { mutateAsync, isPending } =
-    conditionTrpc.registerCondition.useMutation();
+    useCategoriesForSymptoms();
+
+  const { mutateAsync, isPending } = useCreateCondition();
+  const { mutateAsync: mutateAsyncEdit, isPending: submittingEdit } =
+    useUpdateCondition();
 
   const isLoadingForm = loadingParts && loadingCats;
 

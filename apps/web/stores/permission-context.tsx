@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, ReactNode } from "react";
+import React, { createContext, useContext, ReactNode, useMemo } from "react";
 import { TUserProfile } from "@4ol/db/schemas/user-profile.schema";
 import { getPermissionsForRole } from "@/lib/utils";
 
@@ -26,8 +26,13 @@ export const PermissionProviderClient = ({
   // Logic is centralized here
   const permissions = getPermissionsForRole(userRole);
 
+  const value = useMemo(
+    () => ({ role: userRole, permissions }),
+    [userRole, permissions]
+  );
+
   return (
-    <PermissionContext.Provider value={{ role: userRole, permissions }}>
+    <PermissionContext.Provider value={value}>
       {children}
     </PermissionContext.Provider>
   );
