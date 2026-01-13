@@ -48,6 +48,8 @@
     "@radix-ui/react-tooltip": "^1.2.8",
     "@react-email/components": "^1.0.3",
     "@react-email/render": "^2.0.2",
+    "@react-google-maps/api": "^2.20.8",
+    "@supabase/supabase-js": "^2.89.0",
     "@tanstack/react-query": "^5.90.12",
     "@tanstack/react-table": "^8.21.3",
     "@trpc/client": "^11.8.1",
@@ -80,8 +82,7 @@
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.4.0",
     "zod": "^4.2.1",
-    "zustand": "^5.0.9",
-    "@supabase/supabase-js": "^2.89.0"
+    "zustand": "^5.0.9"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
