@@ -1,6 +1,7 @@
 import { supabase } from "@/lib/supabase";
 import { TConditionsOutput } from "@4ol/db/schemas/conditions.schema";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 interface Pagination {
   limit: number;
@@ -27,6 +28,7 @@ export const CONDITIONS_QUERY_KEYS = {
   detail: (id: string) => [...CONDITIONS_QUERY_KEYS.details(), id] as const,
 };
 
+//TODO: Finish all these hooks
 export const useConditions = ({
   params,
   enabled,
@@ -90,5 +92,24 @@ export const useUpdateCondition = () => {
 export const useDeleteCondition = () => {
   const queryClient = useQueryClient();
 
-  return useMutation<any, Error, any>({});
+  return useMutation<any, Error, any>({
+    mutationFn: async (id: string) => {
+      await Promise.all([
+        supabase.from("conditions").delete().eq("id", id),
+
+        supabase.from("condition_body_parts").delete().eq("condition_id", id),
+        supabase.from("condition_categories").delete().eq("condition_id", id),
+
+        supabase.from("condition_causes").delete().eq("condition_id", id),
+        supabase.from("condition_types").delete().eq("condition_id", id),
+      ]);
+    },
+    onSuccess: () => {
+      toast.success("Condtion successfully deleted!");
+      queryClient.invalidateQueries({ queryKey: CONDITIONS_QUERY_KEYS.all });
+    },
+    onError: (error) => {
+      toast.error("Error deleting condition: " + error.message);
+    },
+  });
 };
