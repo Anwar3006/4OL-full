@@ -1,16 +1,33 @@
-import "../global.css";
-import { Stack } from "expo-router";
-import * as SplashScreen from "expo-splash-screen";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import React from "react";
+import { Slot } from "expo-router";
+import { useFonts } from "expo-font";
+import {
+  Nunito_300Light,
+  Nunito_400Regular,
+  Nunito_500Medium,
+  Nunito_700Bold,
+  Nunito_900Black,
+} from "@expo-google-fonts/nunito";
 
-// Keep the splash screen visible while we fetch resources
-SplashScreen.preventAutoHideAsync();
+const queryClient = new QueryClient();
 
-// Set the animation options. This is optional.
-SplashScreen.setOptions({
-  duration: 200,
-  fade: true,
-});
+const RootLayout = () => {
+  const [fontsLoaded] = useFonts({
+    Nunito_300Light,
+    Nunito_400Regular,
+    Nunito_500Medium,
+    Nunito_700Bold,
+    Nunito_900Black,
+  });
 
-export default function RootLayout() {
-  return <Stack />;
-}
+  if (!fontsLoaded) return null;
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <Slot />
+    </QueryClientProvider>
+  );
+};
+
+export default RootLayout;
