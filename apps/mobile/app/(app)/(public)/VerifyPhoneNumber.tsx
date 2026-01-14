@@ -1,20 +1,18 @@
 import {
   View,
   Text,
-  useWindowDimensions,
   KeyboardAvoidingView,
+  Platform,
+  useWindowDimensions,
   ScrollView,
 } from "react-native";
 import React from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import SignUpForm from "@/components/auth/SignUpForm";
 
-//include Tiktok OAuth through Better Auth. After the flow, redirect them to the User Profile form to complete the needed data
-const SignUpScreen = () => {
+const VerifyPhoneNumber = () => {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
 
-  //Logic for Foldables
   const isLargeScreen = width > 600;
 
   return (
@@ -26,14 +24,16 @@ const SignUpScreen = () => {
         paddingLeft: insets.left,
         paddingRight: insets.right,
       }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
-      <ScrollView className={`flex-1 ${isLargeScreen ? "px-20" : "px-4"}`}>
-        <Text className="text-3xl font-bold">Login</Text>
-        {/* Your Form */}
-        <SignUpForm />
+      <ScrollView
+        contentContainerClassName={`flex-1 ${isLargeScreen ? "px-20" : "px-4"}`}
+      >
+        <Text className="text-3xl font-bold">Verify Phone Number</Text>
+        {/* phone number form */}
       </ScrollView>
     </KeyboardAvoidingView>
   );
 };
 
-export default SignUpScreen;
+export default VerifyPhoneNumber;

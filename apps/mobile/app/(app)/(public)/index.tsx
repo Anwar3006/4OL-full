@@ -1,13 +1,10 @@
+import CustomButton from "@/components/CustomButton";
+
 import { useAssets } from "expo-asset";
-import { Link } from "expo-router";
-import { useVideoPlayer, VideoSource, VideoView } from "expo-video";
+
+import { useVideoPlayer, VideoView } from "expo-video";
 import { useMemo } from "react";
-import {
-  Text,
-  TouchableOpacity,
-  useWindowDimensions,
-  View,
-} from "react-native";
+import { Text, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function Index() {
@@ -49,11 +46,11 @@ export default function Index() {
         style={{ paddingTop: insets.top + 20 }}
         className="absolute top-0 left-0 right-0 px-6"
       >
-        <Text className="text-4xl md:text-6xl font-bold text-white tracking-tight">
+        <Text className="text-5xl md:text-6xl font-bold text-white tracking-tight pt-4">
           4 Our Life
         </Text>
-        <Text className="text-lg md:text-xl text-gray-200 mt-2 max-w-[80%]">
-          Welcome back to the future of 4ol.
+        <Text className="text-base md:text-xl text-gray-200 max-w-[80%]">
+          Your Nearest Health Facility – Just a Tap Away!
         </Text>
       </View>
 
@@ -63,23 +60,21 @@ export default function Index() {
         className="flex-1 justify-end px-6 absolute bottom-0 left-0 w-full"
       >
         <View className={`gap-4 ${isLargeScreen ? "flex-row" : "flex-col"}`}>
-          <Link href="/Login" asChild>
-            <TouchableOpacity
-              activeOpacity={0.8}
-              className="flex-1 bg-white/10 border border-white/20 h-16 rounded-2xl items-center justify-center backdrop-blur-md"
-            >
-              <Text className="text-white text-lg font-semibold">Login</Text>
-            </TouchableOpacity>
-          </Link>
+          <CustomButton
+            title="Login"
+            href="/Login"
+            containerClassName="bg-white/10 border border-white/20 backdrop-blur-lg"
+            textClassName="text-white font-semibold"
+            icon={"log-in-outline"}
+          />
 
-          <Link href="/SignUp" asChild>
-            <TouchableOpacity
-              activeOpacity={0.8}
-              className="flex-1 bg-green-600 h-16 rounded-2xl items-center justify-center shadow-xl shadow-green-900"
-            >
-              <Text className="text-white text-lg font-semibold">Sign Up</Text>
-            </TouchableOpacity>
-          </Link>
+          <CustomButton
+            title="Sign Up"
+            href="/SignUp"
+            containerClassName="bg-green-600 backdrop-blur-lg shadow-xl shadow-green-900"
+            textClassName="text-white font-semibold"
+            icon="log-in"
+          />
         </View>
       </View>
     </View>

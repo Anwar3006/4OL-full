@@ -9,5 +9,9 @@ export const COLORS = {
 };
 
 export const FONTS = {
-  brand: "Nunito",
+  light: "Nunito_300Light",
+  regular: "Nunito_400Regular",
+  medium: "Nunito_500Medium",
+  bold: "Nunito_700Bold",
+  black: "Nunito_900Black",
 };
