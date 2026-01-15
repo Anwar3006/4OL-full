@@ -3,7 +3,7 @@ import { StatsCard, TableSkeleton } from "@/components/Data-Table/helpers";
 import SectionHeader from "@/components/SectionHeader";
 import { Input } from "@/components/ui/input";
 import { PlusSquare, Search } from "lucide-react";
-import React, { useState } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import AddFacilityDialog from "@/app/(dashboard)/facilities/_components/add-facility-dialog";
 import MarketingDialog from "./_components/marketing-dialog";
 import { trpc } from "@/lib/trpc";
@@ -25,10 +25,8 @@ const MarketingPage = () => {
 
   const [adsSearch, setAdsSearch] = useState("");
   const [adsPage, setAdsPage] = useState(1);
-  //   const [openDialog, setOpenDialog] = useState(false);
   const limit = 10;
 
-  // Call trpc procedure
   const { data: adsData, isLoading } =
     trpc.marketingProfiles.getCampaigns.useQuery({
       search: adsSearch,
@@ -41,6 +39,29 @@ const MarketingPage = () => {
     adsPage,
     setAdsPage,
     adsData?.totalPages
+  );
+
+  // ⚡ Bolt Optimization: Memoize props for the `DataTable` component.
+  // `useCallback` and `useMemo` prevent these props from being recreated on every render,
+  // which would otherwise cause the memoized `DataTable` to re-render unnecessarily.
+  const onRowClick = useCallback(
+    (campaign: any) => viewMarket.open(campaign.id),
+    [viewMarket]
+  );
+
+  const pagination = useMemo(
+    () => ({
+      currentPage: adsPage,
+      totalPages: adsData?.totalPages || 1,
+      totalItems: adsData?.total || 0,
+      pageSize: limit,
+      onPageChange: adsPagination.goTo,
+      onNextPage: adsPagination.next,
+      onPreviousPage: adsPagination.previous,
+      canNextPage: adsPage < (adsData?.totalPages || 1),
+      canPreviousPage: adsPage > 1,
+    }),
+    [adsPage, adsData, adsPagination]
   );
 
   const fetchingAds = false;
@@ -60,7 +81,6 @@ const MarketingPage = () => {
           <TableSkeleton />
         ) : (
           <>
-            {/* Search & Filters */}
             <div className="flex flex-col sm:flex-row gap-3 mb-6">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -70,23 +90,12 @@ const MarketingPage = () => {
                   value={adsSearch}
                   onChange={(e) => {
                     setAdsSearch(e.target.value);
-                    setAdsPage(1); // Reset to page 1 on search
+                    setAdsPage(1);
                   }}
                 />
               </div>
-
-              {/* Filters */}
-              {/* <Button
-                variant="outline"
-                size="default"
-                className="w-full sm:w-auto"
-              >
-                <Filter className="h-4 w-4 mr-2" />
-                <span>Filters</span>
-              </Button> */}
             </div>
 
-            {/* Stats Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
               <StatsCard label="Total Campaigns" value={adsData?.total || 0} />
               <StatsCard
@@ -116,25 +125,13 @@ const MarketingPage = () => {
               />
             </div>
 
-            {/* ✅ Pass data and handlers to DataTable */}
-
             <DataTable
               columns={marketingColumns}
               data={adsData?.campaigns || []}
               cardConfig={marketingCardConfig}
-              onRowClick={(campaign) => viewMarket.open(campaign.id)}
-              pagination={{
-                currentPage: adsPage,
-                totalPages: adsData?.totalPages || 1,
-                totalItems: adsData?.total || 0,
-                pageSize: limit,
-                onPageChange: adsPagination.goTo,
-                onNextPage: adsPagination.next,
-                onPreviousPage: adsPagination.previous,
-                canNextPage: adsPage < (adsData?.totalPages || 1),
-                canPreviousPage: adsPage > 1,
-              }}
-              isLoading={isLoading} // Show loading indicator during refetch
+              onRowClick={onRowClick}
+              pagination={pagination}
+              isLoading={isLoading}
             />
           </>
         )}

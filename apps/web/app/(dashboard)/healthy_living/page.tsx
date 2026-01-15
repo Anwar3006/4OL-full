@@ -1,7 +1,7 @@
 "use client";
 import SectionHeader from "@/components/SectionHeader";
 import { PlusCircleIcon } from "lucide-react";
-import React, { useState } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import ConditionsStats from "../diseases_&_conditions/_components/ConditionStats";
 import { DataTable } from "@/components/Data-Table/data-table";
 import { trpc } from "@/lib/trpc";
@@ -18,13 +18,36 @@ const HealthyLivingPage = () => {
   const addHealthLiving = useAddHealthyLivingDialog();
   const viewHealthyLiving = useViewHealthyLivingDialog();
   const [page, setPage] = useState(1);
-  const pagination = createPaginationHandlers(page, setPage);
+  const paginationHandlers = createPaginationHandlers(page, setPage);
   const limit = 10;
 
   const { data, isLoading } = trpc.healthyLivingRouter.getAll.useQuery({
     page,
     limit,
   });
+
+  // ⚡ Bolt Optimization: Memoize props for the `DataTable` component.
+  // `useCallback` and `useMemo` prevent these props from being recreated on every render,
+  // which would otherwise cause the memoized `DataTable` to re-render unnecessarily.
+  const onRowClick = useCallback(
+    (condition: any) => viewHealthyLiving.open(condition.id),
+    [viewHealthyLiving]
+  );
+
+  const pagination = useMemo(
+    () => ({
+      currentPage: page,
+      totalPages: data?.meta?.totalPages || 1,
+      totalItems: data?.meta?.total || 0,
+      pageSize: limit,
+      onPageChange: paginationHandlers.goTo,
+      onNextPage: paginationHandlers.next,
+      onPreviousPage: paginationHandlers.previous,
+      canNextPage: page < (data?.meta?.totalPages || 1),
+      canPreviousPage: page > 1,
+    }),
+    [page, data, paginationHandlers]
+  );
 
   return (
     <section className="container mx-auto lg:px-4 py-4 sm:py-6 lg:pb-10 lg:pt-2 max-w-7xl">
@@ -51,19 +74,8 @@ const HealthyLivingPage = () => {
         columns={healthyLivingColumns}
         data={data?.healthyLivings || []}
         cardConfig={healthyLivingCardConfig}
-        // route="facilities"
-        onRowClick={(condition: any) => viewHealthyLiving.open(condition.id)}
-        pagination={{
-          currentPage: page,
-          totalPages: data?.meta?.totalPages || 1,
-          totalItems: data?.meta?.total || 0,
-          pageSize: limit,
-          onPageChange: pagination.goTo,
-          onNextPage: pagination.next,
-          onPreviousPage: pagination.previous,
-          canNextPage: page < (data?.meta?.totalPages || 1),
-          canPreviousPage: page > 1,
-        }}
+        onRowClick={onRowClick}
+        pagination={pagination}
         isLoading={isLoading}
       />
 

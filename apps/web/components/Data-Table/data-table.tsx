@@ -7,7 +7,7 @@ import {
   SortingState,
   getSortedRowModel,
 } from "@tanstack/react-table";
-import { useState } from "react";
+import { useState, memo } from "react";
 import {
   Table,
   TableBody,
@@ -53,7 +53,7 @@ interface DataTableProps<TData, TValue> {
   route?: string;
 }
 
-export const DataTable = <TData, TValue>({
+const DataTableComponent = <TData, TValue>({
   columns,
   data,
   pagination,
@@ -282,3 +282,8 @@ export const DataTable = <TData, TValue>({
     </div>
   );
 };
+
+// ⚡ Bolt Optimization: Wrapped DataTable with React.memo to prevent unnecessary re-renders.
+// For this to be effective, props passed from parent components (like `onRowClick` and `pagination`)
+// must be memoized using `useCallback` and `useMemo` respectively.
+export const DataTable = memo(DataTableComponent) as typeof DataTableComponent;

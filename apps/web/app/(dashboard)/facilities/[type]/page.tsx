@@ -2,7 +2,7 @@
 import SectionHeader from "@/components/SectionHeader";
 import { trpc } from "@/lib/trpc";
 import { useParams } from "next/navigation";
-import React from "react";
+import React, { useCallback, useMemo } from "react";
 import AddFacilityDialog from "../_components/add-facility-dialog";
 import { Loader2, PlusCircleIcon } from "lucide-react";
 import { StatsCard } from "@/components/Data-Table/helpers";
@@ -31,10 +31,33 @@ const FacilityPage = () => {
   });
 
   const sectionTitle = type
-    .replace(/_/g, " ") // Replace underscores with spaces
-    .split(" ") // Split into individual words
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1)) // Capitalize each word
+    .replace(/_/g, " ")
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
+
+  // ⚡ Bolt Optimization: Memoize props for the `DataTable` component.
+  // `useCallback` and `useMemo` prevent these props from being recreated on every render,
+  // which would otherwise cause the memoized `DataTable` to re-render unnecessarily.
+  const onRowClick = useCallback(
+    (facility: any) => viewFacilityDialog.open(facility.id),
+    [viewFacilityDialog]
+  );
+
+  const pagination = useMemo(
+    () => ({
+      currentPage: page,
+      totalPages: data?.meta?.totalPages || 1,
+      totalItems: data?.meta?.total || 0,
+      pageSize: limit,
+      onPageChange: facilitiesPagination.goTo,
+      onNextPage: facilitiesPagination.next,
+      onPreviousPage: facilitiesPagination.previous,
+      canNextPage: page < (data?.meta?.totalPages || 1),
+      canPreviousPage: page > 1,
+    }),
+    [page, data, facilitiesPagination]
+  );
 
   return (
     <section className="container mx-auto lg:px-4 py-4 sm:py-6 lg:pb-10 lg:pt-2 max-w-7xl">
@@ -50,7 +73,6 @@ const FacilityPage = () => {
         }}
       />
 
-      {/* StatsCard */}
       {isLoading ? (
         <div className="w-full h-30 flex items-center justify-center gap-2">
           <Loader2 size={24} className="animate-spin" />
@@ -82,28 +104,15 @@ const FacilityPage = () => {
         </div>
       )}
 
-      {/* Facilities Table */}
       <DataTable
         columns={facilityColumns}
         data={data?.facilities || []}
         cardConfig={facilityCardConfig}
-        // route="facilities"
-        onRowClick={(facility: any) => viewFacilityDialog.open(facility.id)}
-        pagination={{
-          currentPage: page,
-          totalPages: data?.meta?.totalPages || 1,
-          totalItems: data?.meta?.total || 0,
-          pageSize: limit,
-          onPageChange: facilitiesPagination.goTo,
-          onNextPage: facilitiesPagination.next,
-          onPreviousPage: facilitiesPagination.previous,
-          canNextPage: page < (data?.meta?.totalPages || 1),
-          canPreviousPage: page > 1,
-        }}
+        onRowClick={onRowClick}
+        pagination={pagination}
         isLoading={isLoading}
       />
 
-      {/* Dialogs - These MUST be rendered for Zustand to work! */}
       <AddFacilityDialog />
       <FacilityViewDialog />
     </section>
