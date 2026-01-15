@@ -56,8 +56,173 @@ const GoogleMapContainer = () => {
   const mapOptions = {
     styles: [
       {
+        featureType: "landscape",
+        elementType: "geometry.fill",
+        stylers: [
+          {
+            color: "#e9ddc8",
+          },
+        ],
+      },
+      {
+        featureType: "poi.attraction",
+        elementType: "labels.icon",
+        stylers: [
+          {
+            color: "#0b0b09",
+          },
+        ],
+      },
+      {
+        featureType: "poi.attraction",
+        elementType: "labels.text.fill",
+        stylers: [
+          {
+            color: "#0b0b09",
+          },
+        ],
+      },
+      {
         featureType: "poi.business",
-        stylers: [{ visibility: "off" }],
+        stylers: [
+          {
+            visibility: "off",
+          },
+        ],
+      },
+      {
+        featureType: "poi.government",
+        elementType: "labels.icon",
+        stylers: [
+          {
+            color: "#0b0b09",
+          },
+        ],
+      },
+      {
+        featureType: "poi.government",
+        elementType: "labels.text.fill",
+        stylers: [
+          {
+            color: "#0b0b09",
+          },
+        ],
+      },
+      {
+        featureType: "poi.medical",
+        stylers: [
+          {
+            visibility: "off",
+          },
+        ],
+      },
+      {
+        featureType: "poi.park",
+        elementType: "labels.icon",
+        stylers: [
+          {
+            color: "#0b0b09",
+          },
+        ],
+      },
+      {
+        featureType: "poi.park",
+        elementType: "labels.text.fill",
+        stylers: [
+          {
+            color: "#0b0b09",
+          },
+        ],
+      },
+      {
+        featureType: "poi.place_of_worship",
+        elementType: "labels.icon",
+        stylers: [
+          {
+            color: "#0b0b09",
+          },
+        ],
+      },
+      {
+        featureType: "poi.place_of_worship",
+        elementType: "labels.text.fill",
+        stylers: [
+          {
+            color: "#0b0b09",
+          },
+        ],
+      },
+      {
+        featureType: "poi.school",
+        elementType: "labels.icon",
+        stylers: [
+          {
+            color: "#0b0b09",
+          },
+        ],
+      },
+      {
+        featureType: "poi.school",
+        elementType: "labels.text.fill",
+        stylers: [
+          {
+            color: "#0b0b09",
+          },
+        ],
+      },
+      {
+        featureType: "poi.sports_complex",
+        elementType: "labels.icon",
+        stylers: [
+          {
+            color: "#0b0b09",
+          },
+        ],
+      },
+      {
+        featureType: "poi.sports_complex",
+        elementType: "labels.text.fill",
+        stylers: [
+          {
+            color: "#0b0b09",
+          },
+        ],
+      },
+      {
+        featureType: "road",
+        elementType: "geometry.fill",
+        stylers: [
+          {
+            color: "#d49640",
+          },
+        ],
+      },
+      {
+        featureType: "transit.station",
+        elementType: "labels.icon",
+        stylers: [
+          {
+            color: "#0b0b09",
+          },
+        ],
+      },
+      {
+        featureType: "transit.station",
+        elementType: "labels.text.fill",
+        stylers: [
+          {
+            color: "#0b0b09",
+          },
+        ],
+      },
+      {
+        featureType: "water",
+        elementType: "geometry.fill",
+        stylers: [
+          {
+            color: "#66bef4",
+          },
+        ],
       },
     ],
   };
@@ -87,14 +252,20 @@ const GoogleMapContainer = () => {
         <Data
           onLoad={(data) => {
             setData(data);
-            data.setStyle({
-              icon: {
-                path: google.maps.SymbolPath.CIRCLE,
-                scale: 5,
-                fillColor: "blue",
-                fillOpacity: 0.8,
-                strokeWeight: 0,
-              },
+            data.setStyle((feature) => {
+              return {
+                icon: {
+                  // Classic Google Pin SVG Path
+                  path: "M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z",
+                  fillColor: "#10b981", // Your emerald green
+                  fillOpacity: 1,
+                  strokeWeight: 1.5,
+                  strokeColor: "#ffffff",
+                  scale: 1.5, // Adjust size
+                  anchor: new google.maps.Point(12, 22), // Anchors the tip of the pin to the coordinate
+                  labelOrigin: new google.maps.Point(12, 9), // Positions text in the center circle if needed
+                },
+              };
             });
           }}
         />
