@@ -18,7 +18,10 @@ export default function AppLayout() {
 function AppLayoutNav() {
   return (
     <Stack>
-      <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+      <Stack.Protected guard={true}>
+        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+      </Stack.Protected>
+
       <Stack.Screen name="(public)" options={{ headerShown: false }} />
     </Stack>
   );

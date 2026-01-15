@@ -1,7 +1,7 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
-// import { expo } from "@better-auth/expo"; install this later when you setup expo
+import { expo } from "@better-auth/expo"; //install this later when you setup expo
 
 import { db, dbTransact } from "@4ol/db/index";
 import { admin } from "better-auth/plugins";
@@ -33,12 +33,12 @@ export const auth = betterAuth({
   trustedOrigins: [
     "http://localhost:3000", // Local Web
     "https://4-ol-full-web-myzx.vercel.app", // Production Web
+    "4ol://", // Your actual Mobile App Scheme
     // "exp://",                     // Expo Go
-    // "myapp://"                    // Your actual Mobile App Scheme
   ],
   plugins: [
     nextCookies(),
-    // expo() //uncomment when you setup expo and install @better-auth/expo
+    expo(), //uncomment when you setup expo and install @better-auth/expo
     admin(),
   ],
 });
