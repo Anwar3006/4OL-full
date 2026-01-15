@@ -27,6 +27,22 @@ export default function PublicScreensLayout() {
         }}
       />
 
+      <Stack.Screen
+        name="OTP"
+        options={{
+          headerShown: false,
+          contentStyle: { backgroundColor: "#fff" },
+        }}
+      />
+
+      <Stack.Screen
+        name="VerifyPhoneNumber"
+        options={{
+          headerShown: false,
+          contentStyle: { backgroundColor: "#fff" },
+        }}
+      />
+
       {/* Modals */}
       <Stack.Screen
         name="(legal)/Terms"

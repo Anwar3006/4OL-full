@@ -98,7 +98,7 @@ export default function LoginForm() {
         onPress={handleSubmit(onSubmit)}
         disabled={isSubmitting}
         activeOpacity={0.8}
-        className="mt-4 h-14 w-full flex-row items-center justify-center rounded-2xl bg-green-600 shadow-sm shadow-green-900"
+        className="mt-4 h-14 w-full flex-row items-center justify-center rounded-2xl bg-green-600 shadow-sm"
       >
         {isSubmitting ? (
           <ActivityIndicator color="white" />

@@ -13,7 +13,7 @@ export const CustomInput = forwardRef<TextInput, CustomInputProps>(
     return (
       <View className={cn("flex flex-col gap-1.5 w-full", containerClassName)}>
         {label && (
-          <Text className="text-sm font-medium text-gray-200 ml-1">
+          <Text className="text-sm font-medium text-gray-800 ml-1">
             {label}
           </Text>
         )}
@@ -22,7 +22,7 @@ export const CustomInput = forwardRef<TextInput, CustomInputProps>(
           placeholderTextColor="#94a3b8"
           className={cn(
             "h-14 w-full rounded-2xl border bg-white/5 px-4 text-white transition-all",
-            error ? "border-red-500" : "border-white/10 focus:border-green-500",
+            error ? "border-red-500" : "border-gray-400 focus:border-green-500",
             className
           )}
           {...props}
