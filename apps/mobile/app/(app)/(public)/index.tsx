@@ -89,7 +89,7 @@ export default function Index() {
 
             <CustomButton
               title="Join 4OL"
-              href="/SignUp"
+              href="/VerifyPhoneNumber"
               containerClassName="bg-green-600 h-16 rounded-2xl shadow-2xl shadow-green-900"
               textClassName="text-white font-bold text-lg"
               icon="person-add-outline"

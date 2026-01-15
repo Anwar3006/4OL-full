@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import React from "react";
-import { Slot } from "expo-router";
+import { Slot, useSegments, useRouter } from "expo-router";
 import { useFonts } from "expo-font";
 import {
   Nunito_300Light,
@@ -9,6 +9,7 @@ import {
   Nunito_700Bold,
   Nunito_900Black,
 } from "@expo-google-fonts/nunito";
+import { useEffect } from "react";
 
 const queryClient = new QueryClient();
 
@@ -25,9 +26,35 @@ const RootLayout = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
+      {/* <AuthProvider> */}
       <Slot />
+      {/* </AuthProvider> */}
     </QueryClientProvider>
   );
 };
+
+// Auth protection logic
+function AuthProvider({ children }: { children: React.ReactNode }) {
+  const segments = useSegments();
+  const router = useRouter();
+
+  // TODO: Replace with your actual auth check
+  const isAuthenticated = false; // Check your auth state here (e.g., from BetterAuth/Supabase)
+
+  useEffect(() => {
+    const protectedRoutes = ["(auth)"];
+    const inProtectedRoute = protectedRoutes.includes(segments[0] || "");
+
+    if (!isAuthenticated && inProtectedRoute) {
+      // Redirect to login if not authenticated and trying to access protected routes
+      router.replace("/Login");
+    } else if (isAuthenticated && !inProtectedRoute && segments[0]) {
+      // Redirect to app if authenticated and on public routes
+      // router.replace("/(app)/(auth)");
+    }
+  }, [isAuthenticated, segments]);
+
+  return <>{children}</>;
+}
 
 export default RootLayout;

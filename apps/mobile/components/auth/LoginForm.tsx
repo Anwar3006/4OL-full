@@ -13,6 +13,7 @@ import {
 import { CustomInput } from "../CustomInput";
 import { Checkbox } from "../Checkbox";
 import { authClient } from "@/lib/auth-Client";
+import { Ionicons } from "@expo/vector-icons";
 
 const loginSchema = z.object({
   email: z.email("Please enter a valid email address"),
@@ -50,62 +51,71 @@ export default function LoginForm() {
   };
 
   return (
-    <View className="w-full gap-y-4">
-      {/* Email Field */}
-      <label htmlFor="email" className="text-black">
-        Email
-      </label>
+    <View className="w-full gap-y-5">
       <Controller
         control={control}
         name="email"
         render={({ field: { onChange, onBlur, value } }) => (
           <CustomInput
             label="Email Address"
-            placeholder="john@example.com"
+            placeholder="kwakuTheTraveller@gmail.com"
             keyboardType="email-address"
             autoCapitalize="none"
             onBlur={onBlur}
             onChangeText={onChange}
             value={value}
             error={errors.email?.message}
-            className="text-black"
+            icon="mail-outline"
           />
         )}
       />
 
-      {/* Password Field */}
-      <label htmlFor="password" className="text-black">
-        Password
-      </label>
-      <Controller
-        control={control}
-        name="password"
-        render={({ field: { onChange, onBlur, value } }) => (
-          <CustomInput
-            label="Password"
-            placeholder="••••••••"
-            secureTextEntry
-            onBlur={onBlur}
-            onChangeText={onChange}
-            value={value}
-            error={errors.password?.message}
-            className="text-black"
-          />
-        )}
-      />
+      <View>
+        <Controller
+          control={control}
+          name="password"
+          render={({ field: { onChange, onBlur, value } }) => (
+            <CustomInput
+              label="Password"
+              placeholder="••••••••"
+              secureTextEntry
+              onBlur={onBlur}
+              onChangeText={onChange}
+              value={value}
+              error={errors.password?.message}
+              icon="lock-closed-outline"
+            />
+          )}
+        />
+        <TouchableOpacity className="mt-2 self-end">
+          <Text className="text-green-500 text-xs font-bold">
+            Forgot Password?
+          </Text>
+        </TouchableOpacity>
+      </View>
 
       <TouchableOpacity
         onPress={handleSubmit(onSubmit)}
         disabled={isSubmitting}
         activeOpacity={0.8}
-        className="mt-4 h-14 w-full flex-row items-center justify-center rounded-2xl bg-green-600 shadow-sm"
+        className="mt-6 h-16 w-full flex-row items-center justify-center rounded-3xl bg-green-600 shadow-sm"
       >
         {isSubmitting ? (
           <ActivityIndicator color="white" />
         ) : (
-          <Text className="text-lg font-bold text-white">Login</Text>
+          <>
+            <Text className="text-lg font-bold text-white mr-2">Sign In</Text>
+            <Ionicons name="arrow-forward" size={20} color="white" />
+          </>
         )}
       </TouchableOpacity>
+
+      <View className="flex-row justify-center items-center mt-2">
+        <Text className="text-gray-400">Don't have an account? </Text>
+        <Link href="/SignUp">
+          <Text className="text-green-500 font-bold underline">Sign Up</Text>
+        </Link>
+      </View>
     </View>
   );
 }

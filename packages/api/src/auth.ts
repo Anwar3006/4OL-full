@@ -34,7 +34,13 @@ export const auth = betterAuth({
     "http://localhost:3000", // Local Web
     "https://4-ol-full-web-myzx.vercel.app", // Production Web
     "4ol://", // Your actual Mobile App Scheme
-    // "exp://",                     // Expo Go
+
+    ...(process.env.NODE_ENV === "development"
+      ? [
+          "exp://", // Trust all Expo URLs (prefix matching)
+          "exp://**", // Trust all Expo URLs (wildcard matching)
+        ]
+      : []),
   ],
   plugins: [
     nextCookies(),

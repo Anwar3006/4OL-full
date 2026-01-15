@@ -1,7 +1,6 @@
 import React from "react";
 import { Pressable, View, Text } from "react-native";
-// import { Check } from "lucide-react-native";
-import { cn } from "@/lib/utils"; // Your tailwind-merge helper
+import { cn } from "@/lib/utils";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
 interface CheckboxProps {
@@ -30,7 +29,7 @@ export const Checkbox = ({
             "h-6 w-6 rounded-md border-2 items-center justify-center transition-colors",
             value
               ? "bg-green-600 border-green-600"
-              : "border-white/20 bg-white/5"
+              : "border-gray-400 bg-white/5"
           )}
         >
           {value && (

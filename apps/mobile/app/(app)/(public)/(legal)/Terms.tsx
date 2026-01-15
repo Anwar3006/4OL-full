@@ -1,5 +1,6 @@
 import { ScrollView, Text } from "react-native";
 
+// TODO
 export default function TermsScreen() {
   return (
     <ScrollView className="flex-1 bg-white p-6">
