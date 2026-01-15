@@ -69,6 +69,8 @@ export default {
       ],
       "expo-video",
       "expo-asset",
+      "expo-secure-store",
+      // "expo-linear-gradient",
     ],
     experiments: {
       typedRoutes: true,
