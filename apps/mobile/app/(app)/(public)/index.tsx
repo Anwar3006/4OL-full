@@ -38,8 +38,17 @@ export default function Index() {
 
       {/* 2. Layered Depth: Gradient Vignette */}
       <LinearGradient
-        colors={["rgba(0,0,0,0.8)", "transparent", "rgba(0,0,0,0.9)"]}
-        className="absolute inset-0"
+        colors={["rgba(0,0,0,0.5)", "rgba(0,0,0,0.3)", "rgba(0,0,0,0.95)"]}
+        // Ensure the gradient stretches correctly
+        style={{
+          position: "absolute",
+          left: 0,
+          right: 0,
+          top: 0,
+          height: height,
+        }}
+        // Adjust locations to keep the center clear for the video
+        locations={[0, 0.5, 1]}
       />
 
       {/* 3. Top Branding Section */}
@@ -59,7 +68,7 @@ export default function Index() {
 
         <View className="h-1 w-12 bg-green-500 my-4 rounded-full" />
 
-        <Text className="text-xl text-zinc-800 text-center md:text-left font-light leading-7">
+        <Text className="text-xl text-gray-200 text-center md:text-left font-light leading-7">
           Your nearest health facility{"\n"}
           <Text className="font-bold text-white">Just a tap away.</Text>
         </Text>

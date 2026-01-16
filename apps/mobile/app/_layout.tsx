@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import React from "react";
+import React, { useEffect } from "react";
 import { Slot, useSegments, useRouter } from "expo-router";
 import { useFonts } from "expo-font";
 import {
@@ -9,7 +9,7 @@ import {
   Nunito_700Bold,
   Nunito_900Black,
 } from "@expo-google-fonts/nunito";
-import { useEffect } from "react";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 const queryClient = new QueryClient();
 
@@ -25,11 +25,13 @@ const RootLayout = () => {
   if (!fontsLoaded) return null;
 
   return (
-    <QueryClientProvider client={queryClient}>
-      {/* <AuthProvider> */}
-      <Slot />
-      {/* </AuthProvider> */}
-    </QueryClientProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <QueryClientProvider client={queryClient}>
+        {/* <AuthProvider> */}
+        <Slot />
+        {/* </AuthProvider> */}
+      </QueryClientProvider>
+    </GestureHandlerRootView>
   );
 };
 

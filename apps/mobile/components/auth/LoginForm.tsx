@@ -38,13 +38,13 @@ export default function LoginForm() {
     await authClient.signIn.email({
       email: data.email,
       password: data.password,
-      callbackURL: "/dashboard",
+      callbackURL: "/(app)/(auth)/(tabs)/Home",
       fetchOptions: {
         onError: (ctx: any) => {
           Alert.alert("Login Failed", ctx.error.message);
         },
         onSuccess: () => {
-          //   router.replace("/(tabs)");
+          router.replace("/(app)/(auth)/(tabs)/Home");
         },
       },
     });
@@ -104,8 +104,8 @@ export default function LoginForm() {
           <ActivityIndicator color="white" />
         ) : (
           <>
-            <Text className="text-lg font-bold text-white mr-2">Sign In</Text>
-            <Ionicons name="arrow-forward" size={20} color="white" />
+            <Text className="text-lg font-bold text-white mr-2">Log in</Text>
+            <Ionicons name="log-in-outline" size={20} color="white" />
           </>
         )}
       </TouchableOpacity>

@@ -21,16 +21,19 @@ import DateTimePicker, {
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { useSharedValue, withTiming } from "react-native-reanimated";
+import { useSignUpStore } from "@/hooks/use-signupStore";
 
 const signUpSchema = z
   .object({
+    // Step 1
     firstName: z.string().min(2, "First name is too short"),
     lastName: z.string().min(2, "Last name is too short"),
-    email: z.email("Invalid email").optional().or(z.literal("")),
     dob: z.string().min(1, "Date of birth is required"),
     sex: z.enum(["Male", "Female", "Other"], {
       error: () => ({ message: "Please select your sex" }),
     }),
+    // Step 2
+    email: z.string().email("Invalid email").optional().or(z.literal("")),
     password: z.string().min(8, "Password must be at least 8 characters"),
     confirmPassword: z.string(),
     acceptContract: z.literal(false, {
@@ -49,6 +52,10 @@ export default function SignUpForm() {
   const [step, setStep] = useState(1);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [tempDate, setTempDate] = useState(new Date()); // Temporary state for iOS "scrolling"
+  const router = useRouter();
+
+  const { firstName, lastName, dob, sex, email, setStep1Data } =
+    useSignUpStore();
 
   const {
     control,
@@ -59,26 +66,32 @@ export default function SignUpForm() {
     formState: { errors, isSubmitting },
   } = useForm<SignUpFormValues>({
     resolver: zodResolver(signUpSchema),
-    mode: "onBlur", // Validate as they go
+    mode: "onChange",
     defaultValues: {
-      firstName: "",
-      lastName: "",
-      email: "",
-      sex: undefined,
+      firstName: firstName || "",
+      lastName: lastName || "",
+      dob: dob || "",
+      sex: sex as any,
+      email: email || "",
+      password: "",
+      confirmPassword: "",
       acceptContract: false,
     },
   });
 
   const prevStep = () => setStep(1);
-
-  useEffect(() => {
-    progress.value = withTiming(step === 1 ? 0.5 : 1, { duration: 300 });
-  }, [step]);
-
   // Handle "Next" with validation for specific fields
   const handleNext = async () => {
     const isStep1Valid = await trigger(["firstName", "lastName", "dob", "sex"]);
-    if (isStep1Valid) setStep(2);
+    if (isStep1Valid) {
+      setStep1Data({
+        firstName: watch("firstName"),
+        lastName: watch("lastName"),
+        dob: watch("dob"),
+        sex: watch("sex"),
+      });
+      setStep(2);
+    }
   };
 
   const onSubmit = async (data: SignUpFormValues) => {
@@ -91,7 +104,7 @@ export default function SignUpForm() {
           Alert.alert("Registration Failed", ctx.error.message);
         },
         onSuccess: () => {
-          //   router.replace("/(tabs)");
+          router.replace("/(app)/(auth)/(tabs)/Home");
         },
       },
     });
@@ -298,7 +311,6 @@ export default function SignUpForm() {
           />
 
           {/* Password Field */}
-
           <Controller
             control={control}
             name="password"

@@ -12,10 +12,12 @@ import React from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import LoginForm from "@/components/auth/LoginForm";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 
 const LoginScreen = () => {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
+  const router = useRouter();
 
   //Logic for Foldables
   const isLargeScreen = width > 600;
@@ -64,6 +66,14 @@ const LoginScreen = () => {
         <TouchableOpacity className="mt-8 items-center flex-row justify-center gap-x-2">
           <Ionicons name="finger-print" size={24} color="#16a34a" />
           <Text className="text-gray-400 font-medium">Use Biometric Login</Text>
+        </TouchableOpacity>
+
+        {/* Remove - Go to OTP - For Development only */}
+        <TouchableOpacity
+          onPress={() => router.push("/(app)/(auth)/(tabs)/Home")}
+          className="absolute bottom-12 right-6 h-12 w-12 rounded-full bg-red-400 border border-white/10 items-center justify-center"
+        >
+          <Ionicons name="arrow-forward-circle" size={24} color="white" />
         </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>
