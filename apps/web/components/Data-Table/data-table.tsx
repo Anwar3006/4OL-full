@@ -7,7 +7,7 @@ import {
   SortingState,
   getSortedRowModel,
 } from "@tanstack/react-table";
-import { useState } from "react";
+import { memo, useState } from "react";
 import {
   Table,
   TableBody,
@@ -53,7 +53,9 @@ interface DataTableProps<TData, TValue> {
   route?: string;
 }
 
-export const DataTable = <TData, TValue>({
+// ⚡ Bolt: Memoizing the DataTable to prevent unnecessary re-renders when props are stable.
+// This is crucial for performance in pages where parent components might re-render frequently.
+export const DataTable = memo(function DataTable<TData, TValue>({
   columns,
   data,
   pagination,
@@ -61,7 +63,7 @@ export const DataTable = <TData, TValue>({
   cardConfig,
   onRowClick,
   route,
-}: DataTableProps<TData, TValue>) => {
+}: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const isMobile = useIsMobile();
   const { scrollRef, showLeftShadow, showRightShadow } = useScrollShadow();
@@ -281,4 +283,4 @@ export const DataTable = <TData, TValue>({
       )}
     </div>
   );
-};
+});
