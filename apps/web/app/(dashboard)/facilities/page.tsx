@@ -6,9 +6,7 @@ import {
   PlusCircleIcon,
   SquareArrowOutUpRight,
 } from "lucide-react";
-import React, { useEffect, useMemo, useState } from "react";
-
-import { trpc } from "@/lib/trpc";
+import React, { useCallback, useMemo } from "react";
 
 import SectionHeader from "@/components/SectionHeader";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -56,6 +54,25 @@ const FacilitiesPage = () => {
   const facilitiesPagination = useMemo(
     () => createPaginationHandlers(page, setPage, data?.analytics?.totalPages),
     [page, data?.analytics?.totalPages]
+  );
+  const onRowClick = useCallback(
+    (facility: any) => viewFacilityDialog.open(facility.id),
+    [viewFacilityDialog]
+  );
+
+  const pagination = useMemo(
+    () => ({
+      currentPage: page,
+      totalPages: data?.meta?.totalPages || 1,
+      totalItems: data?.meta?.total || 0,
+      pageSize: limit,
+      onPageChange: facilitiesPagination.goTo,
+      onNextPage: facilitiesPagination.next,
+      onPreviousPage: facilitiesPagination.previous,
+      canNextPage: page < (data?.meta?.totalPages || 1),
+      canPreviousPage: page > 1,
+    }),
+    [page, data, facilitiesPagination]
   );
 
   console.log("facilites ", data);
@@ -137,19 +154,8 @@ const FacilitiesPage = () => {
           columns={facilityColumns}
           data={data?.facilities || []}
           cardConfig={facilityCardConfig}
-          // route="facilities"
-          onRowClick={(facility: any) => viewFacilityDialog.open(facility.id)}
-          pagination={{
-            currentPage: page,
-            totalPages: data?.meta?.totalPages || 1,
-            totalItems: data?.meta?.total || 0,
-            pageSize: limit,
-            onPageChange: facilitiesPagination.goTo,
-            onNextPage: facilitiesPagination.next,
-            onPreviousPage: facilitiesPagination.previous,
-            canNextPage: page < (data?.meta?.totalPages || 1),
-            canPreviousPage: page > 1,
-          }}
+          onRowClick={onRowClick}
+          pagination={pagination}
           isLoading={isLoading}
         />
       )}

@@ -1,5 +1,6 @@
 "use client";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
+
 import { Search, Filter, Users } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -39,6 +40,29 @@ export default function UserSection() {
     [page, data?.meta.totalPages]
   );
 
+  // ⚡ Bolt Optimization: Memoize props for the `DataTable` component.
+  // `useCallback` and `useMemo` prevent these props from being recreated on every render,
+  // which would otherwise cause the memoized `DataTable` to re-render unnecessarily.
+  const onRowClick = useCallback(
+    (user: any) => viewDialog.open(user.userId),
+    [viewDialog]
+  );
+
+  const pagination = useMemo(
+    () => ({
+      currentPage: page,
+      totalPages: data?.meta.totalPages || 1,
+      totalItems: data?.meta.total || 0,
+      pageSize: limit,
+      onPageChange: userPagination.goTo,
+      onNextPage: userPagination.next,
+      onPreviousPage: userPagination.previous,
+      canNextPage: page < (data?.meta.totalPages || 1),
+      canPreviousPage: page > 1,
+    }),
+    [page, data, userPagination]
+  );
+
   if (isLoading) return <TableSkeleton />;
 
   if (error) {
@@ -54,7 +78,7 @@ export default function UserSection() {
         hasButton={false}
       />
 
-      <div className="flex flex-col sm:flex-row gap-3 mb-6">
+      <div className="flex flex-col sm-flex-row gap-3 mb-6">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -96,18 +120,8 @@ export default function UserSection() {
         columns={userColumns}
         data={data?.users || []}
         isLoading={isFetching}
-        onRowClick={(user) => viewDialog.open(user.userId)}
-        pagination={{
-          currentPage: page,
-          totalPages: data?.meta.totalPages || 1,
-          totalItems: data?.meta.total || 0,
-          pageSize: limit,
-          onPageChange: userPagination.goTo,
-          onNextPage: userPagination.next,
-          onPreviousPage: userPagination.previous,
-          canNextPage: page < (data?.meta.totalPages || 1),
-          canPreviousPage: page > 1,
-        }}
+        onRowClick={onRowClick}
+        pagination={pagination}
       />
     </section>
   );

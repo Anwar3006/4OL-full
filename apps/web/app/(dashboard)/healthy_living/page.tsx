@@ -1,7 +1,7 @@
 "use client";
 import SectionHeader from "@/components/SectionHeader";
 import { PlusCircleIcon } from "lucide-react";
-import React, { useMemo, useState } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import ConditionsStats from "../diseases_&_conditions/_components/ConditionStats";
 import { DataTable } from "@/components/Data-Table/data-table";
 
@@ -24,9 +24,28 @@ const HealthyLivingPage = () => {
 
   const { data, isLoading } = useHealthyLivings({ page, limit });
 
-  const pagination = useMemo(
+  const paginationHandler = useMemo(
     () => createPaginationHandlers(page, setPage, data?.meta.totalPages),
     [page, data?.meta.totalPages]
+  );
+
+  const onRowClick = useCallback(
+    (data: any) => viewHealthyLiving.open(data),
+    [viewHealthyLiving]
+  );
+  const pagination = useMemo(
+    () => ({
+      currentPage: page,
+      totalPages: data?.meta?.totalPages || 1,
+      totalItems: data?.meta?.total || 0,
+      pageSize: 10,
+      onPageChange: paginationHandler.goTo,
+      onNextPage: paginationHandler.next,
+      onPreviousPage: paginationHandler.previous,
+      canNextPage: page < (data?.meta?.totalPages || 1),
+      canPreviousPage: page > 1,
+    }),
+    [page, data, paginationHandler]
   );
 
   return (
@@ -54,19 +73,8 @@ const HealthyLivingPage = () => {
         columns={healthyLivingColumns}
         data={data?.healthyLivings || []}
         cardConfig={healthyLivingCardConfig}
-        // route="facilities"
-        onRowClick={(condition: any) => viewHealthyLiving.open(condition.id)}
-        pagination={{
-          currentPage: page,
-          totalPages: data?.meta?.totalPages || 1,
-          totalItems: data?.meta?.total || 0,
-          pageSize: limit,
-          onPageChange: pagination.goTo,
-          onNextPage: pagination.next,
-          onPreviousPage: pagination.previous,
-          canNextPage: page < (data?.meta?.totalPages || 1),
-          canPreviousPage: page > 1,
-        }}
+        onRowClick={onRowClick}
+        pagination={pagination}
         isLoading={isLoading}
       />
 

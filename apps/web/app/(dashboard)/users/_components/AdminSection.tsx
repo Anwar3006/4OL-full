@@ -1,5 +1,5 @@
 "use client";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 
 import { Search, Filter, MailPlus } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -39,6 +39,29 @@ export default function AdminSection() {
   const adminPagination = useMemo(
     () => createPaginationHandlers(page, setPage, data?.meta.totalPages),
     [page, data?.meta.totalPages]
+  );
+
+  // ⚡ Bolt Optimization: Memoize props for the `DataTable` component.
+  // `useCallback` and `useMemo` prevent these props from being recreated on every render,
+  // which would otherwise cause the memoized `DataTable` to re-render unnecessarily.
+  const onRowClick = useCallback(
+    (user: any) => viewDialog.open(user.userId),
+    [viewDialog]
+  );
+
+  const pagination = useMemo(
+    () => ({
+      currentPage: page,
+      totalPages: data?.meta.totalPages || 1,
+      totalItems: data?.meta.total || 0,
+      pageSize: limit,
+      onPageChange: adminPagination.goTo,
+      onNextPage: adminPagination.next,
+      onPreviousPage: adminPagination.previous,
+      canNextPage: page < (data?.meta.totalPages || 1),
+      canPreviousPage: page > 1,
+    }),
+    [page, data, adminPagination]
   );
 
   if (isLoading) return <TableSkeleton />;
@@ -100,18 +123,8 @@ export default function AdminSection() {
         columns={userColumns}
         data={data?.users || []}
         isLoading={isFetching}
-        onRowClick={(user) => viewDialog.open(user.userId)}
-        pagination={{
-          currentPage: page,
-          totalPages: data?.meta.totalPages || 1,
-          totalItems: data?.meta.total || 0,
-          pageSize: limit,
-          onPageChange: adminPagination.goTo,
-          onNextPage: adminPagination.next,
-          onPreviousPage: adminPagination.previous,
-          canNextPage: page < (data?.meta.totalPages || 1),
-          canPreviousPage: page > 1,
-        }}
+        onRowClick={onRowClick}
+        pagination={pagination}
       />
     </section>
   );

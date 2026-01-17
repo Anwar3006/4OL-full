@@ -3,7 +3,7 @@
 import SectionHeader from "@/components/SectionHeader";
 import { createPaginationHandlers } from "@/lib/utils";
 import { MessageCircleQuestion } from "lucide-react";
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 
 import { DataTable } from "@/components/Data-Table/data-table";
 import ConditionsStats from "../diseases_&_conditions/_components/ConditionStats";
@@ -23,9 +23,24 @@ const FAQPage = () => {
   const { data, isLoading } = useFAQs({ page, limit });
 
   // Memoize pagination to prevent unnecessary re-renders
-  const pagination = useMemo(
+  const paginationHandler = useMemo(
     () => createPaginationHandlers(page, setPage, data?.meta.totalPages),
     [page, data?.meta.totalPages]
+  );
+  const onRowClick = useCallback((data: any) => addFAQ.open(data), [addFAQ]);
+  const pagination = useMemo(
+    () => ({
+      currentPage: page,
+      totalPages: data?.meta?.totalPages || 1,
+      totalItems: data?.meta?.total || 0,
+      pageSize: limit,
+      onPageChange: paginationHandler.goTo,
+      onNextPage: paginationHandler.next,
+      onPreviousPage: paginationHandler.previous,
+      canNextPage: page < (data?.meta?.totalPages || 1),
+      canPreviousPage: page > 1,
+    }),
+    [page, data, paginationHandler]
   );
 
   return (
@@ -56,18 +71,8 @@ const FAQPage = () => {
         columns={faqColumns}
         data={data?.faqs || []}
         cardConfig={faqCardConfig}
-        onRowClick={(data) => addFAQ.open(data)}
-        pagination={{
-          currentPage: page,
-          totalPages: data?.meta?.totalPages || 1,
-          totalItems: data?.meta?.total || 0,
-          pageSize: limit,
-          onPageChange: pagination.goTo,
-          onNextPage: pagination.next,
-          onPreviousPage: pagination.previous,
-          canNextPage: page < (data?.meta?.totalPages || 1),
-          canPreviousPage: page > 1,
-        }}
+        onRowClick={onRowClick}
+        pagination={pagination}
         isLoading={isLoading}
       />
 

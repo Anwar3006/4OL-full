@@ -80,6 +80,8 @@ export default {
       API_URL: process.env.API_URL,
       SUPABASE_URL: process.env.SUPABASE_URL,
       SUPABASE_PUBLISHABLE_KEY: process.env.SUPABASE_PUBLISHABLE_KEY,
+      SUPABASE_BUCKET_NAME: process.env.SUPABASE_BUCKET_NAME,
+      GOOGLE_MAPS_API_KEY: process.env.GOOGLE_MAPS_API_KEY,
     },
   },
 };

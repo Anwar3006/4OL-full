@@ -7,7 +7,7 @@ import {
   useViewConditionDialog,
 } from "@/stores/dialog-store";
 import { Loader2, PlusCircleIcon } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import AddConditionDialog from "./_components/add-condition-dialog";
 import { trpc } from "@/lib/trpc";
 import { conditionColumns } from "@/components/Data-Table/columns/conditionColumns";
@@ -36,6 +36,29 @@ const DiseasesAndConditionsPage = () => {
     }
   }, [allConditions]);
 
+  // ⚡ Bolt Optimization: Memoize props for the `DataTable` component.
+  // `useCallback` and `useMemo` prevent these props from being recreated on every render,
+  // which would otherwise cause the memoized `DataTable` to re-render unnecessarily.
+  const onRowClick = useCallback(
+    (condition: any) => viewConditions.open(condition.id),
+    [viewConditions]
+  );
+
+  const pagination = useMemo(
+    () => ({
+      currentPage: page,
+      totalPages: allConditions?.meta?.totalPages || 1,
+      totalItems: allConditions?.meta?.total || 0,
+      pageSize: limit,
+      onPageChange: conditionsPagination.goTo,
+      onNextPage: conditionsPagination.next,
+      onPreviousPage: conditionsPagination.previous,
+      canNextPage: page < (allConditions?.meta?.totalPages || 1),
+      canPreviousPage: page > 1,
+    }),
+    [page, allConditions, conditionsPagination]
+  );
+
   return (
     <section className="container mx-auto lg:px-4 py-4 sm:py-6 lg:pb-10 lg:pt-2 max-w-7xl">
       <SectionHeader
@@ -47,7 +70,6 @@ const DiseasesAndConditionsPage = () => {
         onButtonClick={() => addConditions.open()}
       />
 
-      {/* StatsCard */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <ConditionsStats
           label="Total Registered"
@@ -69,31 +91,17 @@ const DiseasesAndConditionsPage = () => {
           value={"Cancer"}
           isLoading={isLoading}
         />
-        {/* <ConditionsStats label="Total Register" value={3} /> */}
       </div>
 
-      {/* Conditions Table */}
       <DataTable
         columns={conditionColumns}
         data={allConditions?.conditions || []}
         cardConfig={conditionCardConfig}
-        // route="facilities"
-        onRowClick={(condition: any) => viewConditions.open(condition.id)}
-        pagination={{
-          currentPage: page,
-          totalPages: allConditions?.meta?.totalPages || 1,
-          totalItems: allConditions?.meta?.total || 0,
-          pageSize: limit,
-          onPageChange: conditionsPagination.goTo,
-          onNextPage: conditionsPagination.next,
-          onPreviousPage: conditionsPagination.previous,
-          canNextPage: page < (allConditions?.meta?.totalPages || 1),
-          canPreviousPage: page > 1,
-        }}
+        onRowClick={onRowClick}
+        pagination={pagination}
         isLoading={isLoading}
       />
 
-      {/* Dialogs - These MUST be rendered for Zustand to work! */}
       <AddConditionDialog />
       <ViewConditionDialog />
     </section>

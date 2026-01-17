@@ -1,7 +1,7 @@
 "use client";
 import SectionHeader from "@/components/SectionHeader";
 import { PlusCircleIcon } from "lucide-react";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import ConditionsStats from "../diseases_&_conditions/_components/ConditionStats";
 import {
   useAddConditionDialog,
@@ -40,6 +40,29 @@ const SymptomsPage = () => {
     }
   }, [data]);
 
+  // ⚡ Bolt Optimization: Memoize props for the `DataTable` component.
+  // `useCallback` and `useMemo` prevent these props from being recreated on every render,
+  // which would otherwise cause the memoized `DataTable` to re-render unnecessarily.
+  const onRowClick = useCallback(
+    (condition: any) => viewSymptom.open(condition.id),
+    [viewSymptom]
+  );
+
+  const paginationConfig = useMemo(
+    () => ({
+      currentPage: page,
+      totalPages: data?.meta?.totalPages || 1,
+      totalItems: data?.meta?.total || 0,
+      pageSize: limit,
+      onPageChange: pagination.goTo,
+      onNextPage: pagination.next,
+      onPreviousPage: pagination.previous,
+      canNextPage: page < (data?.meta?.totalPages || 1),
+      canPreviousPage: page > 1,
+    }),
+    [page, data, pagination]
+  );
+
   return (
     <section className="container mx-auto lg:px-4 py-4 sm:py-6 lg:pb-10 lg:pt-2 max-w-7xl">
       <SectionHeader
@@ -51,7 +74,6 @@ const SymptomsPage = () => {
         onButtonClick={() => addSymptom.open()}
       />
 
-      {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <ConditionsStats
           label="Total Record Symptoms"
@@ -73,23 +95,11 @@ const SymptomsPage = () => {
       <DataTable
         columns={symptomsColumns}
         data={data?.symptoms || []}
-        // cardConfig={conditionCardConfig}
-        onRowClick={(condition: any) => viewSymptom.open(condition.id)}
-        pagination={{
-          currentPage: page,
-          totalPages: data?.meta?.totalPages || 1,
-          totalItems: data?.meta?.total || 0,
-          pageSize: limit,
-          onPageChange: pagination.goTo,
-          onNextPage: pagination.next,
-          onPreviousPage: pagination.previous,
-          canNextPage: page < (data?.meta?.totalPages || 1),
-          canPreviousPage: page > 1,
-        }}
+        onRowClick={onRowClick}
+        pagination={paginationConfig}
         isLoading={isLoading}
       />
 
-      {/* Dialogs */}
       <AddSymptomDialog />
       <ViewSymptomDialog />
     </section>
