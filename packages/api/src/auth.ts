@@ -34,6 +34,7 @@ export const auth = betterAuth({
     "http://localhost:3000", // Local Web
     "https://4-ol-full-web-myzx.vercel.app", // Production Web
     "4ol://", // Your actual Mobile App Scheme
+    "4ol://*",
 
     ...(process.env.NODE_ENV === "development"
       ? [

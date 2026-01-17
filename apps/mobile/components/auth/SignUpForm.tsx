@@ -26,8 +26,8 @@ import { useSignUpStore } from "@/store/use-signupStore";
 const signUpSchema = z
   .object({
     // Step 1
-    firstName: z.string().min(2, "First name is too short"),
-    lastName: z.string().min(2, "Last name is too short"),
+    first_name: z.string().min(2, "First name is too short"),
+    last_name: z.string().min(2, "Last name is too short"),
     dob: z.string().min(1, "Date of birth is required"),
     sex: z.enum(["Male", "Female", "Other"], {
       error: () => ({ message: "Please select your sex" }),
@@ -53,7 +53,7 @@ export default function SignUpForm() {
   const [tempDate, setTempDate] = useState(new Date()); // Temporary state for iOS "scrolling"
   const router = useRouter();
 
-  const { firstName, lastName, dob, sex, email, setStep1Data } =
+  const { first_name, last_name, dob, sex, email, setStep1Data } =
     useSignUpStore();
 
   const {
@@ -67,8 +67,8 @@ export default function SignUpForm() {
     resolver: zodResolver(signUpSchema),
     mode: "onChange",
     defaultValues: {
-      firstName: firstName || "",
-      lastName: lastName || "",
+      first_name: first_name || "",
+      last_name: last_name || "",
       dob: dob || "",
       sex: sex as any,
       email: email || "",
@@ -81,11 +81,16 @@ export default function SignUpForm() {
   const prevStep = () => setStep(1);
   // Handle "Next" with validation for specific fields
   const handleNext = async () => {
-    const isStep1Valid = await trigger(["firstName", "lastName", "dob", "sex"]);
+    const isStep1Valid = await trigger([
+      "first_name",
+      "last_name",
+      "dob",
+      "sex",
+    ]);
     if (isStep1Valid) {
       setStep1Data({
-        firstName: watch("firstName"),
-        lastName: watch("lastName"),
+        first_name: watch("first_name"),
+        last_name: watch("last_name"),
         dob: watch("dob"),
         sex: watch("sex"),
       });
@@ -149,7 +154,7 @@ export default function SignUpForm() {
         >
           <Controller
             control={control}
-            name="firstName"
+            name="first_name"
             render={({ field: { onChange, onBlur, value } }) => (
               <CustomInput
                 label="First Name"
@@ -159,14 +164,14 @@ export default function SignUpForm() {
                 onBlur={onBlur}
                 onChangeText={onChange}
                 value={value}
-                error={errors.firstName?.message}
+                error={errors.first_name?.message}
               />
             )}
           />
 
           <Controller
             control={control}
-            name="lastName"
+            name="last_name"
             render={({ field: { onChange, onBlur, value } }) => (
               <CustomInput
                 label="Last Name"
@@ -176,7 +181,7 @@ export default function SignUpForm() {
                 onBlur={onBlur}
                 onChangeText={onChange}
                 value={value}
-                error={errors.lastName?.message}
+                error={errors.last_name?.message}
               />
             )}
           />

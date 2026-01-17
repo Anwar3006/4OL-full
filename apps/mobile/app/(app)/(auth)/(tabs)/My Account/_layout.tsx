@@ -9,7 +9,17 @@ const ProfileLayout = () => {
         name="index"
         options={{
           headerShown: false,
-          title: "Profile",
+          title: "My Account",
+          headerLargeTitleEnabled: true,
+          headerTransparent: true,
+        }}
+      />
+
+      <Stack.Screen
+        name="UserProfile"
+        options={{
+          headerShown: false,
+          title: "User Profile",
           headerLargeTitleEnabled: true,
           headerTransparent: true,
         }}
@@ -34,6 +44,9 @@ const ProfileLayout = () => {
         options={{
           headerShown: false,
           title: "Password Manager",
+          presentation: "transparentModal",
+          animation: "fade",
+          contentStyle: { backgroundColor: "transparent" },
         }}
       />
       <Stack.Screen

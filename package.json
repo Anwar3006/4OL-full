@@ -15,7 +15,7 @@
     "dev:mobile:android": "npm run android -w @4ol/mobile",
     "dev:mobile:ios": "npm run ios -w @4ol/mobile -- --device 'Anwar'",
     "dev:mobile:android:clean": "npm run prebuild -w @4ol/mobile -- --clean && npm run android -w @4ol/mobile",
-    "dev:mobile:ios:clean": "npm run prebuild -w @4ol/mobile -- --clean && npm run ios -w @4ol/mobile",
+    "dev:mobile:ios:clean": "npm run prebuild -w @4ol/mobile -- --clean && npm run ios -w @4ol/mobile -- --device 'Anwar'",
     "db:generate": "npm run generate -w @4ol/db -- --name $MIGRATION_NAME",
     "db:migrate": "npm run migrate -w @4ol/db",
     "db:push": "npm run push -w @4ol/db",

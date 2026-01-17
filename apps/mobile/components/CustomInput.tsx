@@ -46,11 +46,11 @@ export const CustomInput = forwardRef<TextInput, CustomInputProps>(
 
     return (
       <View className={cn("flex flex-col gap-1.5 w-full", containerClassName)}>
-        {label && (
+        {label ? (
           <Text className="text-sm font-semibold text-gray-400 ml-1 uppercase tracking-wider">
             {label}
           </Text>
-        )}
+        ) : null}
 
         <View className="relative w-full justify-center">
           {/* Phone/Flag Logic */}
@@ -76,13 +76,11 @@ export const CustomInput = forwardRef<TextInput, CustomInputProps>(
               />
               <Ionicons name="chevron-down" size={12} color="#94a3b8" />
             </TouchableOpacity>
-          ) : (
-            icon && (
-              <View className="absolute left-4 z-10">
-                <Ionicons name={icon} size={20} color="#94a3b8" />
-              </View>
-            )
-          )}
+          ) : icon ? (
+            <View className="absolute left-4 z-10">
+              <Ionicons name={icon} size={20} color="#94a3b8" />
+            </View>
+          ) : null}
 
           <TextInput
             ref={ref}
@@ -100,7 +98,7 @@ export const CustomInput = forwardRef<TextInput, CustomInputProps>(
             {...props}
           />
 
-          {secureTextEntry && (
+          {secureTextEntry ? (
             <TouchableOpacity
               onPress={() => setIsPasswordVisible(!isPasswordVisible)}
               className="absolute right-4 p-1"
@@ -111,12 +109,12 @@ export const CustomInput = forwardRef<TextInput, CustomInputProps>(
                 color="#94a3b8"
               />
             </TouchableOpacity>
-          )}
+          ) : null}
         </View>
 
-        {error && (
+        {error ? (
           <Text className="text-xs text-red-400 ml-1 font-medium">{error}</Text>
-        )}
+        ) : null}
       </View>
     );
   }

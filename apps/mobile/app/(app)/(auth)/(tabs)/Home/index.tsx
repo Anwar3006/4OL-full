@@ -17,7 +17,6 @@ import Search from "@/components/Search";
 
 import CategoryList from "@/components/home/CategoryList";
 import CampaignBox from "@/components/CampaignBox";
-import FacilityCard from "@/components/home/FacilityCard";
 import TopRated from "@/components/home/TopRated";
 
 const Home = () => {

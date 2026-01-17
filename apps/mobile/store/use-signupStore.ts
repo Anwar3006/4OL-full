@@ -1,23 +1,23 @@
 import { create } from "zustand";
 
 type SignUpState = {
-  firstName: string;
-  lastName: string;
+  first_name: string;
+  last_name: string;
   dob: string;
   sex: string;
-
   email: string;
+
   setStep1Data: (data: {
-    firstName: string;
-    lastName: string;
+    first_name: string;
+    last_name: string;
     dob: string;
     sex: string;
   }) => void;
 };
 
 export const useSignUpStore = create<SignUpState>((set) => ({
-  firstName: "",
-  lastName: "",
+  first_name: "",
+  last_name: "",
   dob: "",
   sex: "",
   email: "",

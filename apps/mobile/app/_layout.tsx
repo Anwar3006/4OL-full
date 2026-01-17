@@ -10,7 +10,10 @@ import {
   Nunito_900Black,
 } from "@expo-google-fonts/nunito";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import "react-native-reanimated";
+import {
+  configureReanimatedLogger,
+  ReanimatedLogLevel,
+} from "react-native-reanimated";
 
 const queryClient = new QueryClient();
 
@@ -24,6 +27,12 @@ const RootLayout = () => {
   });
 
   if (!fontsLoaded) return null;
+
+  // Reanimated logger, disable logger
+  configureReanimatedLogger({
+    level: ReanimatedLogLevel.warn,
+    strict: false, // Reanimated runs in strict mode by default
+  });
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
