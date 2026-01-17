@@ -47,10 +47,10 @@ const TabsLayout = () => {
         }}
       />
       <Tabs.Screen
-        name="Profile"
+        name="My Account"
         options={{
           headerShown: false,
-          title: "Profile",
+          title: "My Account",
           tabBarIcon: ({ size, color }) => (
             <Ionicons name="person" size={size} color={color} />
           ),

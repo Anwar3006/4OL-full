@@ -17,28 +17,42 @@ const Search = () => {
   const {
     control,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    reset,
+    formState: { errors },
   } = useForm<SearchFormValues>({
     resolver: zodResolver(searchInputSchema),
     defaultValues: { search: "" },
   });
 
+  const onSubmit = (data: SearchFormValues) => {
+    // This is called by handleSubmit
+    router.push({
+      pathname: "/(app)/(auth)/(modal)/SearchResult",
+      params: { search: data.search.trim() },
+    });
+    reset();
+  };
+
   return (
-    <View className="w-full gap-y-5">
+    <View className="w-full">
       <Controller
         control={control}
         name="search"
         render={({ field: { onChange, onBlur, value } }) => (
           <CustomInput
-            label=""
             placeholder="Find pharmacies, hospitals..."
-            keyboardType="default"
-            autoCapitalize="none"
+            icon="search"
+            value={value}
             onBlur={onBlur}
             onChangeText={onChange}
-            value={value}
             error={errors.search?.message}
-            icon="search"
+            // Professional Search Settings
+            returnKeyType="search" // Changes "Done" to "Search" on keyboard
+            onSubmitEditing={handleSubmit(onSubmit)} // Triggers on Enter/Return
+            submitBehavior="blurAndSubmit" // Hides keyboard after search
+            // UI Tweaks for search bar feel
+            containerClassName="shadow-none"
+            className="bg-white border-gray-300 h-14 rounded-2xl"
           />
         )}
       />

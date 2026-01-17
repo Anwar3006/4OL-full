@@ -17,6 +17,8 @@ import Search from "@/components/Search";
 
 import CategoryList from "@/components/home/CategoryList";
 import CampaignBox from "@/components/CampaignBox";
+import FacilityCard from "@/components/home/FacilityCard";
+import TopRated from "@/components/home/TopRated";
 
 const Home = () => {
   const insets = useSafeAreaInsets();
@@ -28,7 +30,7 @@ const Home = () => {
     <ScrollView
       contentContainerStyle={{
         paddingTop: insets.top + 20,
-        paddingBottom: insets.bottom + 40,
+        paddingBottom: insets.bottom + 10,
         paddingHorizontal: isLargeScreen ? width * 0.1 : 20, // Slightly tighter on foldables
       }}
       showsVerticalScrollIndicator={false}
@@ -55,7 +57,7 @@ const Home = () => {
       </View>
 
       {/* Search Bar Container */}
-      <View className="mb-8">
+      <View className="mb-2">
         <Search />
       </View>
 
@@ -68,9 +70,7 @@ const Home = () => {
       </View>
 
       {/* Top Rated Facilities */}
-      <View className="my-4">
-        <Text className="text-xl font-black text-slate-900">Top Rated</Text>
-      </View>
+      <TopRated />
     </ScrollView>
   );
 };

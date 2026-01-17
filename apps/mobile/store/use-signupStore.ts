@@ -13,7 +13,6 @@ type SignUpState = {
     dob: string;
     sex: string;
   }) => void;
-  setStep2Data: (data: { email: string }) => void;
 };
 
 export const useSignUpStore = create<SignUpState>((set) => ({
@@ -23,5 +22,4 @@ export const useSignUpStore = create<SignUpState>((set) => ({
   sex: "",
   email: "",
   setStep1Data: (data) => set(data),
-  setStep2Data: (data) => set(data),
 }));

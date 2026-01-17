@@ -3,8 +3,36 @@ import { expoClient } from "@better-auth/expo/client";
 import Constants from "expo-constants";
 import zustandMMKVStorage from "./zustand-mmkv";
 import * as SecureStore from "expo-secure-store";
+import { Platform } from "react-native";
 
-const API_URL = Constants.expoConfig?.extra?.API_URL || "http://localhost:3000";
+// Smart API URL detection
+function getApiUrl(): string {
+  const envUrl = Constants.expoConfig?.extra?.API_URL;
+  
+  // If env URL is set and not localhost, use it
+  if (envUrl && !envUrl.includes('localhost')) {
+    return envUrl;
+  }
+
+  // Development mode detection
+  if (__DEV__) {
+    // iOS Simulator: localhost works fine
+    // Physical Device: Need to use machine IP
+    const devHostname = Constants.expoConfig?.hostUri?.split(':')[0];
+    
+    if (devHostname && devHostname !== 'localhost') {
+      // We're on a physical device, use the dev server IP
+      return `http://${devHostname}:3000`;
+    }
+  }
+
+  // Fallback to env or localhost
+  return envUrl || "http://localhost:3000";
+}
+
+const API_URL = getApiUrl();
+
+console.log("🌐 API URL:", API_URL); // Debug log
 
 export const authClient = createAuthClient({
   baseURL: API_URL,

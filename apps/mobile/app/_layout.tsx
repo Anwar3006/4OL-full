@@ -10,6 +10,7 @@ import {
   Nunito_900Black,
 } from "@expo-google-fonts/nunito";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import "react-native-reanimated";
 
 const queryClient = new QueryClient();
 

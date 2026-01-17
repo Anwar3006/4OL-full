@@ -18,10 +18,10 @@ import { authClient } from "@/lib/auth-Client";
 import DateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { useSharedValue, withTiming } from "react-native-reanimated";
-import { useSignUpStore } from "@/hooks/use-signupStore";
+import { useSharedValue } from "react-native-reanimated";
+import { useSignUpStore } from "@/store/use-signupStore";
 
 const signUpSchema = z
   .object({
@@ -33,7 +33,7 @@ const signUpSchema = z
       error: () => ({ message: "Please select your sex" }),
     }),
     // Step 2
-    email: z.string().email("Invalid email").optional().or(z.literal("")),
+    email: z.email("Invalid email").optional().or(z.literal("")),
     password: z.string().min(8, "Password must be at least 8 characters"),
     confirmPassword: z.string(),
     acceptContract: z.literal(false, {
@@ -48,7 +48,6 @@ const signUpSchema = z
 type SignUpFormValues = z.infer<typeof signUpSchema>;
 
 export default function SignUpForm() {
-  const progress = useSharedValue(0.5);
   const [step, setStep] = useState(1);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [tempDate, setTempDate] = useState(new Date()); // Temporary state for iOS "scrolling"

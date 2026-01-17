@@ -5,6 +5,15 @@ const AuthScreensLayout = () => {
   return (
     <Stack>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+
+      {/* Modal Routes */}
+      <Stack.Screen
+        name="(modal)"
+        options={{
+          presentation: "modal",
+          headerShown: false,
+        }}
+      />
     </Stack>
   );
 };
