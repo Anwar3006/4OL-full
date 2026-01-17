@@ -50,7 +50,7 @@ export const userColumns: ColumnDef<TUserProfile>[] = [
       <div className="hidden lg:table-cell min-w-35">
         <div className="flex items-center gap-2">
           <Phone className="h-3.5 w-3.5 text-muted-foreground" />
-          <span className="text-sm">{row.original.phoneNumber}</span>
+          <span className="text-sm">{row.original.phone_number}</span>
         </div>
       </div>
     ),
@@ -80,7 +80,7 @@ export const userColumns: ColumnDef<TUserProfile>[] = [
     ),
     cell: ({ row }) => (
       <div className="hidden 2xl:table-cell min-w-25">
-        <span className="text-sm">{row.original.userType}</span>
+        <span className="text-sm">{row.original.user_type}</span>
       </div>
     ),
   },
@@ -104,7 +104,7 @@ export const userColumns: ColumnDef<TUserProfile>[] = [
             <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuItem
-                onClick={() => navigator.clipboard.writeText(user.userId)}
+                onClick={() => navigator.clipboard.writeText(user.user_id)}
               >
                 Copy User ID
               </DropdownMenuItem>

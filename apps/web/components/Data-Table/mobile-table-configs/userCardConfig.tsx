@@ -13,7 +13,7 @@ export const userCardConfig: MobileCardConfig<TUserProfile> = {
   // Header configuration
   header: {
     title: (user) => user.name,
-    subtitle: (user) => user.userType,
+    subtitle: (user) => user.user_type,
     badge: (user) => StatusMap[user.status],
   },
 
@@ -27,7 +27,7 @@ export const userCardConfig: MobileCardConfig<TUserProfile> = {
     {
       id: "phone",
       icon: <Phone className="h-4 w-4 shrink-0" />,
-      render: (user) => <span>{user.phoneNumber}</span>,
+      render: (user) => <span>{user.phone_number}</span>,
     },
     {
       id: "role",
@@ -45,18 +45,18 @@ export const userCardConfig: MobileCardConfig<TUserProfile> = {
       label: "View Details",
       onClick: (user) => {
         // This will be handled by the card's onClick
-        console.log("View details for:", user.userId);
+        console.log("View details for:", user.user_id);
       },
     },
     {
       label: "Suspend User",
       onClick: (user) => {
-        console.log("Suspend user:", user.userId);
+        console.log("Suspend user:", user.user_id);
       },
       destructive: true,
     },
   ],
 
   // Optional: Custom ID getter if your data uses a different field
-  getId: (user) => user.userId,
+  getId: (user) => user.user_id,
 };
