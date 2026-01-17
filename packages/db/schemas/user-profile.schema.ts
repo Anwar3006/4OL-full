@@ -67,17 +67,17 @@ export type TAdminInviteInputSchema = z.infer<typeof adminInviteInputSchema>;
 export type TBetterAuthUser = Session["user"];
 
 export type TUserProfile = {
-  userId: string;
-  createdAt: Date | string;
-  updatedAt: Date | string;
+  user_id: string;
+  created_at: Date | string;
+  updated_at: Date | string;
   name: string;
   email: string;
   sex: "male" | "female" | "other";
   dob: string;
-  userType: "customer" | "business_provider" | "both";
+  user_type: "customer" | "business_provider" | "both";
   role: "user" | "registrar" | "admin" | "super_admin";
   status: "active" | "pending" | "inactive" | "suspended";
-  phoneNumber: string;
+  phone_number: string;
 };
 
 export type TUserProfileWithUser = {

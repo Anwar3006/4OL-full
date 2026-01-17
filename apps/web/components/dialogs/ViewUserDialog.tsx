@@ -1,6 +1,5 @@
 "use client";
 
-import { trpc } from "@/lib/trpc";
 import {
   Sheet,
   SheetContent,
@@ -30,7 +29,7 @@ import { useState } from "react";
 import { useViewUserDialog } from "@/stores/dialog-store";
 import { useUser } from "@/hooks/supabase-calls/useUser";
 
-export function UserViewDialog({
+export function ViewUserDialog({
   Dialog,
 }: {
   Dialog?: React.ComponentType<ControlledDialogProps>;
@@ -66,7 +65,7 @@ export function UserViewDialog({
                     </SheetTitle>
                     <SheetDescription className="text-sm md:text-base font-medium flex items-center gap-2">
                       <Badge variant="secondary" className="rounded-full px-3">
-                        {userData.userType}
+                        {userData.user_type}
                       </Badge>
                     </SheetDescription>
                   </div>
@@ -123,7 +122,7 @@ export function UserViewDialog({
                   <ContactCard
                     icon={Phone}
                     label="Mobile Number"
-                    value={userData.phoneNumber}
+                    value={userData.phone_number}
                   />
                 </div>
               </section>
@@ -145,13 +144,13 @@ export function UserViewDialog({
                   <DetailItem
                     icon={Fingerprint}
                     label="Unique Identifier"
-                    value={userData.userId}
+                    value={userData.user_id}
                     isMono
                   />
                   <DetailItem
                     icon={Calendar}
                     label="Date Onboarded"
-                    value={new Date(userData.createdAt).toLocaleDateString(
+                    value={new Date(userData.created_at).toLocaleDateString(
                       undefined,
                       {
                         dateStyle: "medium",
@@ -161,7 +160,7 @@ export function UserViewDialog({
                   <DetailItem
                     icon={Clock}
                     label="Last Profile Sync"
-                    value={new Date(userData.updatedAt).toLocaleDateString(
+                    value={new Date(userData.updated_at).toLocaleDateString(
                       undefined,
                       {
                         dateStyle: "medium",

@@ -12,7 +12,7 @@ import {
 } from "@/components/Data-Table/helpers";
 import SectionHeader from "@/components/SectionHeader";
 
-import { useAddAdminDialog, useViewUserDialog } from "@/stores/dialog-store";
+import { useViewUserDialog } from "@/stores/dialog-store";
 
 import { userColumns } from "@/components/Data-Table/columns/userColumns";
 import { createPaginationHandlers } from "@/lib/utils";
@@ -20,7 +20,6 @@ import { useDebounce } from "@/hooks/use-debounce";
 import { useUsers } from "@/hooks/supabase-calls/useUser";
 
 export default function UserSection() {
-  const addAdminDialog = useAddAdminDialog();
   const viewDialog = useViewUserDialog();
 
   const [page, setPage] = useState(1);
@@ -78,7 +77,7 @@ export default function UserSection() {
         hasButton={false}
       />
 
-      <div className="flex flex-col sm-flex-row gap-3 mb-6">
+      <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -116,13 +115,15 @@ export default function UserSection() {
         />
       </div>
 
-      <DataTable
-        columns={userColumns}
-        data={data?.users || []}
-        isLoading={isFetching}
-        onRowClick={onRowClick}
-        pagination={pagination}
-      />
+      {data?.users && (
+        <DataTable
+          columns={userColumns}
+          data={data?.users || []}
+          isLoading={isFetching}
+          onRowClick={onRowClick}
+          pagination={pagination}
+        />
+      )}
     </section>
   );
 }

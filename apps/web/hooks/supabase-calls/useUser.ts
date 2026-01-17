@@ -42,7 +42,7 @@ export const USER_QUERY_KEYS = {
 //================= Query Hooks ==============
 export const useUsers = (params: Pagination) => {
   return useQuery<PaginationResponse, Error>({
-    queryKey: USER_QUERY_KEYS.all,
+    queryKey: USER_QUERY_KEYS.list(params),
     queryFn: async () => {
       const limit = params.limit || 10;
       const page = params.page || 1;

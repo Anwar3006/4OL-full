@@ -23,22 +23,22 @@ interface MultiSelectProps {
   name: string;
   label: string;
   options: string[];
-  selected: string[] | null | undefined; // Handle potential nulls
+  selected: string[] | null | undefined;
   onChange: (value: string[]) => void;
   placeholder?: string;
+  maxHeight?: string;
 }
 
 export function MultiSelect({
   label,
   options = [],
-  selected = [], // Default to empty array
+  selected = [],
   onChange,
   placeholder = "Select items...",
+  maxHeight = "300px", // Default max height
 }: MultiSelectProps) {
   const [open, setOpen] = React.useState(false);
 
-  // 1. Fix null errors & optimize lookups
-  // Converting the array to a Set makes .has() an O(1) operation
   const safeSelected = React.useMemo(
     () => (Array.isArray(selected) ? selected : []),
     [selected]
@@ -49,7 +49,6 @@ export function MultiSelect({
     [safeSelected]
   );
 
-  // 2. Memoized toggle handler
   const toggleOption = React.useCallback(
     (option: string) => {
       const newSelected = selectedSet.has(option)
@@ -72,7 +71,7 @@ export function MultiSelect({
   return (
     <div className="flex flex-col gap-2 w-full">
       <label className="text-sm font-medium leading-none">{label}</label>
-      <Popover open={open} onOpenChange={setOpen}>
+      <Popover open={open} onOpenChange={setOpen} modal={true}>
         <PopoverTrigger asChild>
           <Button
             variant="outline"
@@ -87,7 +86,6 @@ export function MultiSelect({
                     variant="secondary"
                     key={item}
                     className="mr-1"
-                    // Important: use the memoized handler
                     onClick={(e) => handleUnselect(e, item)}
                   >
                     {item}
@@ -104,18 +102,29 @@ export function MultiSelect({
         <PopoverContent
           className="w-full min-w-[var(--radix-popover-trigger-width)] p-0"
           align="start"
+          side="bottom"
+          sideOffset={4}
+          // CRITICAL FIX: Portal the content to body to escape dialog scroll container
+          // container={typeof document !== 'undefined' ? document.body : undefined}
         >
-          <Command>
-            <CommandInput placeholder={`Search ${label}...`} />
-            <CommandList>
+          <Command className="border-none w-full">
+            <CommandInput
+              placeholder={`Search ${label}...`}
+              className="border-b"
+            />
+            <CommandList
+              className="overflow-y-auto overflow-x-hidden"
+              style={{ maxHeight }}
+            >
               <CommandEmpty>No item found.</CommandEmpty>
-              <CommandGroup className="max-h-64 overflow-y-auto">
+              <CommandGroup>
                 {options.map((option) => {
                   const isSelected = selectedSet.has(option);
                   return (
                     <CommandItem
                       key={option}
                       onSelect={() => toggleOption(option)}
+                      className="cursor-pointer"
                     >
                       <div
                         className={cn(
@@ -127,7 +136,7 @@ export function MultiSelect({
                       >
                         <Check className="h-4 w-4" />
                       </div>
-                      <span>{option}</span>
+                      <span className="flex-1">{option}</span>
                     </CommandItem>
                   );
                 })}

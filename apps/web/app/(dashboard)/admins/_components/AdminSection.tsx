@@ -45,7 +45,7 @@ export default function AdminSection() {
   // `useCallback` and `useMemo` prevent these props from being recreated on every render,
   // which would otherwise cause the memoized `DataTable` to re-render unnecessarily.
   const onRowClick = useCallback(
-    (user: any) => viewDialog.open(user.userId),
+    (user: any) => viewDialog.open(user.user_id),
     [viewDialog]
   );
 
@@ -119,13 +119,15 @@ export default function AdminSection() {
         />
       </div>
 
-      <DataTable
-        columns={userColumns}
-        data={data?.users || []}
-        isLoading={isFetching}
-        onRowClick={onRowClick}
-        pagination={pagination}
-      />
+      {data?.users && (
+        <DataTable
+          columns={userColumns}
+          data={data?.users || []}
+          isLoading={isFetching}
+          onRowClick={onRowClick}
+          pagination={pagination}
+        />
+      )}
     </section>
   );
 }

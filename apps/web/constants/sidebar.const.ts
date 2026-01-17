@@ -13,6 +13,7 @@ import {
   SquareActivity,
   Star,
   UserCircle,
+  UserCog2,
   Users,
 } from "lucide-react";
 
@@ -21,6 +22,11 @@ export const SIDEBAR_NAV_ITEMS = [
     title: "Dashboard",
     icon: CircleGauge,
     url: "/dashboard",
+  },
+  {
+    title: "Admins",
+    icon: UserCog2,
+    url: "/admins",
   },
   {
     title: "Users",
