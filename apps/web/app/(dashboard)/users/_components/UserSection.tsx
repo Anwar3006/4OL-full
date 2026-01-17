@@ -1,5 +1,5 @@
 "use client";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { trpc } from "@/lib/trpc";
 import { Search, Filter, MailPlus, Users } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,7 @@ import SectionHeader from "@/components/SectionHeader";
 import { useAdminPermissions } from "@/hooks/use-admin-permissions";
 import { useAddAdminDialog, useViewUserDialog } from "@/stores/dialog-store";
 
+import { TUserProfile } from "@4ol/db/schemas/user-profile.schema";
 import { userColumns } from "@/components/Data-Table/columns/userColumns";
 import { createPaginationHandlers } from "@/lib/utils";
 import { useDebounce } from "@/hooks/use-debounce";
@@ -45,6 +46,27 @@ export default function UserSection() {
   if (error) {
     return <ErrorState error={error.message} onRetry={() => setPage(1)} />;
   }
+  // ⚡ Bolt: Memoize props passed to DataTable to prevent re-renders.
+  // `useCallback` stabilizes the onRowClick function, `useMemo` stabilizes the pagination object.
+  const handleRowClick = useCallback(
+    (user: TUserProfile) => viewDialog.open(user.userId),
+    [viewDialog]
+  );
+
+  const paginationProps = useMemo(
+    () => ({
+      currentPage: page,
+      totalPages: data?.totalPages || 1,
+      totalItems: data?.total || 0,
+      pageSize: limit,
+      onPageChange: userPagination.goTo,
+      onNextPage: userPagination.next,
+      onPreviousPage: userPagination.previous,
+      canNextPage: page < (data?.totalPages || 1),
+      canPreviousPage: page > 1,
+    }),
+    [page, data?.totalPages, data?.total, userPagination]
+  );
 
   return (
     <section>
@@ -97,18 +119,8 @@ export default function UserSection() {
         columns={userColumns}
         data={data?.users || []}
         isLoading={isFetching}
-        onRowClick={(user) => viewDialog.open(user.userId)}
-        pagination={{
-          currentPage: page,
-          totalPages: data?.totalPages || 1,
-          totalItems: data?.total || 0,
-          pageSize: limit,
-          onPageChange: userPagination.goTo,
-          onNextPage: userPagination.next,
-          onPreviousPage: userPagination.previous,
-          canNextPage: page < (data?.totalPages || 1),
-          canPreviousPage: page > 1,
-        }}
+        onRowClick={handleRowClick}
+        pagination={paginationProps}
       />
     </section>
   );
