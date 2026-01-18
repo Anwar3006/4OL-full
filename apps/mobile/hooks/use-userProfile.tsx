@@ -1,6 +1,22 @@
 import { supabase } from "@/lib/supabase";
 import { TUserProfile } from "@4ol/db/schemas/user-profile.schema";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
+
+export const useUserProfile = (id: string) => {
+  return useQuery<TUserProfile, Error>({
+    queryKey: ["user-profile"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("user_profiles")
+        .select()
+        .eq("user_id", id)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!id,
+  });
+};
 
 export const useUpdateProfile = () => {
   return useMutation<any, Error, any>({

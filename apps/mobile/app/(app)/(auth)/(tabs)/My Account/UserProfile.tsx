@@ -3,10 +3,10 @@ import {
   Text,
   TouchableOpacity,
   useWindowDimensions,
+  ScrollView,
 } from "react-native";
 import React from "react";
 import { Ionicons } from "@expo/vector-icons";
-import { ScrollView } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import EditUserInfoForm from "@/components/myaccount/EditUserInfoForm";
@@ -19,7 +19,6 @@ const UserProfile = () => {
 
   return (
     <View className="flex-1 bg-white">
-      {/* Header Bar */}
       <View
         style={{ paddingTop: insets.top + 10 }}
         className="flex-row items-center justify-between px-6 pb-8 bg-white"

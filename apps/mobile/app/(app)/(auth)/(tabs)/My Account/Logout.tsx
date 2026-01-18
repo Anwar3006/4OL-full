@@ -2,9 +2,27 @@ import { View, Text, TouchableOpacity, Pressable } from "react-native";
 import { useRouter } from "expo-router";
 import Animated, { FadeIn, ZoomIn } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
+import { authClient } from "@/lib/auth-Client";
+import useUserStore from "@/store/use-userstore";
 
 export default function LogoutCard() {
   const router = useRouter();
+  const { setUser } = useUserStore();
+
+  const handleLogout = async () => {
+    try {
+      // 1. UI Cleanup
+      router.dismissAll();
+
+      // 2. State Cleanup
+      setUser(null); // Wipe the store immediately
+
+      // 3. Auth Cleanup
+      await authClient.signOut();
+    } catch (error) {
+      console.error("Logout failed", error);
+    }
+  };
 
   return (
     <View className="flex-1 items-center justify-center px-6">
@@ -37,10 +55,7 @@ export default function LogoutCard() {
 
         <View className="flex-col gap-y-3 w-full">
           <TouchableOpacity
-            onPress={() => {
-              // Trigger your logout logic
-              console.log("User logged out");
-            }}
+            onPress={handleLogout}
             activeOpacity={0.8}
             className="w-full h-14 items-center justify-center rounded-2xl bg-red-500"
           >

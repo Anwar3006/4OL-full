@@ -14,6 +14,7 @@ import { CustomInput } from "../CustomInput";
 import { Checkbox } from "../Checkbox";
 import { authClient } from "@/lib/auth-Client";
 import { Ionicons } from "@expo/vector-icons";
+import useUserStore from "@/store/use-userstore";
 
 const loginSchema = z.object({
   email: z.email("Please enter a valid email address"),
@@ -24,6 +25,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function LoginForm() {
   const router = useRouter();
+  // const { setUser} = useUserStore();
 
   const {
     control,
@@ -38,7 +40,7 @@ export default function LoginForm() {
     await authClient.signIn.email({
       email: data.email,
       password: data.password,
-      callbackURL: "/(app)/(auth)/(tabs)/Home",
+      // callbackURL: "4ol://(app)/(auth)/(tabs)/Home",
       fetchOptions: {
         onError: (ctx: any) => {
           Alert.alert("Login Failed", ctx.error.message);

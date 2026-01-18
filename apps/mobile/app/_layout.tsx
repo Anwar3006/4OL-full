@@ -14,6 +14,11 @@ import {
   configureReanimatedLogger,
   ReanimatedLogLevel,
 } from "react-native-reanimated";
+import { authClient } from "@/lib/auth-Client";
+import { Alert } from "react-native";
+import { useUserProfile } from "@/hooks/use-userProfile";
+import useUserStore from "@/store/use-userstore";
+import LoadingScreen from "@/components/LoadingScreen";
 
 const queryClient = new QueryClient();
 
@@ -26,20 +31,22 @@ const RootLayout = () => {
     Nunito_900Black,
   });
 
-  if (!fontsLoaded) return null;
-
   // Reanimated logger, disable logger
-  configureReanimatedLogger({
-    level: ReanimatedLogLevel.warn,
-    strict: false, // Reanimated runs in strict mode by default
-  });
+  useEffect(() => {
+    configureReanimatedLogger({
+      level: ReanimatedLogLevel.warn,
+      strict: false,
+    });
+  }, []);
+
+  if (!fontsLoaded) return null;
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <QueryClientProvider client={queryClient}>
-        {/* <AuthProvider> */}
-        <Slot />
-        {/* </AuthProvider> */}
+        <AuthProvider>
+          <Slot />
+        </AuthProvider>
       </QueryClientProvider>
     </GestureHandlerRootView>
   );
@@ -49,22 +56,49 @@ const RootLayout = () => {
 function AuthProvider({ children }: { children: React.ReactNode }) {
   const segments = useSegments();
   const router = useRouter();
+  const { setUser } = useUserStore();
 
-  // TODO: Replace with your actual auth check
-  const isAuthenticated = false; // Check your auth state here (e.g., from BetterAuth/Supabase)
+  const { data: sessionData, isPending: isSessionLoading } =
+    authClient.useSession();
+  const { data: userProfile, isLoading: isProfileLoading } = useUserProfile(
+    sessionData?.user?.id!
+  );
 
+  // Sync Supabase data to Zustand Store
   useEffect(() => {
-    const protectedRoutes = ["(auth)"];
-    const inProtectedRoute = protectedRoutes.includes(segments[0] || "");
-
-    if (!isAuthenticated && inProtectedRoute) {
-      // Redirect to login if not authenticated and trying to access protected routes
-      router.replace("/Login");
-    } else if (isAuthenticated && !inProtectedRoute && segments[0]) {
-      // Redirect to app if authenticated and on public routes
-      // router.replace("/(app)/(auth)");
+    if (userProfile) {
+      setUser(userProfile);
     }
-  }, [isAuthenticated, segments]);
+  }, [userProfile, setUser]);
+
+  // Handle Redirection Logic
+  useEffect(() => {
+    if (isSessionLoading) return; // Wait until session is determined
+
+    // segments will look like: ["(app)", "(auth)", "(tabs)", "Home"]
+    // We need to check if ANY segment in the current path is protected
+    const inAuthGroup = (segments as string[]).some(
+      (segment) => segment === "(auth)"
+    );
+    const isAuthenticated = !!sessionData?.user;
+
+    // Only redirect to Home if we are actually on a landing/login page
+    const isLoginPage =
+      (segments as string[]).includes("Login") ||
+      (segments as string[]).includes("Welcome");
+
+    if (!isAuthenticated && inAuthGroup) {
+      // Force immediate jump to Login if session dies while inside protected area
+      router.replace("/Login");
+    } else if (isAuthenticated && isLoginPage) {
+      // Only redirect to Home if the user is explicitly on a Public Page
+      router.replace("/(app)/(auth)/(tabs)/Home");
+    }
+  }, [sessionData, segments, isSessionLoading]);
+
+  if (isSessionLoading || isProfileLoading) {
+    return <LoadingScreen />;
+  }
 
   return <>{children}</>;
 }
