@@ -9,7 +9,7 @@ export default {
     icon: "./assets/images/icon.png",
     scheme: "4ol",
     userInterfaceStyle: "automatic",
-    newArchEnabled: true,
+    newArchEnabled: false,
     ios: {
       supportsTablet: true,
       bundleIdentifier: "com.anonymous.fourOL",
