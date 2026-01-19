@@ -1,42 +1,51 @@
 import { supabase } from "@/lib/supabase";
+import { MobileUserProfile } from "@/types";
 import { TUserProfile } from "@4ol/db/schemas/user-profile.schema";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export const useUserProfile = (id: string) => {
-  return useQuery<TUserProfile, Error>({
+  return useQuery<MobileUserProfile, Error>({
     queryKey: ["user-profile"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("user_profiles")
-        .select()
+        .select("*, user:user(email)")
         .eq("user_id", id)
         .single();
       if (error) throw error;
-      return data;
+      return { ...data, ...data.user, user: null };
     },
     enabled: !!id,
   });
 };
 
-export const useUpdateProfile = () => {
-  return useMutation<any, Error, any>({
+export const useUpdateUserProfile = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<MobileUserProfile, Error, any>({
     mutationFn: async (data: any) => {
+      console.log("UserToUpdate: ", data.user_id);
       const { data: result, error } = await supabase
         .from("user_profiles")
         .update({
           user_id: data.user_id,
           first_name: data.first_name,
           last_name: data.last_name,
-          sex: data.sex,
+          sex: (data.sex as string).toLocaleLowerCase(),
           dob: data.dob,
           user_type: data.user_type,
           role: data.role,
           phone_number: data.phone_number,
         })
         .select()
-        .single();
+        .eq("user_id", data.user_id)
+        .maybeSingle();
+
       if (error) throw error;
       return result;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["user-profile"] });
     },
   });
 };

@@ -18,6 +18,13 @@ export default {
         light: "./assets/icons/ios-light.png",
         tinted: "./assets/icons/ios-tinted.png",
       },
+      infoPlist: {
+        NSFaceIDUsageDescription:
+          "This app uses Face ID to secure your account and streamline your login experience.",
+      },
+      config: {
+        googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY,
+      },
     },
     android: {
       package: "com.anonymous.fourOL",
@@ -38,6 +45,11 @@ export default {
         "screenLayout",
       ],
       softwareKeyboardLayoutMode: "pan",
+      config: {
+        googleMaps: {
+          apiKey: process.env.GOOGLE_MAPS_API_KEY,
+        },
+      },
     },
     web: {
       output: "static",
@@ -70,7 +82,6 @@ export default {
       "expo-video",
       "expo-asset",
       "expo-secure-store",
-      // "expo-linear-gradient",
     ],
     experiments: {
       typedRoutes: true,

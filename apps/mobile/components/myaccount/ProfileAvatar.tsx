@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Image, Pressable, Text, View } from "react-native";
 
-const ProfileAvatar = ({ uri }: { uri: string }) => {
+const ProfileAvatar = ({ uri, name }: { uri: string; name: string }) => {
   const handleEditPhoto = () => {
     // Navigate to Image Picker / Camera screen
     console.log("Trigger image upload");
@@ -28,7 +28,7 @@ const ProfileAvatar = ({ uri }: { uri: string }) => {
       </View>
 
       <Text className="text-2xl font-black text-slate-800 mt-4 tracking-tight">
-        Kweku The Traveler
+        {name}
       </Text>
     </View>
   );

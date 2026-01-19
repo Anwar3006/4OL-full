@@ -18,9 +18,11 @@ import { authClient } from "@/lib/auth-Client";
 import DateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { useSignUpStore } from "@/store/use-signupStore";
+import useUserStore from "@/store/use-userstore";
+import { useUpdateUserProfile } from "@/hooks/use-userProfile";
 
 const editUserInfoSchema = z.object({
   first_name: z.string().min(2, "First name is too short"),
@@ -45,8 +47,9 @@ export default function EditUserInfoForm() {
     code: "GH",
     callingCode: "233",
   });
-  const { first_name, last_name, dob, sex, email, setStep1Data } =
-    useSignUpStore();
+
+  const { user } = useUserStore();
+  const { mutateAsync, isPending } = useUpdateUserProfile();
 
   const {
     control,
@@ -59,28 +62,38 @@ export default function EditUserInfoForm() {
     resolver: zodResolver(editUserInfoSchema),
     mode: "onChange",
     defaultValues: {
-      first_name: first_name || "",
-      last_name: last_name || "",
-      dob: dob || "",
-      sex: sex as any,
-      email: email || "",
+      first_name: user?.first_name || "",
+      last_name: user?.last_name || "",
+      dob: user?.dob || "",
+      sex: user?.sex as any,
+      email: user?.email || "",
     },
   });
 
+  const modifySex = user?.sex
+    ? user?.sex.charAt(0).toUpperCase() + user?.sex.slice(1)
+    : "";
+  useEffect(() => {
+    if (user) {
+      reset({
+        first_name: user?.first_name || "",
+        last_name: user?.last_name || "",
+        dob: user?.dob || "",
+        sex: modifySex as any,
+        email: user?.email || "",
+        phone_number: user?.phone_number || "",
+      });
+    }
+  }, [user, router]);
+
   const onSubmit = async (data: EditUserInfoFormValues) => {
-    // await authClient. .email({
-    //   email: data.email!,
-    //   password: data.password,
-    //   callbackURL: "/dashboard",
-    //   fetchOptions: {
-    //     onError: (ctx: any) => {
-    //       Alert.alert("Registration Failed", ctx.error.message);
-    //     },
-    //     onSuccess: () => {
-    //       router.replace("/(app)/(auth)/(tabs)/Home");
-    //     },
-    //   },
-    // });
+    try {
+      const payload = { ...data, user_id: user?.user_id };
+      await mutateAsync(payload);
+      router.back();
+    } catch (error) {
+      console.error("Error: ", error);
+    }
   };
 
   const formatDisplayDate = (date: string): string => {
@@ -106,6 +119,7 @@ export default function EditUserInfoForm() {
 
   const handleCancel = () => {
     reset();
+    router.back();
   };
 
   return (
@@ -123,6 +137,7 @@ export default function EditUserInfoForm() {
             onChangeText={onChange}
             value={value}
             error={errors.first_name?.message}
+            editable={!isPending}
           />
         )}
       />
@@ -140,6 +155,7 @@ export default function EditUserInfoForm() {
             onChangeText={onChange}
             value={value}
             error={errors.last_name?.message}
+            editable={!isPending}
           />
         )}
       />
@@ -159,6 +175,8 @@ export default function EditUserInfoForm() {
             value={value}
             error={errors.email?.message}
             icon="mail-outline"
+            editable={false}
+            className="text-gray-400"
           />
         )}
       />
@@ -183,6 +201,7 @@ export default function EditUserInfoForm() {
                 callingCode: c.callingCode[0],
               })
             }
+            editable={!isPending}
           />
         )}
       />
@@ -202,6 +221,7 @@ export default function EditUserInfoForm() {
                 value={formatDisplayDate(value)}
                 icon="calendar-outline"
                 error={errors.dob?.message}
+                editable={isPending}
               />
             </View>
           </TouchableOpacity>
@@ -229,6 +249,7 @@ export default function EditUserInfoForm() {
                 maximumDate={new Date()}
                 onChange={onDateChange}
                 textColor="white"
+                disabled={isPending}
               />
             </View>
           </View>
@@ -243,6 +264,7 @@ export default function EditUserInfoForm() {
           display="default"
           maximumDate={new Date()}
           onChange={onDateChange}
+          disabled={isPending}
         />
       )}
 
@@ -261,6 +283,7 @@ export default function EditUserInfoForm() {
                   ? "border-green-500 bg-green-500/10"
                   : "border-gray-400"
               )}
+              disabled={isPending}
             >
               <Text
                 className={cn(

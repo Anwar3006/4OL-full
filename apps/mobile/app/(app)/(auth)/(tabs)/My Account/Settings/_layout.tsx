@@ -16,7 +16,7 @@ const ProfileLayout = () => {
       />
 
       <Stack.Screen
-        name="UserProfile"
+        name="DisableBiometrics"
         options={{
           headerShown: false,
           title: "User Profile",
@@ -26,23 +26,13 @@ const ProfileLayout = () => {
       />
 
       <Stack.Screen
-        name="Favorites"
+        name="DeleteAccount"
         options={{
           headerShown: false,
-          title: "Favorites",
+          title: "Delete Account",
         }}
       />
-      <Stack.Screen
-        name="HelpCenter"
-        options={{
-          headerShown: false,
-          title: "Help Center",
-        }}
-      />
-
-      {/* Privacy Policy is defined in the public/legal folder */}
-
-      <Stack.Screen
+      {/* <Stack.Screen
         name="PasswordManager"
         options={{
           headerShown: false,
@@ -51,33 +41,7 @@ const ProfileLayout = () => {
           animation: "fade",
           contentStyle: { backgroundColor: "transparent" },
         }}
-      />
-      <Stack.Screen
-        name="PaymentOptions"
-        options={{
-          headerShown: false,
-          title: "Payment Options",
-          headerLargeTitleEnabled: true,
-          headerTransparent: true,
-        }}
-      />
-      <Stack.Screen
-        name="Settings"
-        options={{
-          headerShown: false,
-          title: "Settings",
-        }}
-      />
-      <Stack.Screen
-        name="Logout"
-        options={{
-          headerShown: false,
-          title: "Logout",
-          presentation: "transparentModal",
-          animation: "fade",
-          contentStyle: { backgroundColor: "transparent" },
-        }}
-      />
+      /> */}
     </Stack>
   );
 };

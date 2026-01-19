@@ -7,8 +7,10 @@ interface MenuItemProps {
   label: string;
   subText?: string;
   icon: keyof typeof Ionicons.glyphMap;
-  href: Route;
+  href?: Route; // Optional now
+  onPress?: () => void; // Added for actions
   isLogout?: boolean;
+  rightElement?: React.ReactNode;
 }
 
 const ProfileMenuItem = ({
@@ -16,17 +18,27 @@ const ProfileMenuItem = ({
   subText,
   icon,
   href,
+  onPress,
   isLogout,
+  rightElement,
 }: MenuItemProps) => {
   const router = useRouter();
 
+  const handlePress = () => {
+    if (onPress) {
+      onPress();
+    } else if (href) {
+      router.push(href as any);
+    }
+  };
+
   return (
     <TouchableOpacity
-      onPress={() => router.push(href as any)}
+      onPress={handlePress}
       activeOpacity={0.6}
       className="flex-row items-center justify-between py-5 border-b border-gray-200"
     >
-      <View className="flex-row items-center gap-x-4">
+      <View className="flex-row items-center max-w-xs" style={{ gap: 16 }}>
         <View
           className={`p-2 rounded-xl ${isLogout ? "bg-red-50" : "bg-transparent"}`}
         >
@@ -37,17 +49,25 @@ const ProfileMenuItem = ({
           />
         </View>
 
-        <View className="flex-1 gap-1">
+        <View className="flex-1" style={{ gap: 4 }}>
           <Text
             className={`text-base font-semibold ${isLogout ? "text-red-500" : "text-slate-700"}`}
           >
             {label}
           </Text>
 
-          {subText && <Text className="text-sm text-gray-500">{subText}</Text>}
+          {subText ? (
+            <Text className="text-sm text-wrap text-gray-500">{subText}</Text>
+          ) : null}
         </View>
       </View>
-      <Ionicons name="chevron-forward" size={20} color="#cbd5e1" />
+
+      {/* If rightElement exists (Switch), show it; otherwise show Chevron */}
+      {rightElement ? (
+        rightElement
+      ) : (
+        <Ionicons name="chevron-forward" size={20} color="#cbd5e1" />
+      )}
     </TouchableOpacity>
   );
 };

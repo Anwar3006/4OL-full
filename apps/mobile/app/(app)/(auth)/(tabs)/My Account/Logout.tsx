@@ -1,26 +1,39 @@
-import { View, Text, TouchableOpacity, Pressable } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Pressable,
+  ActivityIndicator,
+} from "react-native";
 import { useRouter } from "expo-router";
 import Animated, { FadeIn, ZoomIn } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 import { authClient } from "@/lib/auth-Client";
-import useUserStore from "@/store/use-userstore";
+import { useState } from "react";
+import { Alert } from "react-native";
 
 export default function LogoutCard() {
   const router = useRouter();
-  const { setUser } = useUserStore();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const handleLogout = async () => {
     try {
-      // 1. UI Cleanup
-      router.dismissAll();
+      setIsLoggingOut(true);
 
-      // 2. State Cleanup
-      setUser(null); // Wipe the store immediately
-
-      // 3. Auth Cleanup
+      // That's it! BetterAuth handles everything:
+      // - Sets isPending to true
+      // - Clears server session
+      // - Clears SecureStore
+      // - Sets isPending to false
+      // AuthProvider will show loader and handle navigation
       await authClient.signOut();
+
+      // If we reach here, logout succeeded
+      // AuthProvider has already navigated us to Login
     } catch (error) {
-      console.error("Logout failed", error);
+      console.error("Logout failed:", error);
+      setIsLoggingOut(false);
+      Alert.alert("Error", "Failed to logout. Please try again.");
     }
   };
 
@@ -31,7 +44,10 @@ export default function LogoutCard() {
         entering={FadeIn.duration(300)}
         className="absolute inset-0 bg-black/60"
       >
-        <Pressable className="flex-1" onPress={() => router.back()} />
+        <Pressable
+          className="flex-1"
+          onPress={() => !isLoggingOut && router.back()}
+        />
       </Animated.View>
 
       {/* The Logout Card */}
@@ -39,39 +55,52 @@ export default function LogoutCard() {
         entering={ZoomIn.duration(300).springify().damping(60)}
         className="w-full max-w-[340px] bg-white rounded-[40px] p-8 items-center shadow-2xl"
       >
-        {/* Warning Icon */}
-        <View className="bg-red-50 p-5 rounded-full mb-6">
-          <Ionicons name="log-out" size={32} color="#ef4444" />
-        </View>
+        {/* Icon - Changes based on state */}
+        {isLoggingOut ? (
+          <View className="bg-gray-50 p-5 rounded-full mb-6">
+            <ActivityIndicator size="large" color="#6b7280" />
+          </View>
+        ) : (
+          <View className="bg-red-50 p-5 rounded-full mb-6">
+            <Ionicons name="log-out" size={32} color="#ef4444" />
+          </View>
+        )}
 
         <Text className="text-2xl font-black text-slate-900 mb-2">
-          Logging Out?
+          {isLoggingOut ? "Logging Out..." : "Logging Out?"}
         </Text>
 
         <Text className="text-gray-500 text-center text-base leading-5 mb-8">
-          You'll need to enter your credentials to access your medical records
-          again.
+          {isLoggingOut
+            ? "Please wait a moment..."
+            : "You'll need to enter your credentials to access your medical records again."}
         </Text>
 
-        <View className="flex-col gap-y-3 w-full">
-          <TouchableOpacity
-            onPress={handleLogout}
-            activeOpacity={0.8}
-            className="w-full h-14 items-center justify-center rounded-2xl bg-red-500"
-          >
-            <Text className="font-bold text-white text-lg">
-              Yes, Log Me Out
-            </Text>
-          </TouchableOpacity>
+        {isLoggingOut ? (
+          <View className="w-full h-14 items-center justify-center rounded-2xl bg-gray-100">
+            <Text className="font-semibold text-gray-500">Signing out...</Text>
+          </View>
+        ) : (
+          <View className="flex-col gap-y-3 w-full">
+            <TouchableOpacity
+              onPress={handleLogout}
+              activeOpacity={0.8}
+              className="w-full h-14 items-center justify-center rounded-2xl bg-red-500"
+            >
+              <Text className="font-bold text-white text-lg">
+                Yes, Log Me Out
+              </Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            onPress={() => router.back()}
-            activeOpacity={0.7}
-            className="w-full h-14 items-center justify-center rounded-2xl bg-gray-50 border border-gray-100"
-          >
-            <Text className="font-bold text-slate-600">Maybe Later</Text>
-          </TouchableOpacity>
-        </View>
+            <TouchableOpacity
+              onPress={() => router.back()}
+              activeOpacity={0.7}
+              className="w-full h-14 items-center justify-center rounded-2xl bg-gray-50 border border-gray-100"
+            >
+              <Text className="font-bold text-slate-600">Maybe Later</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </Animated.View>
     </View>
   );

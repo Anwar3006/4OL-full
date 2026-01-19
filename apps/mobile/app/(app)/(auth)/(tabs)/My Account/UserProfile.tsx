@@ -26,8 +26,10 @@ const UserProfile = () => {
         <TouchableOpacity onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={26} color="#334155" />
         </TouchableOpacity>
-        <Text className="text-xl font-black text-slate-800">User Settings</Text>
-        <View className="w-6" /> {/* Spacer for centering */}
+
+        <Text className="text-xl font-black text-slate-800">User Profile</Text>
+
+        <View className="w-6" />
       </View>
 
       <ScrollView

@@ -7,12 +7,15 @@ import {
   Platform,
   TouchableOpacity,
   Image,
+  Alert,
 } from "react-native";
-import React from "react";
+import React, { useEffect } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import LoginForm from "@/components/auth/LoginForm";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import useUserStore from "@/store/use-userstore";
+// import { BiometricsAuthentication } from "@/lib/utils";
 
 const LoginScreen = () => {
   const insets = useSafeAreaInsets();
@@ -63,10 +66,10 @@ const LoginScreen = () => {
         </View>
 
         {/* Biometric Placeholder */}
-        <TouchableOpacity className="mt-8 items-center flex-row justify-center gap-x-2">
-          <Ionicons name="finger-print" size={24} color="#16a34a" />
+        {/* <TouchableOpacity className="mt-8 items-center flex-row justify-center gap-x-2 border border-green-400 rounded-full">
+          <Ionicons name="finger-print" size={36} color="#16a34a" />
           <Text className="text-gray-400 font-medium">Use Biometric Login</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
 
         {/* Remove - Go to OTP - For Development only */}
         <TouchableOpacity

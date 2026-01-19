@@ -1,7 +1,7 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
-import { expo } from "@better-auth/expo"; //install this later when you setup expo
+import { expo } from "@better-auth/expo";
 
 import { db, dbTransact } from "@4ol/db/index";
 import { admin } from "better-auth/plugins";
@@ -10,18 +10,19 @@ const isProd = process.env.NODE_ENV === "production";
 
 export const auth = betterAuth({
   database: drizzleAdapter(dbTransact, {
-    provider: "pg", // or "mysql", "sqlite"
+    provider: "pg",
   }),
+
   emailAndPassword: {
     enabled: true,
-    // autoSignIn: false,
   },
+
   user: {
     additionalFields: {
       role: {
         type: "string",
-        defaultValue: "user", // Match your DB default
-        input: false, // Prevents users from setting their own role during sign-up
+        defaultValue: "user",
+        input: false,
       },
       banned: {
         type: "boolean",
@@ -30,22 +31,29 @@ export const auth = betterAuth({
     },
   },
 
-  trustedOrigins: [
-    "http://localhost:3000", // Local Web
-    "https://4-ol-full-web-myzx.vercel.app", // Production Web
-    "4ol://", // Your actual Mobile App Scheme
-    "4ol://*",
+  // CRITICAL: Add baseURL for proper callback validation
+  baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
 
+  trustedOrigins: [
+    "http://localhost:3000",
+    "https://4-ol-full-web-myzx.vercel.app",
+
+    // Mobile app schemes - FIXED
+    "4ol://*", // Wildcard for all paths under 4ol://
+    "4ol://(app)/(auth)/(tabs)/Home",
+
+    // Development mobile
     ...(process.env.NODE_ENV === "development"
-      ? [
-          "exp://", // Trust all Expo URLs (prefix matching)
-          "exp://**", // Trust all Expo URLs (wildcard matching)
-        ]
+      ? ["exp://*", "http://localhost:8081", "http://localhost:19006"]
       : []),
   ],
+
   plugins: [
     nextCookies(),
-    expo(), //uncomment when you setup expo and install @better-auth/expo
+
+    // Expo plugin with explicit scheme configuration
+    expo(),
+
     admin(),
   ],
 });

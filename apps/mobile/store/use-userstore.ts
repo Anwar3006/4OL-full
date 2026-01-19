@@ -9,6 +9,7 @@ const useUserStore = create<UserStore>()(
     (set) => ({
       user: null,
       setUser: (user) => set({ user }),
+      logoutUser: () => set({ user: null }),
     }),
     {
       name: "user-storage",
