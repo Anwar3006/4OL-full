@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo } from "react";
+import React, { useState, useRef, useMemo, useCallback } from "react";
 import {
   View,
   Text,
@@ -10,42 +10,77 @@ import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import { useGetFacilitiesMapData } from "@/hooks/use-facilities";
 import { Ionicons } from "@expo/vector-icons";
 import { mapOptions } from "@/constants/mapOptions";
-import LoadingScreen from "../LoadingScreen";
+import Animated, { FadeIn } from "react-native-reanimated";
+import { CustomInput } from "../CustomInput";
+import { SearchFormValues } from "../Search";
 
 const MapContainer = () => {
   const { width, height } = useWindowDimensions();
   const mapRef = useRef<MapView>(null);
 
+  // Use a wider initial delta to fetch more markers at once (reducing subsequent network calls)
   const [region, setRegion] = useState({
     latitude: 5.6037,
     longitude: -0.187,
-    latitudeDelta: 0.1,
-    longitudeDelta: 0.1,
+    latitudeDelta: 0.15,
+    longitudeDelta: 0.15,
   });
 
-  // Calculate bounding box for Supabase
   const bounds = useMemo(
     () => ({
-      minLng: region.longitude - region.longitudeDelta / 2,
-      minLat: region.latitude - region.latitudeDelta / 2,
-      maxLng: region.longitude + region.longitudeDelta / 2,
-      maxLat: region.latitude + region.latitudeDelta / 2,
+      minLng: region.longitude - region.longitudeDelta, // Fetch 2x the view area
+      minLat: region.latitude - region.latitudeDelta,
+      maxLng: region.longitude + region.longitudeDelta,
+      maxLat: region.latitude + region.latitudeDelta,
       zoom: Math.round(Math.log2(360 / region.longitudeDelta)),
     }),
-    [region],
-  );
+    [region.latitude, region.longitude],
+  ); // Only recalculate on significant moves
 
-  const { data: geojson, isLoading } = useGetFacilitiesMapData({
+  // keepPreviousData: true is crucial for smoothness in TanStack Query
+  const { data: geojson, isFetching } = useGetFacilitiesMapData({
     ...bounds,
     enabled: true,
   });
 
-  if (isLoading) {
-    return <LoadingScreen />;
-  }
+  // Memoize markers so they don't re-render unless data actually changes
+  const renderedMarkers = useMemo(() => {
+    return geojson?.features?.map((feature: any) => (
+      <Marker
+        key={feature.properties?.id}
+        coordinate={{
+          latitude: feature.geometry.coordinates[1],
+          longitude: feature.geometry.coordinates[0],
+        }}
+        tracksViewChanges={false} // Huge performance win
+        icon={undefined} // Use custom view below
+        title={feature.properties?.name}
+        flat={true} // Better for performance on rotate/tilt
+      >
+        <View
+          className="items-center justify-center"
+          style={{ width: 40, height: 40 }}
+        >
+          <View className="bg-emerald-500 p-2 rounded-full border-2 border-white shadow-sm">
+            <Ionicons name="medical" size={16} color="white" />
+          </View>
+          <View className="w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[7px] border-t-emerald-500 -mt-0.5" />
+        </View>
+      </Marker>
+    ));
+  }, [geojson?.features]);
+
+  //   const onSubmit = (data: SearchFormValues) => {
+  //   // This is called by handleSubmit
+  //   router.push({
+  //     pathname: "/(app)/(auth)/(modal)/SearchResult",
+  //     params: { search: data.search.trim() },
+  //   });
+  //   reset();
+  // };
 
   return (
-    <View style={{ width, height }} className="bg-slate-50">
+    <View style={{ width, height }} className="bg-slate-100">
       <MapView
         ref={mapRef}
         provider={PROVIDER_GOOGLE}
@@ -53,46 +88,49 @@ const MapContainer = () => {
         initialRegion={region}
         onRegionChangeComplete={setRegion}
         showsUserLocation
-        showsMyLocationButton
-        // Custom map styling for high-end look
+        rotateEnabled={false}
+        pitchEnabled={false}
         customMapStyle={mapOptions.styles}
       >
-        {geojson?.features?.map((feature: any) => (
-          <Marker
-            key={feature.id}
-            coordinate={{
-              latitude: feature.geometry.coordinates[1],
-              longitude: feature.geometry.coordinates[0],
-            }}
-            // PERFORMANCE: Setting tracksViewChanges to false prevents
-            // constant re-renders of the marker icons.
-            tracksViewChanges={false}
-            title={feature.properties?.name}
-            description={feature.properties?.address}
-          >
-            {/* High-end Custom Marker */}
-            <View className="items-center shadow-lg">
-              <View className="bg-emerald-500 p-2 rounded-full border-2 border-white">
-                <Ionicons name="medical" size={16} color="white" />
-              </View>
-              {/* Pointer Triangle */}
-              <View className="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] border-t-emerald-500 -mt-0.5" />
-            </View>
-          </Marker>
-        ))}
+        {renderedMarkers}
       </MapView>
 
-      {/* Dynamic Header Overlay */}
-      <View className="absolute top-12 left-6 right-6 flex-row justify-between items-center">
-        <View className="bg-white/95 px-4 py-3 rounded-3xl shadow-xl border border-slate-100 flex-row items-center flex-1 mr-4">
-          <Ionicons name="search" size={20} color="#64748b" />
-          <Text className="ml-2 text-slate-400 font-medium">
-            Search for facilities...
+      {/* 1% UX Tip: Use an Overlay Loader instead of a Full Screen one */}
+      {isFetching && (
+        <Animated.View
+          entering={FadeIn.duration(300)}
+          className="absolute bottom-10 self-center bg-white/90 px-4 py-2 rounded-full shadow-lg border border-emerald-100 flex-row items-center"
+        >
+          <View className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse mr-2" />
+          <Text className="text-[10px] font-bold text-emerald-900 uppercase tracking-widest">
+            Updating Map...
           </Text>
-        </View>
-        <TouchableOpacity className="bg-white size-12 rounded-2xl shadow-xl items-center justify-center">
-          <Ionicons name="options-outline" size={24} color="#10b981" />
-        </TouchableOpacity>
+        </Animated.View>
+      )}
+
+      {/* Header UI */}
+      <View className="absolute top-12 left-6 right-6 flex-row justify-between items-center">
+        {/* <Controller
+        control={control}
+        name="search"
+        render={({ field: { onChange, onBlur, value } }) => (
+          <CustomInput
+            placeholder="Find pharmacies, hospitals..."
+            icon="search"
+            value={value}
+            onBlur={onBlur}
+            onChangeText={onChange}
+            error={errors.search?.message}
+            // Professional Search Settings
+            returnKeyType="search" // Changes "Done" to "Search" on keyboard
+            onSubmitEditing={handleSubmit(onSubmit)} // Triggers on Enter/Return
+            submitBehavior="blurAndSubmit" // Hides keyboard after search
+            // UI Tweaks for search bar feel
+            containerClassName="shadow-none"
+            className="bg-white border-gray-300 h-14 rounded-2xl"
+          />
+        )}
+      /> */}
       </View>
     </View>
   );

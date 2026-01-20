@@ -43,6 +43,7 @@ const Categories = () => {
           <View className={isLargeScreen ? "p-2" : "px-4 mb-4"}>
             <CategoryLarge
               title={item.title}
+              value={item.value}
               icon={item.icon}
               screen={item.screen}
               isLargeScreen={isLargeScreen}

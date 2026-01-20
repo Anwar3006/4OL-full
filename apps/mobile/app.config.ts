@@ -21,6 +21,8 @@ export default {
       infoPlist: {
         NSFaceIDUsageDescription:
           "This app uses Face ID to secure your account and streamline your login experience.",
+        NSLocationWhenInUseUsageDescription:
+          "This app needs access to location to show nearby facilities.",
       },
       config: {
         googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY,
@@ -82,6 +84,7 @@ export default {
       "expo-video",
       "expo-asset",
       "expo-secure-store",
+      // "react-native-map",
     ],
     experiments: {
       typedRoutes: true,

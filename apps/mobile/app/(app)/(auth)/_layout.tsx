@@ -6,6 +6,16 @@ const AuthScreensLayout = () => {
     <Stack>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
 
+      {/* Full-Screen Routes */}
+      <Stack.Screen
+        name="Facility/[id]"
+        options={{
+          headerShown: false,
+          presentation: "card", // Standard push navigation
+          animation: "slide_from_right",
+        }}
+      />
+
       {/* Modal Routes */}
       <Stack.Screen
         name="(modal)"

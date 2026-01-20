@@ -6,6 +6,7 @@ import { Ionicons } from "@expo/vector-icons";
 
 interface CategorySmallProps {
   title: string;
+  value: string;
   icon: React.ReactNode;
   screen: string;
   containerClassName?: string;
@@ -14,6 +15,7 @@ interface CategorySmallProps {
 export const CategorySmall = ({
   title,
   icon,
+  value,
   screen,
   containerClassName,
 }: CategorySmallProps) => {
@@ -23,7 +25,7 @@ export const CategorySmall = ({
     // Navigate to SearchResult modal with facilityType param
     router.push({
       pathname: "/(app)/(auth)/(modal)/SearchResult",
-      params: { facilityType: title },
+      params: { facilityType: value },
     });
   };
 
@@ -33,7 +35,7 @@ export const CategorySmall = ({
       onPress={handlePress}
       className={cn(
         "w-[105px] h-[105px] bg-white rounded-[2.4rem] items-center justify-center p-2 shadow-sm border border-gray-100",
-        containerClassName
+        containerClassName,
       )}
     >
       <View className="h-12 w-12 items-center justify-center mb-1">{icon}</View>
@@ -55,6 +57,7 @@ interface CategoryLargeProps extends CategorySmallProps {
 export const CategoryLarge = ({
   title,
   icon,
+  value,
   screen,
   containerClassName,
   isLargeScreen,
@@ -65,7 +68,7 @@ export const CategoryLarge = ({
     // Navigate to SearchResult modal with facilityType param
     router.push({
       pathname: "/(app)/(auth)/(modal)/SearchResult",
-      params: { facilityType: title },
+      params: { facilityType: value },
     });
   };
 
@@ -76,7 +79,7 @@ export const CategoryLarge = ({
       className={cn(
         "h-24 flex-1 flex-row bg-white rounded-3xl items-center justify-between px-4 shadow-sm border border-gray-100",
         isLargeScreen ? "w-[48%]" : "w-full",
-        containerClassName
+        containerClassName,
       )}
     >
       <View className="flex-row items-center flex-1">

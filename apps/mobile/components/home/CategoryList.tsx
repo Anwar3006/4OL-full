@@ -33,6 +33,7 @@ const CategoryList = () => {
           <CategorySmall
             key={item.id}
             title={item.title}
+            value={item.value}
             icon={item.icon}
             screen={item.screen}
             // Dynamically adjust width based on screen size so they fit perfectly

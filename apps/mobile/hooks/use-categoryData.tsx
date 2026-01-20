@@ -10,6 +10,7 @@ type CategoryItem = {
   id: string;
   icon: any;
   title: string;
+  value: string;
   screen: string;
 };
 export const useCategoryData = () => {
@@ -25,6 +26,7 @@ export const useCategoryData = () => {
       id: "1",
       icon: <FontAwesome6 name="hospital" size={30} color="green" />,
       title: "Hospitals",
+      value: "hospitals_&_clinics",
       screen: "TopRated",
     },
     {
@@ -41,6 +43,7 @@ export const useCategoryData = () => {
         />
       ),
       title: "Pharmacies",
+      value: "pharmacies",
       screen: "TopRated",
     },
     {
@@ -57,6 +60,7 @@ export const useCategoryData = () => {
         />
       ),
       title: "Diseases",
+      value: "diseases", //change
       screen: "Diseases",
     },
     {
@@ -73,18 +77,21 @@ export const useCategoryData = () => {
         />
       ),
       title: "Plasence",
+      value: "plasence", //change: should navigate to Plasence not fetch facilities
       screen: "PeriodsTracker",
     },
     {
       id: "5",
       icon: <FontAwesome6 name="flask" size={getSize(22)} color={"green"} />,
       title: "Diagnostic Lab",
+      value: "diagnostic_labs",
       screen: "TopRated",
     },
     {
       id: "6",
       icon: <FontAwesome6 name="ribbon" size={getSize(26)} color={"green"} />,
       title: "Symptoms",
+      value: "symptoms", //change: should navigate to Symptoms not fetch facilities
       screen: "Symptoms",
     },
     {
@@ -93,6 +100,7 @@ export const useCategoryData = () => {
         <Ionicons name="fitness-outline" size={getSize(30)} color={"green"} />
       ),
       title: "Healthy Living",
+      value: "healthy_living", //change
       screen: "TopRated",
     },
     {
@@ -109,6 +117,7 @@ export const useCategoryData = () => {
         />
       ),
       title: "Herbal Hospital",
+      value: "herbal_centers",
       screen: "TopRated",
     },
     {
@@ -117,6 +126,7 @@ export const useCategoryData = () => {
         <FontAwesome6 name="truck-medical" size={getSize(24)} color={"green"} />
       ),
       title: "Ambulance",
+      value: "ambulance", //TODO: check if we really need this
       screen: "TopRated",
     },
     {
@@ -129,6 +139,7 @@ export const useCategoryData = () => {
         />
       ),
       title: "Homes",
+      value: "homes",
       screen: "TopRated",
     },
     {
@@ -144,6 +155,7 @@ export const useCategoryData = () => {
         />
       ),
       title: "Physiotherapy",
+      value: "physiotherapy_centers",
       screen: "TopRated",
     },
     {
@@ -159,6 +171,7 @@ export const useCategoryData = () => {
         />
       ),
       title: "Eye Care",
+      value: "eye_clinics",
       screen: "TopRated",
     },
     {
@@ -170,6 +183,7 @@ export const useCategoryData = () => {
         />
       ),
       title: "Dental",
+      value: "dental_clinics",
       screen: "TopRated",
     },
     {
@@ -185,6 +199,7 @@ export const useCategoryData = () => {
         />
       ),
       title: "Osteopathy (Joints/ Muscles)",
+      value: "osteopathy_centers",
       screen: "TopRated",
     },
     {
@@ -196,12 +211,14 @@ export const useCategoryData = () => {
         />
       ),
       title: "Prosthetics",
+      value: "prosthetics_centers",
       screen: "TopRated",
     },
     {
       id: "16",
-      icon: <MaterialIcons name="accessible" size={40} color={"green"} />,
-      title: "Disability",
+      icon: <Ionicons name="school-outline" size={40} color={"green"} />,
+      title: "Health Schools",
+      value: "health_schools",
       screen: "TopRated",
     },
     {
@@ -213,6 +230,7 @@ export const useCategoryData = () => {
         />
       ),
       title: "Psychiatric",
+      value: "psychiatric_centers",
       screen: "TopRated",
     },
   ];

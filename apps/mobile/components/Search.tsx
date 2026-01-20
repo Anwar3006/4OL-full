@@ -6,10 +6,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import { CustomInput } from "./CustomInput";
 
-const searchInputSchema = z.object({
+export const searchInputSchema = z.object({
   search: z.string().min(2, "Search is too short"),
 });
-type SearchFormValues = z.infer<typeof searchInputSchema>;
+export type SearchFormValues = z.infer<typeof searchInputSchema>;
 
 const Search = () => {
   const router = useRouter();

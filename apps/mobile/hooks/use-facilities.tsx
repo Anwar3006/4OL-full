@@ -3,7 +3,7 @@ import {
   TFacilityProfileInput,
   TFacilityProfileOutput,
 } from "@4ol/db/schemas/facility-profile.schema";
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 
 interface PaginatedResponse {
   data: TFacilityProfileInput[];
@@ -39,49 +39,64 @@ export const FACILITY_PROFILE_QUERY_KEYS = {
     [...FACILITY_PROFILE_QUERY_KEYS.details(), id] as const,
 };
 
-export const useFacilityProfiles = (params: Pagination) => {
-  return useQuery<any, Error>({
-    queryKey: FACILITY_PROFILE_QUERY_KEYS.list(params),
-    queryFn: async () => {
-      const { limit, page, search, status, type } = params;
-      const from = ((page || 1) - 1) * (limit || 10);
-      const to = from + (limit || 10) - 1;
+export const useFacilityProfiles = (filters: Omit<Pagination, "page">) => {
+  // console.log("Filters: ", filters);
+  return useInfiniteQuery({
+    // We only put filters in the key, NOT the page.
+    // This ensures that when we fetch page 2, we don't clear page 1.
+    queryKey: FACILITY_PROFILE_QUERY_KEYS.list(filters),
 
-      const query = supabase
+    queryFn: async ({ pageParam = 1 }) => {
+      const limit = filters.limit || 10;
+      const from = (pageParam - 1) * limit;
+      const to = from + limit - 1;
+
+      let query = supabase
         .from("facility_profile")
-        .select("*", { count: "exact" });
+        .select("*", { count: "exact" })
+        .eq("status", "active");
 
-      if (search) {
+      // Apply Filters
+      if (filters.search) {
+        // Add ::text to any column that is an Enum or not a standard string
         query.or(
-          `facility_name.ilike.%${search}%,district.ilike.%${search}%,region.ilike.%${search}%`,
+          `facility_name.ilike.%${filters.search}%,area.ilike.%${filters.search}%`,
         );
       }
-      if (status) {
-        query.eq("status", status);
-      }
-      if (type) {
-        query.eq("facility_type", type);
+
+      if (filters.type) {
+        query = query.eq("facility_type", filters.type);
       }
 
-      const facilitiesResponse = await query
+      const { data, error, count } = await query
         .order("created_at", { ascending: false })
         .range(from, to);
 
-      if (facilitiesResponse.error) throw facilitiesResponse.error;
+      if (error) throw error;
 
-      const totalCount = facilitiesResponse.count || 0;
+      const totalCount = count || 0;
+      const totalPages = Math.ceil(totalCount / limit);
+
       return {
-        facilities: facilitiesResponse.data,
-        meta: {
-          total: totalCount, // Extract count from the data query
-          totalPages: Math.ceil(
-            (facilitiesResponse.count || 0) / (limit || 10),
-          ),
-          currentPage: page,
-          totalCount,
-        },
+        facilities: data,
+        currentPage: pageParam,
+        totalCount,
+        totalPages,
       };
     },
+
+    // Logic to determine if there is another page to fetch
+    getNextPageParam: (lastPage) => {
+      if (lastPage.currentPage < lastPage.totalPages) {
+        return lastPage.currentPage + 1;
+      }
+      return undefined;
+    },
+
+    initialPageParam: 1,
+    // Keep data on screen while fetching next page for "Zero-Flicker"
+    placeholderData: (previousData) => previousData,
+    staleTime: 5 * 60 * 1000,
   });
 };
 
