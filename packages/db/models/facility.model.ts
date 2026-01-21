@@ -1,4 +1,5 @@
 import {
+  boolean,
   doublePrecision,
   geometry,
   index,
@@ -10,7 +11,7 @@ import {
   timestamp,
   uuid,
 } from "drizzle-orm/pg-core";
-import { nanoid } from "nanoid";
+
 import {
   FACILITY_STATUS_ENUM,
   FACILITY_TYPE_ENUM,
@@ -21,12 +22,12 @@ import { user_profiles } from "./auth.model";
 
 export const facilityStatusEnum = pgEnum(
   "facility_status_enum",
-  FACILITY_STATUS_ENUM
+  FACILITY_STATUS_ENUM,
 );
 export const regionEnum = pgEnum("region_enum", GHANA_REGIONS_ENUM);
 export const facilityTypeEnum = pgEnum(
   "facility_type_enum",
-  FACILITY_TYPE_ENUM
+  FACILITY_TYPE_ENUM,
 );
 
 export const facilityProfile = pgTable(
@@ -42,6 +43,7 @@ export const facilityProfile = pgTable(
     whatsappNumber: text("whatsapp_number").notNull(),
     email: text("email").unique(),
     mediaUrls: jsonb("media_urls"),
+    featured_image_url: text("featured_image_url").notNull(),
 
     gpsAddress: text("gps_address").notNull(),
     street: text("street").notNull(),
@@ -58,6 +60,9 @@ export const facilityProfile = pgTable(
       type: "point",
       srid: 4326,
     }),
+
+    ownership: text("ownership").notNull(),
+    acceptsNhis: boolean("accepts_nhis").default(false),
 
     services: jsonb("hospital_services").$type<string[]>(), // Use string array type,
     amenities: jsonb("hospital_amenities"),
@@ -97,7 +102,7 @@ export const facilityProfile = pgTable(
     index("location_gist_idx").using("gist", table.location),
 
     //5. TODO: Implement full-text search for district, area, region, facility_name, keywords so users can search "canc" and get hits like "Cancer"
-  ]
+  ],
 );
 
 export const facilityProfileRelations = relations(
@@ -107,5 +112,5 @@ export const facilityProfileRelations = relations(
       fields: [facilityProfile.ownerId],
       references: [user_profiles.userId],
     }),
-  })
+  }),
 );

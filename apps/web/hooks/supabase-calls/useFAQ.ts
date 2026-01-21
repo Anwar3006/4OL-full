@@ -87,6 +87,20 @@ export const useFAQ = (id: string | null) => {
   });
 };
 
+export const useFAQCategories = () => {
+  return useQuery<any, Error>({
+    queryKey: ["faqCategories"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("faq_categories")
+        .select("*")
+        .order("name", { ascending: true });
+      if (error) throw new Error(error.message);
+      return data;
+    },
+  });
+};
+
 // ============= MUTATION HOOKS =============
 
 /**
@@ -102,6 +116,7 @@ export const useCreateFAQ = () => {
         .insert({
           question: faqData.question,
           answer: faqData.answer,
+          category_id: faqData.category_id,
         })
         .select()
         .single();
@@ -177,6 +192,27 @@ export const useDeleteFAQ = () => {
     },
     onError: (error) => {
       toast.error(`Failed to delete FAQ: ${error.message}`);
+    },
+  });
+};
+
+export const useCreateFAQCategory = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<void, Error, any>({
+    mutationFn: async ({ name }: { name: string }) => {
+      const { data, error } = await supabase
+        .from("faq_categories")
+        .insert({ name })
+        .select("*")
+        .single();
+
+      if (error) throw new Error(error.message);
+      return data;
+    },
+    onSuccess: () => {
+      // This forces the FAQ dropdown to refresh automatically
+      queryClient.invalidateQueries({ queryKey: ["faq_categories"] });
     },
   });
 };

@@ -9,7 +9,7 @@ import { DataTable } from "@/components/Data-Table/data-table";
 import { createPaginationHandlers } from "@/lib/utils";
 import { facilityColumns } from "@/components/Data-Table/columns/facilityColumns";
 import { facilityCardConfig } from "@/components/Data-Table/mobile-table-configs/facilityCardConfig";
-import { FacilityViewDialog } from "@/components/dialogs/FacilityViewDialog";
+import { FacilityViewDialog } from "@/components/dialogs/ViewFacilityDialog";
 import {
   useAddFacilityDialog,
   useViewFacilityDialog,
@@ -48,7 +48,7 @@ const FacilityPage = () => {
 
   const facilitiesPagination = useMemo(
     () => createPaginationHandlers(page, setPage, data?.analytics?.totalPages),
-    [page, data?.analytics?.totalPages]
+    [page, data?.analytics?.totalPages],
   );
 
   const sectionTitle = type
@@ -62,7 +62,7 @@ const FacilityPage = () => {
   // which would otherwise cause the memoized `DataTable` to re-render unnecessarily.
   const onRowClick = useCallback(
     (facility: any) => viewFacilityDialog.open(facility.id),
-    [viewFacilityDialog]
+    [viewFacilityDialog],
   );
 
   const pagination = useMemo(
@@ -77,7 +77,7 @@ const FacilityPage = () => {
       canNextPage: page < (data?.meta?.totalPages || 1),
       canPreviousPage: page > 1,
     }),
-    [page, data, facilitiesPagination]
+    [page, data, facilitiesPagination],
   );
 
   return (

@@ -34,30 +34,39 @@ import {
 import { TConditionsOutput } from "@4ol/db/schemas/conditions.schema";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 
-import { useMemo, useState, useEffect } from "react";
-import { LexicalComposer } from "@lexical/react/LexicalComposer";
-import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
-import { ContentEditable } from "@lexical/react/LexicalContentEditable";
-import { LexicalErrorBoundary } from "@lexical/react/LexicalErrorBoundary";
-import { SerializedEditorState } from "lexical";
-import { nodes } from "@/components/blocks/editor-x/nodes";
 import { hasLexicalContent } from "@/lib/utils";
 import { LexicalRenderer } from "@/components/LexicalRenderer";
+import {
+  useCondition,
+  useDeleteCondition,
+} from "@/hooks/supabase-calls/useCondition";
+import Image from "next/image";
 
 export function ViewConditionDialog() {
   const { isOpen, entityId, close } = useViewConditionDialog();
   const addDialog = useAddConditionDialog();
 
-  const { data: condition, isLoading } = trpc.conditionsRouter.getById.useQuery(
-    { id: entityId! },
-    { enabled: isOpen && !!entityId }
-  );
+  const { data: condition, isLoading } = useCondition({
+    id: entityId!,
+    enabled: isOpen && !!entityId,
+  });
+
+  const { mutateAsync: deleteCondition } = useDeleteCondition();
+
+  console.log("Condition:", condition);
 
   if (!isOpen) return null;
 
   const handleEdit = () => {
     close();
     addDialog.open(condition as TConditionsOutput);
+  };
+
+  const handleDelete = async () => {
+    console.log("Clicked");
+    const imagePath = [condition?.image_url];
+    await deleteCondition({ id: condition?.id!, imagePath });
+    close();
   };
 
   if (isLoading) {
@@ -67,6 +76,8 @@ export function ViewConditionDialog() {
       </div>
     );
   }
+
+  const imageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/bucket4ol/${condition?.image_url}`;
 
   return (
     <Sheet open={isOpen} onOpenChange={close}>
@@ -79,24 +90,41 @@ export function ViewConditionDialog() {
                 <VisuallyHidden.Root>
                   <SheetTitle>Details for {condition.name}</SheetTitle>
                 </VisuallyHidden.Root>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    {condition?.isSystemic ? (
-                      <Badge className="bg-indigo-50 text-indigo-700 border-indigo-100 hover:bg-indigo-50 font-semibold uppercase text-[10px] tracking-wider">
-                        <Dna className="h-3.5 w-3.5 mr-1" /> Systemic
-                      </Badge>
-                    ) : (
-                      <Badge
-                        variant="outline"
-                        className="text-slate-400 font-medium uppercase text-[10px] tracking-wider"
-                      >
-                        Localized
-                      </Badge>
-                    )}
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 relative">
+                  <div className="space-y-3 flex-1">
+                    <div className="flex items-center gap-2">
+                      {condition?.is_systemic ? (
+                        <Badge className="bg-indigo-50 text-indigo-700 border-indigo-100 font-semibold uppercase text-[10px] tracking-wider px-2 py-0.5">
+                          <Dna className="h-3.5 w-3.5 mr-1" /> Systemic
+                        </Badge>
+                      ) : (
+                        <Badge
+                          variant="outline"
+                          className="text-black bg-sky-300 font-medium uppercase text-[10px] tracking-wider px-2 py-0.5"
+                        >
+                          Localized
+                        </Badge>
+                      )}
+                    </div>
+
+                    <SheetTitle className="text-3xl md:text-5xl font-black tracking-tight text-slate-900 leading-[1.1]">
+                      {condition?.name}
+                    </SheetTitle>
                   </div>
-                  <SheetTitle className="text-3xl md:text-4xl font-black tracking-tight text-slate-900 leading-tight">
-                    {condition?.name}
-                  </SheetTitle>
+
+                  {/* Optimized Image Container */}
+                  <div className="relative shrink-0">
+                    <div className="absolute inset-0 bg-indigo-500/10 rounded-full blur-2xl -z-10 animate-pulse" />
+                    <div className="h-24 w-24 md:h-40 md:w-40 rounded-3xl overflow-hidden border-4 border-white shadow-xl rotate-3 transition-transform hover:rotate-0">
+                      <Image
+                        src={imageUrl || "/placeholder-medical.jpg"}
+                        alt={condition?.name}
+                        fill // Use fill for responsive containers
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        className="object-cover"
+                      />
+                    </div>
+                  </div>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2 pt-2">
@@ -107,7 +135,7 @@ export function ViewConditionDialog() {
                   >
                     <Edit className="h-4 w-4 mr-2" /> Edit Details
                   </Button>
-                  {condition?.nhsLink && (
+                  {condition?.nhs_link && (
                     <Button
                       variant="outline"
                       size="sm"
@@ -115,7 +143,7 @@ export function ViewConditionDialog() {
                       asChild
                     >
                       <a
-                        href={condition?.nhsLink}
+                        href={condition?.nhs_link}
                         target="_blank"
                         rel="noreferrer"
                       >
@@ -126,6 +154,7 @@ export function ViewConditionDialog() {
                   <Button
                     variant="ghost"
                     size="icon"
+                    onClick={handleDelete}
                     className="text-slate-400 hover:text-destructive hover:bg-destructive/10 ml-auto rounded-full"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -187,7 +216,7 @@ export function ViewConditionDialog() {
               </div>
 
               {/* 3. Clinical Variants (Types) Section */}
-              {condition.conditionTypes?.length > 0 && (
+              {condition.types?.length > 0 && (
                 <section className="space-y-5 pt-4">
                   <div className="flex items-center gap-2">
                     <div className="p-1.5 rounded-lg bg-indigo-100 text-indigo-600">
@@ -198,17 +227,17 @@ export function ViewConditionDialog() {
                     </h3>
                   </div>
                   <div className="grid gap-4 pl-8">
-                    {condition.conditionTypes.map((type: any) => (
+                    {condition.types.map((type: any) => (
                       <div
-                        key={type.id}
+                        key={type.type_name}
                         className="p-5 rounded-2xl border border-slate-200 bg-white shadow-sm hover:border-indigo-200 transition-colors"
                       >
                         <p className="font-bold text-slate-900 text-base mb-2 flex items-center gap-2">
                           <span className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
-                          {type.typeName}
+                          {type.type_name}
                         </p>
                         <div className="text-sm text-slate-600 leading-relaxed">
-                          <LexicalRenderer initialState={type.aboutType} />
+                          <LexicalRenderer initialState={type.about_type} />
                         </div>
                       </div>
                     ))}
@@ -227,9 +256,9 @@ export function ViewConditionDialog() {
                   <MetaItem
                     icon={Calendar}
                     label="Last Verified"
-                    value={new Date(condition?.updatedAt).toLocaleDateString(
+                    value={new Date(condition?.updated_at).toLocaleDateString(
                       undefined,
-                      { dateStyle: "medium" }
+                      { dateStyle: "medium" },
                     )}
                   />
                 </div>

@@ -24,7 +24,7 @@ import CustomSelect from "@/components/CustomSelect";
 import { useGeolocation } from "@/hooks/use-geolocation";
 import useGhanaPostGPS from "@/hooks/useGhanaPostGPS";
 import { toast } from "sonner";
-import { Loader2, MapPinHouse, Trash, X } from "lucide-react";
+import { Loader2, MapPinHouse, Star, Trash, X } from "lucide-react";
 import z from "zod";
 import { MultiSelect } from "@/components/MultiSelect";
 import { cn } from "@/lib/utils";
@@ -39,6 +39,7 @@ import {
   useUpdateFacilityProfile,
 } from "@/hooks/supabase-calls/useFacilities";
 import { useGetSignedUrls } from "@/hooks/supabase-calls/useMediaStorage";
+import { Switch } from "@/components/ui/switch";
 
 // Step 1 Fields - To make sure we validate these fields before moving on to Step 2
 const STEP_1_FIELDS: (keyof TFacilityProfileInput)[] = [
@@ -73,6 +74,7 @@ const AddFacilityDialog = () => {
   const [existingImages, setExistingImages] = useState<string[]>([]);
   const [imagesToDelete, setImagesToDelete] = useState<string[]>([]);
   const [newlyUploadedFiles, setNewlyUploadedFiles] = useState<string[]>([]);
+  const [featuredImage, setFeaturedImage] = useState<string | null>(null);
 
   const [uploadSessionId] = useState(() => `pending_${nanoid(12)}`);
   const filePath = `facilities/temporary/${uploadSessionId}`;
@@ -92,7 +94,7 @@ const AddFacilityDialog = () => {
     resolver: zodResolver(
       facilityProfileSchema.safeExtend({
         sameForWeekdays: z.boolean().default(false),
-      })
+      }),
     ),
     defaultValues: {
       facility_type: "hospitals_&_clinics",
@@ -118,6 +120,8 @@ const AddFacilityDialog = () => {
       business_hours: DEFAULT_BUSINESS_HOURS,
       sameForWeekdays: false,
       keywords: "",
+      ownership: "",
+      accepts_nhis: false,
     },
   });
 
@@ -130,7 +134,9 @@ const AddFacilityDialog = () => {
         ...data,
         business_hours: data.business_hours || DEFAULT_BUSINESS_HOURS,
         sameForWeekdays: false, // Explicitly reset this view-only field
-        keywords: data.keywords || "",
+        keywords: Array.isArray(data.keywords)
+          ? data.keywords.join(" ")
+          : data.keywords || "",
       });
 
       // Populate existing images state
@@ -194,7 +200,7 @@ const AddFacilityDialog = () => {
             form.setValue(
               "street",
               location.Street === "[UNKNOWN]" ? location.Area : location.Street,
-              { shouldValidate: true }
+              { shouldValidate: true },
             );
             form.setValue("post_code", location.PostCode, {
               shouldValidate: true,
@@ -209,7 +215,7 @@ const AddFacilityDialog = () => {
               form.setValue(
                 "region",
                 location.Region.toLowerCase() as TFacilityProfileInput["region"],
-                { shouldValidate: true }
+                { shouldValidate: true },
               );
             }
 
@@ -226,18 +232,26 @@ const AddFacilityDialog = () => {
     }
   }, [coordinates, form.setValue]);
 
+  // When editing, initialize the featured image from data
+  useEffect(() => {
+    if (isOpen && isEditMode && data) {
+      setFeaturedImage(data.featured_image_url || data.media_urls?.[0] || null);
+    }
+  }, [isOpen, isEditMode, data]);
+  /////////////////////
+
   // --- Helpers ---
   // Watch facility type to automatically populate amenities and services
   const selectedType = form.watch(
-    "facility_type"
+    "facility_type",
   ) as keyof typeof FACILITY_REQUIREMENTS;
   const availableAmenities = useMemo(
     () => FACILITY_REQUIREMENTS[selectedType]?.amenities || [],
-    [selectedType]
+    [selectedType],
   );
   const availableServices = useMemo(
     () => FACILITY_REQUIREMENTS[selectedType]?.services || [],
-    [selectedType]
+    [selectedType],
   );
 
   const handleContinue = async () => {
@@ -261,7 +275,7 @@ const AddFacilityDialog = () => {
         }
       }, 0);
     },
-    [form]
+    [form],
   );
 
   const handleDialogClose = () => {
@@ -286,12 +300,21 @@ const AddFacilityDialog = () => {
 
   // --- Submission Logic ---
   const handleSubmit = async (
-    values: TFacilityProfileInput & { sameForWeekdays: boolean }
+    values: TFacilityProfileInput & { sameForWeekdays: boolean },
   ) => {
     setSubmitting(true);
-    const { sameForWeekdays, ...payload } = values;
+    const { sameForWeekdays, ...profileData } = values;
 
     try {
+      const finalImageUrls = isEditMode
+        ? [...existingImages, ...newlyUploadedFiles]
+        : profileData.media_urls;
+
+      const payload = {
+        ...profileData,
+        featured_image_url: featuredImage || finalImageUrls[0], // Fallback to first if none selected
+      };
+
       // SCENARIO 1: EDIT MODE
       if (isEditMode) {
         const finalImageUrls = [...existingImages, ...newlyUploadedFiles];
@@ -354,6 +377,7 @@ const AddFacilityDialog = () => {
         close();
       }
     } catch (error: any) {
+      console.error("Error: ", error.message);
       toast.error(error.message || "Operation failed");
     } finally {
       setSubmitting(false);
@@ -378,13 +402,13 @@ const AddFacilityDialog = () => {
           <div
             className={cn(
               "h-2 w-1/2 rounded",
-              step >= 1 ? "bg-primary" : "bg-muted"
+              step >= 1 ? "bg-primary" : "bg-muted",
             )}
           />
           <div
             className={cn(
               "h-2 w-1/2 rounded",
-              step >= 2 ? "bg-primary" : "bg-muted"
+              step >= 2 ? "bg-primary" : "bg-muted",
             )}
           />
         </div>
@@ -400,9 +424,37 @@ const AddFacilityDialog = () => {
                 handleSubmit(data);
               },
               (errors) => {
-                toast.error("Errors: " + errors);
-                console.log("Errors: ", errors);
-              }
+                // 1. Get all field names that have errors
+                const errorFields = Object.keys(errors);
+
+                // 2. Format a user-friendly message
+                if (errorFields.length > 0) {
+                  // Get the labels for the first 2 errors to give specific context
+                  const errorMessages = errorFields
+                    .slice(0, 2)
+                    .map((field) => field.replace(/_/g, " ")) // 'facility_name' -> 'facility name'
+                    .join(", ");
+
+                  const message =
+                    errorFields.length > 2
+                      ? `Please check ${errorMessages} and ${errorFields.length - 2} other fields.`
+                      : `Please correct the following: ${errorMessages}.`;
+
+                  toast.error("Form Validation Failed", {
+                    description: message,
+                    // This explicitly overrides the global config for this specific toast
+                    classNames: {
+                      toast:
+                        "group-[.toaster]:border-destructive group-[.toaster]:bg-red-50/50",
+                      title: "font-black text-destructive",
+                      description: "text-slate-900 font-medium leading-relaxed",
+                    },
+                    duration: 5000,
+                  });
+                }
+
+                console.log("Validation Errors:", errors);
+              },
             )}
             className="space-y-6"
           >
@@ -426,6 +478,35 @@ const AddFacilityDialog = () => {
                     control={form.control}
                     label="Facility Name"
                     readOnly={false}
+                  />
+                </div>
+
+                {/* NEW FIELDS: NHIS and Ownership */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-slate-50 rounded-xl border border-slate-100">
+                  <div className="flex items-center justify-between space-x-2">
+                    <div className="space-y-0.5">
+                      <label className="text-sm font-bold">Accepts NHIS</label>
+                      <p className="text-xs text-muted-foreground">
+                        Is this facility under the National Health Insurance
+                        Scheme?
+                      </p>
+                    </div>
+                    <Switch
+                      checked={form.watch("accepts_nhis")}
+                      onCheckedChange={(val) =>
+                        form.setValue("accepts_nhis", val)
+                      }
+                    />
+                  </div>
+
+                  <CustomSelect
+                    name="ownership"
+                    label="Facility Ownership"
+                    options={[
+                      { label: "Private", value: "private" },
+                      { label: "Government / Public", value: "government" },
+                    ]}
+                    control={form.control}
                   />
                 </div>
 
@@ -670,51 +751,111 @@ const AddFacilityDialog = () => {
 
             {step === 2 && (
               <>
-                {/* ---------------- STEP 2 ---------------- */}
                 <h3 className="font-semibold mb-4 underline text-center">
                   Facility Images
                 </h3>
 
-                {isEditMode && (
-                  <div className="mb-6">
-                    <h4 className="text-sm font-semibold text-muted-foreground mb-2">
-                      Existing Images
+                <div className="mb-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="text-sm font-semibold text-muted-foreground">
+                      Manage & Select Thumbnail
                     </h4>
-                    {isUrlsLoading ? (
-                      <div className="flex items-center justify-center p-4">
-                        <Loader2 className="h-6 w-6 animate-spin" />
-                      </div>
-                    ) : (
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                        {existingImageUrls?.map(({ url, path }) => (
+                    <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-bold uppercase">
+                      Select Star for Main Photo
+                    </span>
+                  </div>
+
+                  {/* The Selection Grid: Available in both Create and Edit mode */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                    {(() => {
+                      // Combine everything to show in the selector
+                      const allImages = isEditMode
+                        ? [
+                            ...(existingImageUrls || []),
+                            ...newlyUploadedFiles.map((path) => ({
+                              path,
+                              url: path,
+                            })),
+                          ]
+                        : form
+                            .watch("media_urls")
+                            .map((path) => ({ path, url: path })); // During create, media_urls are local paths
+
+                      if (allImages.length === 0)
+                        return (
+                          <div className="col-span-full text-center py-8 border-2 border-dashed rounded-xl bg-slate-50">
+                            <p className="text-sm text-muted-foreground">
+                              No images uploaded yet. Start by dropping files
+                              below.
+                            </p>
+                          </div>
+                        );
+
+                      return allImages.map((img) => {
+                        const isFeatured = featuredImage === img.path;
+                        return (
                           <div
-                            key={path}
-                            className="relative group aspect-video"
+                            key={img.path}
+                            className={cn(
+                              "relative group aspect-video rounded-xl overflow-hidden border-2 transition-all duration-300",
+                              isFeatured
+                                ? "border-emerald-500 ring-2 ring-emerald-500/20"
+                                : "border-slate-200",
+                            )}
                           >
                             <img
-                              src={url}
-                              alt="Existing facility"
-                              className="object-cover w-full h-full rounded-md"
+                              src={
+                                img.url.startsWith("http")
+                                  ? img.url
+                                  : `https://YOUR_SUPABASE_URL/storage/v1/object/public/temp/${img.url}`
+                              }
+                              className="object-cover w-full h-full"
                             />
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteExistingImage(path)}
-                              className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                              aria-label="Delete image"
-                            >
-                              <Trash className="h-3 w-3" />
-                            </button>
+
+                            <div className="absolute top-1.5 inset-x-1.5 flex justify-between items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button
+                                type="button"
+                                onClick={() => setFeaturedImage(img.path)}
+                                className={cn(
+                                  "p-1.5 rounded-lg shadow-sm backdrop-blur-md transition-colors",
+                                  isFeatured
+                                    ? "bg-emerald-500 text-white"
+                                    : "bg-white/90 text-slate-400 hover:text-emerald-500",
+                                )}
+                              >
+                                <Star
+                                  size={14}
+                                  fill={isFeatured ? "white" : "none"}
+                                />
+                              </button>
+
+                              {isEditMode &&
+                                !newlyUploadedFiles.includes(img.path) && (
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      handleDeleteExistingImage(img.path)
+                                    }
+                                    className="p-1.5 bg-red-500/90 text-white rounded-lg shadow-sm hover:bg-red-600"
+                                  >
+                                    <Trash className="h-3.5 w-3.5" />
+                                  </button>
+                                )}
+                            </div>
+
+                            {isFeatured && (
+                              <div className="absolute bottom-0 inset-x-0 bg-emerald-500 py-1 flex items-center justify-center">
+                                <p className="text-[10px] text-white font-black uppercase tracking-tighter">
+                                  Main Photo
+                                </p>
+                              </div>
+                            )}
                           </div>
-                        ))}
-                      </div>
-                    )}
-                    {existingImages.length === 0 && !isUrlsLoading && (
-                      <p className="text-sm text-muted-foreground text-center py-4">
-                        No existing images.
-                      </p>
-                    )}
+                        );
+                      });
+                    })()}
                   </div>
-                )}
+                </div>
 
                 <h4 className="text-sm font-semibold text-muted-foreground mb-2">
                   {isEditMode ? "Upload New Images" : "Upload Facility Images"}

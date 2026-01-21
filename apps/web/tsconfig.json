@@ -15,6 +15,12 @@
       "@4ol/db/*": ["../../packages/db/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "scripts/condition.const.ts"
+  ],
   "exclude": ["node_modules"]
 }

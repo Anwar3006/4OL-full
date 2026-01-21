@@ -27,11 +27,11 @@ const nextConfig: NextConfig = {
         pathname: "/**",
       },
       // Add your CDN domain if different
-      // {
-      //   protocol: 'https',
-      //   hostname: 'your-cdn-domain.com',
-      //   pathname: '/**',
-      // },
+      {
+        protocol: "https",
+        hostname: "pyzddsvvazfrhohghuki.supabase.co",
+        pathname: "/**",
+      },
     ],
   },
 

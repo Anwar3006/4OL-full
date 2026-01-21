@@ -14,34 +14,33 @@ import { conditionColumns } from "@/components/Data-Table/columns/conditionColum
 import { conditionCardConfig } from "@/components/Data-Table/mobile-table-configs/conditionCardConfig";
 import { ViewConditionDialog } from "./_components/view-condition-dialog";
 import ConditionsStats from "./_components/ConditionStats";
+import {
+  useConditions,
+  useConditionStats,
+} from "@/hooks/supabase-calls/useCondition";
 
 const DiseasesAndConditionsPage = () => {
   const addConditions = useAddConditionDialog();
   const viewConditions = useViewConditionDialog();
   const [page, setPage] = useState(1);
-  const [bodyPart, setBodyPart] = useState<string | null>();
   const limit = 10;
 
-  const { data: allConditions, isLoading } =
-    trpc.conditionsRouter.getAll.useQuery({
-      page,
-      limit,
-    });
+  // Hook 1: Paginated Table Data
+  const { data: allConditions, isLoading: isConditionsLoading } = useConditions(
+    {
+      params: { limit, page, search: "" },
+      enabled: true,
+    },
+  );
+
+  // Hook 2: Global Analytics
+  const { data: stats, isLoading: isStatsLoading } = useConditionStats(true);
+
   const conditionsPagination = createPaginationHandlers(page, setPage);
 
-  useEffect(() => {
-    if (allConditions?.analytics?.mostAffectedBodyParts) {
-      const bodyPart = allConditions?.analytics?.mostAffectedBodyParts[0]?.name;
-      setBodyPart(bodyPart);
-    }
-  }, [allConditions]);
-
-  // ⚡ Bolt Optimization: Memoize props for the `DataTable` component.
-  // `useCallback` and `useMemo` prevent these props from being recreated on every render,
-  // which would otherwise cause the memoized `DataTable` to re-render unnecessarily.
   const onRowClick = useCallback(
     (condition: any) => viewConditions.open(condition.id),
-    [viewConditions]
+    [viewConditions],
   );
 
   const pagination = useMemo(
@@ -56,7 +55,7 @@ const DiseasesAndConditionsPage = () => {
       canNextPage: page < (allConditions?.meta?.totalPages || 1),
       canPreviousPage: page > 1,
     }),
-    [page, allConditions, conditionsPagination]
+    [page, allConditions, conditionsPagination],
   );
 
   return (
@@ -70,26 +69,27 @@ const DiseasesAndConditionsPage = () => {
         onButtonClick={() => addConditions.open()}
       />
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      {/* Analytics Cards Section */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6 items-start">
         <ConditionsStats
           label="Total Registered"
           value={allConditions?.meta?.total || 0}
-          isLoading={isLoading}
+          isLoading={isConditionsLoading}
         />
         <ConditionsStats
-          label="Total Condition Categories"
-          value={allConditions?.analytics?.totalCategories || 0}
-          isLoading={isLoading}
+          label="Total Categories"
+          value={stats?.totalCategories || 0}
+          isLoading={isStatsLoading}
         />
         <ConditionsStats
           label="Most Affected Body Part"
-          value={bodyPart || "N/A"}
-          isLoading={isLoading}
+          value={stats?.mostAffectedBodyPart || "N/A"}
+          isLoading={isStatsLoading}
         />
         <ConditionsStats
           label="Most Recurring Category"
-          value={"Cancer"}
-          isLoading={isLoading}
+          value={stats?.mostRecurringCategory || "N/A"}
+          isLoading={isStatsLoading}
         />
       </div>
 
@@ -99,7 +99,7 @@ const DiseasesAndConditionsPage = () => {
         cardConfig={conditionCardConfig}
         onRowClick={onRowClick}
         pagination={pagination}
-        isLoading={isLoading}
+        isLoading={isConditionsLoading}
       />
 
       <AddConditionDialog />

@@ -7,14 +7,14 @@
     "generate": "drizzle-kit generate",
     "migrate": "drizzle-kit migrate",
     "push": "drizzle-kit push",
-    "studio": "drizzle-kit studio",
-    "seed": "tsx scripts/bodyPart_category_seeder.ts"
+    "studio": "drizzle-kit studio"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "module",
   "dependencies": {
+    "@4ol/web": "*",
     "@neondatabase/serverless": "^1.0.2",
     "postgres": "^3.4.8",
     "zod": "^4.2.1"

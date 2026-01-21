@@ -26,6 +26,8 @@ interface PaginatedResponse {
 
 export const SYMPTOMS_QUERY_KEYS = {
   all: ["symptoms"] as const,
+  bodyparts: ["bodyparts"] as const,
+  categories: ["categories"] as const,
   lists: () => [...SYMPTOMS_QUERY_KEYS.all, "lists"] as const,
   list: (param: Pagination) => [...SYMPTOMS_QUERY_KEYS.lists(), param] as const,
   details: () => [...SYMPTOMS_QUERY_KEYS.all, "details"] as const,
@@ -52,7 +54,7 @@ export const useSymptoms = ({ page, limit }: Pagination) => {
             .select("id", { count: "exact" })
             .eq("level", 0),
           supabase.rpc("get_body_part_stats"),
-        ]
+        ],
       );
 
       if (symptomsResults.error) throw new Error(symptomsResults.error.message);
@@ -91,7 +93,7 @@ export const useSymptom = (id: string) => {
           symptoms_types (*),
                 symptoms_causes (*),
                 
-                `
+                `,
         )
         .eq("id", id)
         .single();
@@ -110,7 +112,7 @@ export const useSymptom = (id: string) => {
 
 export const useBodyPartsForSymptoms = () => {
   return useQuery<any, Error>({
-    queryKey: SYMPTOMS_QUERY_KEYS.all,
+    queryKey: SYMPTOMS_QUERY_KEYS.bodyparts,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("body_parts")
@@ -124,7 +126,7 @@ export const useBodyPartsForSymptoms = () => {
 
 export const useCategoriesForSymptoms = () => {
   return useQuery<any, Error>({
-    queryKey: SYMPTOMS_QUERY_KEYS.all,
+    queryKey: SYMPTOMS_QUERY_KEYS.categories,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("categories")
@@ -149,24 +151,24 @@ export const useCreateSymptom = () => {
           s_payload: {
             name: data.name,
             slug: data.slug as string,
-            nhs_link: data.nhsLink,
-            image_url: data.imageUrl,
+            nhs_link: data.nhs_link,
+            image_url: data.image_url,
             about: data.about,
-            is_systemic: data.isSystemic,
+            is_systemic: data.is_systemic,
             diagnosis: data.diagnosis,
             treatment: data.treatment,
             complications: data.complications,
             prevention: data.prevention,
-            specialist: data.specialistToContact,
-            contact_your_doctor: data.contactYourDoctor,
-            more_information: data.moreInformation,
+            specialist: data.specialist_to_contact,
+            contact_your_doctor: data.contact_your_doctor,
+            more_information: data.more_information,
             attribution: data.attribution,
           },
-          body_part_ids: data.bodyPartIds,
-          category_ids: data.categoryIds,
+          body_part_ids: data.bodyParts,
+          category_ids: data.categories,
           s_types: data.types,
           s_causes: data.causes,
-        }
+        },
       );
       if (error) throw new Error(error.message);
       return symptomId;

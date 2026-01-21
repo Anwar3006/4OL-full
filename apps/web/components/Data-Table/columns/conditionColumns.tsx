@@ -21,14 +21,18 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { TConditionsOutput } from "@4ol/db/schemas/conditions.schema";
-import { useViewConditionDialog } from "@/stores/dialog-store";
+import {
+  useAddConditionDialog,
+  useViewConditionDialog,
+} from "@/stores/dialog-store";
+import { rehydrateHierarchy } from "@/lib/utils";
 
 export const conditionColumns: ColumnDef<TConditionsOutput>[] = [
   {
     accessorKey: "name",
     header: () => <div className="font-semibold">Condition Name</div>,
     cell: ({ row }) => {
-      const isSystemic = row.original.isSystemic;
+      const isSystemic = row.original.is_systemic;
       return (
         <div className="flex items-center gap-3 min-w-50">
           <div
@@ -77,7 +81,7 @@ export const conditionColumns: ColumnDef<TConditionsOutput>[] = [
       </div>
     ),
     cell: ({ row }) => {
-      const link = row.original.nhsLink;
+      const link = row.original.nhs_link;
       return (
         <div className="hidden lg:flex justify-center min-w-25">
           {link ? (
@@ -103,7 +107,7 @@ export const conditionColumns: ColumnDef<TConditionsOutput>[] = [
     ),
     cell: ({ row }) => (
       <div className="hidden xl:table-cell text-xs text-muted-foreground">
-        {new Date(row.original.updatedAt).toLocaleDateString(undefined, {
+        {new Date(row.original.updated_at).toLocaleDateString(undefined, {
           dateStyle: "medium",
         })}
       </div>
@@ -114,26 +118,59 @@ export const conditionColumns: ColumnDef<TConditionsOutput>[] = [
     cell: ({ row }) => {
       const condition = row.original;
       const { open: openView } = useViewConditionDialog();
+      const { open: openEdit, isEditMode } = useAddConditionDialog();
+
+      // Helper to handle actions safely
+      const handleAction = (e: React.MouseEvent, action: () => void) => {
+        e.preventDefault();
+        e.stopPropagation(); // This is the magic line
+        action();
+        console.log("Editting: ", isEditMode);
+      };
+
+      // const conditionToEdit = {
+
+      //             ...condition,
+      //             // Rehydrate the visual selection for the tree components
+      //             bodyParts: rehydrateHierarchy(condition.bodyParts, bodyParts),
+      //             categories: rehydrateHierarchy(condition.categories, categories),
+      //             types: condition.types,
+      //             causes: condition.causes,
+      //             nhs_link: condition.nhs_link ?? "",
+      //             image_url: condition.image_url ?? "",
+
+      // }
 
       return (
         <div className="text-right">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
+              <Button
+                variant="ghost"
+                className="h-8 w-8 p-0"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-52">
               <DropdownMenuLabel>Management</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => openView(condition.id)}>
+              <DropdownMenuItem
+                onClick={(e) => handleAction(e, () => openView(condition.id))}
+              >
                 <FileText className="mr-2 h-4 w-4" /> View Full Details
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={(e) => handleAction(e, () => openEdit(condition))}
+              >
                 <Edit className="mr-2 h-4 w-4" /> Edit Content
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                onClick={() => navigator.clipboard.writeText(condition.id)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigator.clipboard.writeText(condition.id);
+                }}
               >
                 Copy Condition ID
               </DropdownMenuItem>

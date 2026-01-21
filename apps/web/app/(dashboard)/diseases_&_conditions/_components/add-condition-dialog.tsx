@@ -16,7 +16,6 @@ import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { cn, getDeepestNodes, rehydrateHierarchy } from "@/lib/utils";
 import ImageDropZone from "@/components/ImageDropZone";
-import { trpc } from "@/lib/trpc";
 import { nanoid } from "nanoid";
 import { useAddConditionDialog } from "@/stores/dialog-store";
 import {
@@ -38,13 +37,18 @@ import {
 // Step 1 Fields - To make sure we validate these fields before moving on to Step 2
 const STEP_1_FIELDS: (keyof TConditionsInput)[] = [
   "name",
-  "bodyPartIds",
-  "categoryIds",
+  "bodyParts",
+  "categories",
   "about",
 ];
 
 const AddConditionDialog = () => {
-  const { isOpen, data, isEditMode, close } = useAddConditionDialog();
+  const {
+    isOpen,
+    data: condition,
+    isEditMode,
+    close,
+  } = useAddConditionDialog();
   // Progress Step Management
   const [step, setStep] = useState<number>(1);
 
@@ -59,26 +63,27 @@ const AddConditionDialog = () => {
     useUpdateCondition();
 
   const isLoadingForm = loadingParts && loadingCats;
+  const isSubmitting = isPending || submittingEdit;
 
   const form = useForm({
     resolver: zodResolver(conditionsSchema),
     defaultValues: {
       name: "",
-      bodyPartIds: [],
-      categoryIds: [],
+      bodyParts: [],
+      categories: [],
       about: {},
       diagnosis: {},
       treatment: {},
       complications: {},
       symptoms: {},
       prevention: {},
-      contactYourDoctor: {},
-      moreInformation: {},
-      specialistToContact: "",
-      nhsLink: "",
-      imageUrl: "",
-      types: [{ typeName: "", aboutType: {} }],
-      causes: [{ causeName: "", otherPossibleCauses: {} }],
+      // contact_your_doctor: {},
+      // more_information: {},
+      specialist_to_contact: "",
+      nhs_link: "",
+      image_url: "",
+      types: [{ type_name: "", about_type: {} }],
+      causes: [{ cause_name: "", other_possible_causes: {} }],
     },
   });
 
@@ -98,39 +103,47 @@ const AddConditionDialog = () => {
   // PREVENT LAG: Use a clean reset when the dialog opens/closes
   useEffect(() => {
     if (isOpen) {
-      if (isEditMode && data) {
+      if (isEditMode && condition) {
         form.reset({
-          ...data,
+          ...condition,
           // Rehydrate the visual selection for the tree components
-          bodyPartIds: rehydrateHierarchy(data.bodyPartIds, bodyParts),
-          categoryIds: rehydrateHierarchy(data.categoryIds, categories),
+          bodyParts: rehydrateHierarchy(condition.bodyParts, bodyParts),
+          categories: rehydrateHierarchy(condition.categories, categories),
+          types: condition.types,
+          causes: condition.causes,
+          nhs_link: condition.nhs_link ?? "",
+          image_url: condition.image_url ?? "",
         });
       } else {
         form.reset({
           name: "",
-          bodyPartIds: [],
-          categoryIds: [],
+          bodyParts: [],
+          categories: [],
           about: EMPTY_LEXICAL_STATE,
           diagnosis: EMPTY_LEXICAL_STATE,
           treatment: EMPTY_LEXICAL_STATE,
           complications: EMPTY_LEXICAL_STATE,
           symptoms: EMPTY_LEXICAL_STATE,
           prevention: EMPTY_LEXICAL_STATE,
-          contactYourDoctor: EMPTY_LEXICAL_STATE,
-          moreInformation: EMPTY_LEXICAL_STATE,
-          specialistToContact: "",
-          nhsLink: "",
-          imageUrl: "",
-          types: [{ typeName: "", aboutType: EMPTY_LEXICAL_STATE }],
-          causes: [{ causeName: "", otherPossibleCauses: EMPTY_LEXICAL_STATE }],
+          contact_your_doctor: EMPTY_LEXICAL_STATE,
+          more_information: EMPTY_LEXICAL_STATE,
+          specialist_to_contact: "",
+          nhs_link: "",
+          image_url: "",
+          types: [{ type_name: "", about_type: EMPTY_LEXICAL_STATE }],
+          causes: [
+            { cause_name: "", other_possible_causes: EMPTY_LEXICAL_STATE },
+          ],
         });
       }
     }
-  }, [isOpen, isEditMode, data, form]);
+  }, [isOpen, isEditMode, condition, form]);
+
+  console.log("Editting: ", isEditMode, condition);
 
   const name = form.watch("name") ?? "";
   const filename = name.replace(/\s+/g, "");
-  const filePath = `${filename}-${nanoid(8)}`;
+  const filePath = `conditions/${filename}-${nanoid(8)}`;
 
   const handleDialogClose = () => {
     setStep(1);
@@ -138,11 +151,8 @@ const AddConditionDialog = () => {
   };
   const handleSubmit = async (data: TConditionsInput) => {
     try {
-      const optimizedBodyPartIds = getDeepestNodes(data.bodyPartIds, bodyParts);
-      const optimizedCategoryIds = getDeepestNodes(
-        data.categoryIds,
-        categories
-      );
+      const optimizedBodyPartIds = getDeepestNodes(data.bodyParts, bodyParts);
+      const optimizedCategoryIds = getDeepestNodes(data.categories, categories);
       const slug = slugify(data.name, {
         lower: true,
       });
@@ -151,20 +161,52 @@ const AddConditionDialog = () => {
         bodyPartIds: optimizedBodyPartIds,
         categoryIds: optimizedCategoryIds,
         slug,
+        more_information:
+          typeof data.more_information === "string"
+            ? JSON.parse(data.more_information)
+            : data.more_information,
+        contact_your_doctor:
+          typeof data.contact_your_doctor === "string"
+            ? JSON.parse(data.contact_your_doctor)
+            : data.contact_your_doctor,
+        attribution:
+          typeof data.attribution === "string"
+            ? JSON.parse(data.attribution)
+            : data.attribution,
       };
       console.log("Payload: ", payload);
-      const result = await mutateAsync(payload);
+      let result: any;
+      if (isEditMode) {
+        const editPayload = {
+          ...payload,
+          id: condition.id,
+          specialist: data.specialist_to_contact ?? "",
+          created_at: condition.created_at,
+          updated_at: condition.updated_at,
+          categories: data.categories,
+          bodyParts: data.bodyParts,
+          // image_url: data?.image_url,
+          // imagesToDelete: data.imagesToDelete,
+          // newlyUploadedFiles: data.newlyUploadedFiles
+        };
+        await mutateAsyncEdit(editPayload);
+      } else {
+        await mutateAsync(payload);
+      }
+
       if (result) {
         toast.success(
           isEditMode
             ? "Condition updated successfully!"
-            : "Condition registered successfully!"
+            : "Condition registered successfully!",
         );
-        close();
       }
     } catch (error) {
       console.error("Registration Error: ", error);
       toast.error("Registration failed! : " + (error as Error).message);
+    } finally {
+      setStep(1);
+      close();
     }
   };
 
@@ -187,7 +229,7 @@ const AddConditionDialog = () => {
               key={index}
               className={cn(
                 "h-2 w-1/5 rounded",
-                index <= step ? "bg-primary" : "bg-muted"
+                index <= step ? "bg-primary" : "bg-muted",
               )}
             />
           ))}
@@ -208,7 +250,7 @@ const AddConditionDialog = () => {
               (errors) => {
                 toast.error("Errors: " + errors);
                 console.log("Errors: ", errors);
-              }
+              },
             )}
             className="space-y-6"
           >
@@ -222,7 +264,7 @@ const AddConditionDialog = () => {
                 <h3 className="font-semibold mb-2 underline text-center">
                   Condition Details
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
                   <CustomInput
                     type="text"
                     name="name"
@@ -233,21 +275,21 @@ const AddConditionDialog = () => {
 
                   <TreeMultiSelectForm
                     label="Select Associated Body Part/s"
-                    name="bodyPartIds"
+                    name="bodyParts"
                     control={form.control}
                     rawParts={bodyParts}
                   />
 
                   <TreeMultiSelectForm
                     label="Select Associated Category/s"
-                    name="categoryIds"
+                    name="categories"
                     control={form.control}
                     rawParts={categories}
                   />
 
                   <CustomInput
                     type="text"
-                    name="specialistToContact"
+                    name="specialist_to_contact"
                     control={form.control}
                     label="Specialists To Contact(Comma-Separated)"
                     readOnly={false}
@@ -263,7 +305,7 @@ const AddConditionDialog = () => {
                       variant="outline"
                       size="sm"
                       className="bg-green-100"
-                      onClick={() => append({ typeName: "", aboutType: "" })}
+                      onClick={() => append({ type_name: "", about_type: "" })}
                     >
                       Add Type
                     </Button>
@@ -275,7 +317,7 @@ const AddConditionDialog = () => {
                         {/* Type Name Input */}
                         <CustomInput
                           type="text"
-                          name={`types.${index}.typeName`} // Important: include index
+                          name={`types.${index}.type_name`} // Important: include index
                           control={form.control}
                           label="Type Name"
                           readOnly={false}
@@ -283,7 +325,7 @@ const AddConditionDialog = () => {
 
                         {/* About Type Input (RichText logic usually goes here) */}
                         <RichTextEditor
-                          name={`types.${index}.aboutType`}
+                          name={`types.${index}.about_type`}
                           control={form.control}
                           label="About Type"
                         />
@@ -344,7 +386,10 @@ const AddConditionDialog = () => {
                       size="sm"
                       className="bg-green-100"
                       onClick={() =>
-                        causesAppend({ causeName: "", otherPossibleCauses: "" })
+                        causesAppend({
+                          cause_name: "",
+                          other_possible_causes: "",
+                        })
                       }
                     >
                       Add Cause
@@ -357,7 +402,7 @@ const AddConditionDialog = () => {
                         {/* Causes Input */}
                         <CustomInput
                           type="text"
-                          name={`causes.${index}.causeName`}
+                          name={`causes.${index}.cause_name`}
                           control={form.control}
                           label="Cause Name"
                           readOnly={false}
@@ -365,7 +410,7 @@ const AddConditionDialog = () => {
 
                         {/* About Type Input (RichText logic usually goes here) */}
                         <RichTextEditor
-                          name={`causes.${index}.otherPossibleCauses`}
+                          name={`causes.${index}.other_possible_causes`}
                           control={form.control}
                           label="Other Possible Causes"
                         />
@@ -541,20 +586,24 @@ const AddConditionDialog = () => {
 
                 <CustomInput
                   control={form.control}
-                  name="nhsLink"
+                  name="nhs_link"
                   label="NHS Link for this Condition"
                   type="text"
                   readOnly={false}
                 />
+
+                {/* {data.image_url && (
+                  <
+                )} */}
 
                 {/* Contact Your Doctor */}
                 <ImageDropZone
                   filePath={filePath}
                   text="Drop media for the Condition"
                   onFilesChange={(url) =>
-                    url.map((u) => form.setValue("imageUrl", u))
+                    url.map((u) => form.setValue("image_url", u))
                   }
-                  initialFiles={[form.watch("imageUrl")]}
+                  initialFiles={[form.watch("image_url")]}
                 />
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-6">
@@ -562,6 +611,7 @@ const AddConditionDialog = () => {
                     type="button"
                     variant="outline"
                     onClick={() => setStep(4)}
+                    disabled={isSubmitting}
                   >
                     Back
                   </Button>
@@ -569,6 +619,7 @@ const AddConditionDialog = () => {
                   <Button
                     type="submit"
                     className="md:col-span-2 bg-emerald-600"
+                    disabled={isSubmitting}
                   >
                     {isPending ? (
                       <Loader2 size={16} className="animate-spin" />

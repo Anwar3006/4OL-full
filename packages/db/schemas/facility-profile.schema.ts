@@ -44,6 +44,9 @@ export const facilityProfileSchema = z.object({
   latitude: z.number({ error: "Latitude must be a number" }),
   longitude: z.number({ error: "Longitude must be a number" }),
 
+  ownership: z.string().min(1, "Please select ownership"),
+  accepts_nhis: z.boolean().default(false),
+
   services: z.array(z.string()).min(1, "Please select at least one service"),
   amenities: z.array(z.string()).min(1, "Please select at least one amenity"),
 
@@ -77,5 +80,7 @@ const facilitySchema = facilityProfileSchema.extend({
   keywords: z.array(z.string()),
   location: z.any(),
   status: z.string(),
+  ownership: z.string(),
+  accepts_nhis: z.boolean().default(false),
 });
 export type TFacilityProfileOutput = z.infer<typeof facilitySchema>;

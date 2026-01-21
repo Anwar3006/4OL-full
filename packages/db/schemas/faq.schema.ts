@@ -3,6 +3,7 @@ import z from "zod";
 export const faqInputSchema = z.object({
   question: z.string().min(3, "Please enter a question"),
   answer: z.string().min(3, "Please enter an answer"),
+  category_id: z.string(),
 });
 
 export type TFAQInput = z.infer<typeof faqInputSchema>;

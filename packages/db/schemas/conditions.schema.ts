@@ -9,10 +9,10 @@ const richTextSchema = z.any(); // Validates the JSONB structure from Lexical
 export const conditionsSchema = z.object({
   name: z.string().min(3, "Please enter a name for the condition"),
   slug: z.string().optional(),
-  specialistToContact: z.string().optional(),
-  nhsLink: z.string(),
-  imageUrl: z.string(),
-  isSystemic: z.boolean().default(false),
+  specialist_to_contact: z.string().optional(),
+  nhs_link: z.string(),
+  image_url: z.string(),
+  is_systemic: z.boolean().default(false),
 
   // 2. Rich Text Fields (JSONB)
   about: richTextSchema,
@@ -21,31 +21,31 @@ export const conditionsSchema = z.object({
   complications: richTextSchema,
   symptoms: richTextSchema,
   prevention: richTextSchema,
-  contactYourDoctor: richTextSchema,
-  moreInformation: richTextSchema,
+  contact_your_doctor: richTextSchema,
+  more_information: richTextSchema,
   attribution: richTextSchema,
 
   // 3. Relational Links (Many-to-Many)
   // We expect an array of IDs from the Multi-Select UI
-  categoryIds: z.array(z.string()).min(1, "Select at least one category"),
-  bodyPartIds: z.array(z.string()).min(1, "Select at least one body part"),
+  categories: z.array(z.string()).min(1, "Select at least one category"),
+  bodyParts: z.array(z.string()).min(1, "Select at least one body part"),
 
   // 4. Nested Entities (One-to-Many)
   types: z
     .array(
       z.object({
-        typeName: z.string().min(1, "Type name is required"),
-        aboutType: richTextSchema,
-      })
+        type_name: z.string().min(1, "Type name is required"),
+        about_type: richTextSchema,
+      }),
     )
     .default([]),
 
   causes: z
     .array(
       z.object({
-        causeName: z.string().min(1, "Cause name is required"),
-        otherPossibleCauses: richTextSchema,
-      })
+        cause_name: z.string().min(1, "Cause name is required"),
+        other_possible_causes: richTextSchema,
+      }),
     )
     .default([]),
 });
@@ -59,8 +59,22 @@ export type TConditionsOutput = {
   id: string;
   name: string;
   slug: string;
-  nhsLink: string | null;
-  imageUrl: string | null;
+  nhs_link: string | null;
+  image_url: string | null;
+
+  // 3. Relational Links (Many-to-Many)
+  categories: string[];
+  bodyParts: string[];
+
+  // 4. Nested Entities (One-to-Many)
+  types: {
+    type_name: string;
+    about_type: SerializedEditorState;
+  }[];
+  causes: {
+    cause_name: string;
+    other_possible_causes: SerializedEditorState;
+  }[];
   // Map these to the actual Lexical type
   about: SerializedEditorState;
   diagnosis: SerializedEditorState;
@@ -68,13 +82,13 @@ export type TConditionsOutput = {
   complications: SerializedEditorState;
   symptoms: SerializedEditorState;
   prevention: SerializedEditorState;
-  contactYourDoctor: SerializedEditorState;
-  moreInformation: SerializedEditorState;
+  contact_your_doctor: SerializedEditorState;
+  more_information: SerializedEditorState;
   attribution: SerializedEditorState;
-  isSystemic: boolean;
+  is_systemic: boolean;
   specialist: string | null;
-  createdAt: Date | string;
-  updatedAt: Date | string;
+  created_at: Date | string;
+  updated_at: Date | string;
 };
 
 export type TSymptomsOutput = {

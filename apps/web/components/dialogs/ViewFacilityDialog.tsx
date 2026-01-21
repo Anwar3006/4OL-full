@@ -39,6 +39,7 @@ import {
 } from "@/hooks/supabase-calls/useFacilities";
 import { useGetSignedUrls } from "@/hooks/supabase-calls/useMediaStorage";
 import { TFacilityProfileOutput } from "@4ol/db/schemas/facility-profile.schema";
+import { WhatsAppIcon } from "@/public/assets/images/icon/whatsapp";
 
 export function FacilityViewDialog() {
   const viewDialog = useViewFacilityDialog();
@@ -52,7 +53,7 @@ export function FacilityViewDialog() {
 
   const { data: imageUrls, isLoading: isImagesLoading } = useGetSignedUrls(
     facilityData?.media_urls as string[],
-    viewDialog.isOpen && !!facilityData
+    viewDialog.isOpen && !!facilityData,
   );
 
   const { mutateAsync: approveFacilityMutation, isPending: isApprovePending } =
@@ -215,6 +216,12 @@ export function FacilityViewDialog() {
                             {facility.contact_number}
                           </span>
                         )}
+                        {facility.whatsapp_number && (
+                          <span className="flex items-center gap-2">
+                            <WhatsAppIcon className="w-4 h-4" />
+                            {facility.whatsapp_number}
+                          </span>
+                        )}
                         {facility.email && (
                           <span className="flex items-center gap-2">
                             <MailboxIcon className="w-4 h-4" />
@@ -301,7 +308,7 @@ export function FacilityViewDialog() {
                           icon={Calendar}
                           label="Registration Date"
                           value={new Date(
-                            facility.created_at!
+                            facility.created_at!,
                           ).toLocaleDateString(undefined, {
                             dateStyle: "long",
                           })}

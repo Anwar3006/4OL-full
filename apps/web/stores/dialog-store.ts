@@ -1,5 +1,6 @@
 "use client";
 
+import { TConditionsOutput } from "@4ol/db/schemas/conditions.schema";
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 
@@ -39,7 +40,7 @@ interface DialogState {
   // Core actions
   openDialog: <T = any>(
     type: DialogTypes,
-    config?: { data?: T; entityId?: string; metadata?: Record<string, any> }
+    config?: { data?: T; entityId?: string; metadata?: Record<string, any> },
   ) => void;
   closeDialog: (type: DialogTypes) => void;
 
@@ -74,7 +75,7 @@ export const useDialogStore = create<DialogState>()(
             },
           }),
           false,
-          `openDialog/${type}`
+          `openDialog/${type}`,
         );
       },
 
@@ -93,7 +94,7 @@ export const useDialogStore = create<DialogState>()(
             },
           }),
           false,
-          `closeDialog/${type}`
+          `closeDialog/${type}`,
         );
       },
 
@@ -102,8 +103,8 @@ export const useDialogStore = create<DialogState>()(
       getEntityId: (type) => get().dialogs[type]?.entityId,
       getMetadata: (type) => get().dialogs[type]?.metadata,
     }),
-    { name: "DialogStore" }
-  )
+    { name: "DialogStore" },
+  ),
 );
 
 // =============================================================================
@@ -162,7 +163,7 @@ export const useViewFacilityDialog = () => {
   const closeDialog = useDialogStore((state) => state.closeDialog);
   const isOpen = useDialogStore((state) => state.isDialogOpen("view-facility"));
   const entityId = useDialogStore((state) =>
-    state.getEntityId("view-facility")
+    state.getEntityId("view-facility"),
   );
 
   return {
@@ -198,10 +199,10 @@ export const useViewMarketingDialog = () => {
   const openDialog = useDialogStore((state) => state.openDialog);
   const closeDialog = useDialogStore((state) => state.closeDialog);
   const isOpen = useDialogStore((state) =>
-    state.isDialogOpen("view-marketing")
+    state.isDialogOpen("view-marketing"),
   );
   const entityId = useDialogStore((state) =>
-    state.getEntityId("view-marketing")
+    state.getEntityId("view-marketing"),
   );
 
   return {
@@ -257,7 +258,7 @@ export const useAddConditionDialog = () => {
 
   return {
     isOpen,
-    data,
+    data: data as TConditionsOutput,
     isEditMode: !!data,
     open: (data?: any) => openDialog("add-condition", { data }),
     close: () => closeDialog("add-condition"),
@@ -271,10 +272,10 @@ export const useViewConditionDialog = () => {
   const openDialog = useDialogStore((state) => state.openDialog);
   const closeDialog = useDialogStore((state) => state.closeDialog);
   const isOpen = useDialogStore((state) =>
-    state.isDialogOpen("view-condition")
+    state.isDialogOpen("view-condition"),
   );
   const entityId = useDialogStore((state) =>
-    state.getEntityId("view-condition")
+    state.getEntityId("view-condition"),
   );
 
   return {
@@ -289,10 +290,10 @@ export const useAddHealthyLivingDialog = () => {
   const openDialog = useDialogStore((state) => state.openDialog);
   const closeDialog = useDialogStore((state) => state.closeDialog);
   const isOpen = useDialogStore((state) =>
-    state.isDialogOpen("add-healthy-living")
+    state.isDialogOpen("add-healthy-living"),
   );
   const data = useDialogStore((state) =>
-    state.getDialogData("add-healthy-living")
+    state.getDialogData("add-healthy-living"),
   );
 
   return {
@@ -308,10 +309,10 @@ export const useViewHealthyLivingDialog = () => {
   const openDialog = useDialogStore((state) => state.openDialog);
   const closeDialog = useDialogStore((state) => state.closeDialog);
   const isOpen = useDialogStore((state) =>
-    state.isDialogOpen("view-healthy-living")
+    state.isDialogOpen("view-healthy-living"),
   );
   const entityId = useDialogStore((state) =>
-    state.getEntityId("view-healthy-living")
+    state.getEntityId("view-healthy-living"),
   );
 
   return {
@@ -376,6 +377,6 @@ export const useCloseAllDialogs = () => {
  */
 export const useOpenDialogCount = () => {
   return useDialogStore(
-    (state) => Object.values(state.dialogs).filter((d) => d.isOpen).length
+    (state) => Object.values(state.dialogs).filter((d) => d.isOpen).length,
   );
 };

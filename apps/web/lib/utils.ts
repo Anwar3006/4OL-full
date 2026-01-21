@@ -8,7 +8,7 @@ export function cn(...inputs: ClassValue[]) {
 export const createPaginationHandlers = (
   currentPage: number,
   setPage: React.Dispatch<React.SetStateAction<number>>,
-  totalPages: number = 1
+  totalPages: number = 1,
 ) => ({
   next: () => {
     if (currentPage < totalPages) setPage((prev) => prev + 1);
@@ -29,7 +29,7 @@ export const getDeepestNodes = (selectedIds: string[], allData: any[]) => {
   return selectedIds.filter((id) => {
     // Check if any OTHER selected ID has this ID as its parent
     const hasSelectedChild = allData.some(
-      (item) => item.parentId === id && selectedSet.has(item.id)
+      (item) => item.parentId === id && selectedSet.has(item.id),
     );
 
     // If it has a selected child, it's a parent/ancestor; discard it.
@@ -42,17 +42,32 @@ export const getDeepestNodes = (selectedIds: string[], allData: any[]) => {
  * Takes leaf IDs from the DB and returns an array including all ancestors
  * so the Tree UI shows the full path as selected.
  */
-export const rehydrateHierarchy = (leafIds: string[], allData: any[]) => {
+export const rehydrateHierarchy = (junctionData: any[], allData: any[]) => {
+  if (!junctionData || !allData) return [];
+
   const expandedIds = new Set<string>();
 
+  // Extract the actual IDs from the nested junction structure
+  // This handles condition_body_parts[i].body_parts.id
+  // and condition_categories[i].categories.id
+  const leafIds = junctionData
+    .map((item) => {
+      return item.body_parts?.id || item.categories?.id || item.id;
+    })
+    .filter(Boolean);
+
   const addAncestors = (id: string) => {
+    if (expandedIds.has(id)) return; // Prevent infinite loops or redundant work
+
     const item = allData.find((d) => d.id === id);
     if (!item) return;
 
     expandedIds.add(item.id);
 
-    if (item.parentId) {
-      addAncestors(item.parentId);
+    // Support both snake_case and camelCase parent references
+    const parentId = item.parent_id || item.parentId;
+    if (parentId) {
+      addAncestors(parentId);
     }
   };
 
@@ -72,7 +87,7 @@ export const hasLexicalContent = (json: any): boolean => {
     if (child.children?.length > 0) {
       return child.children.some(
         (textNode: any) =>
-          textNode.text?.trim() !== "" || textNode.type !== "text"
+          textNode.text?.trim() !== "" || textNode.type !== "text",
       );
     }
 

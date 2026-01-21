@@ -17,7 +17,7 @@ import {
   useViewFacilityDialog,
 } from "@/stores/dialog-store";
 import AddFacilityDialog from "./_components/add-facility-dialog";
-import { FacilityViewDialog } from "@/components/dialogs/FacilityViewDialog";
+import { FacilityViewDialog } from "@/components/dialogs/ViewFacilityDialog";
 import { useFacilityProfiles } from "@/hooks/supabase-calls/useFacilities";
 import { createPaginationHandlers } from "@/lib/utils";
 import { DataTable } from "@/components/Data-Table/data-table";
@@ -53,11 +53,11 @@ const FacilitiesPage = () => {
 
   const facilitiesPagination = useMemo(
     () => createPaginationHandlers(page, setPage, data?.analytics?.totalPages),
-    [page, data?.analytics?.totalPages]
+    [page, data?.analytics?.totalPages],
   );
   const onRowClick = useCallback(
     (facility: any) => viewFacilityDialog.open(facility.id),
-    [viewFacilityDialog]
+    [viewFacilityDialog],
   );
 
   const pagination = useMemo(
@@ -72,7 +72,7 @@ const FacilitiesPage = () => {
       canNextPage: page < (data?.meta?.totalPages || 1),
       canPreviousPage: page > 1,
     }),
-    [page, data, facilitiesPagination]
+    [page, data, facilitiesPagination],
   );
 
   console.log("facilites ", data);

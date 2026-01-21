@@ -26,6 +26,7 @@ export const categories = pgTable(
     id: uuid("id").primaryKey().defaultRandom(),
     name: text("name").notNull().unique(), // e.g., "Infectious Diseases"
     slug: text("slug").notNull().unique(),
+    description: text("description"),
 
     // Self-Referential Foreign Key
     parentId: uuid("parent_id").references((): any => categories.id, {
@@ -37,7 +38,7 @@ export const categories = pgTable(
   (table) => [
     //Gist index for Materialized Path Traversal(Tree Traversal)
     index("category_path_idx").using("gist", table.path),
-  ]
+  ],
 );
 export const categoriesRelations = relations(categories, ({ many }) => ({
   conditionToCategory: many(conditionToCategories),
@@ -66,7 +67,7 @@ export const bodyParts = pgTable(
     index("materialized_bodypart_path_idx").using("gist", table.path),
     // Index for meshId lookup (used when tapping the 3D model)
     index("bodypart_mesh_idx").on(table.meshId),
-  ]
+  ],
 );
 export const bodyPartsRelations = relations(bodyParts, ({ many }) => ({
   conditionToBodyParts: many(conditionToBodyParts),
@@ -89,7 +90,7 @@ export const conditions = pgTable(
     symptoms: jsonb("symptoms").$type<SerializedEditorState>(),
     prevention: jsonb("prevention").$type<SerializedEditorState>(),
     contactYourDoctor: jsonb(
-      "contact_your_doctor"
+      "contact_your_doctor",
     ).$type<SerializedEditorState>(),
     moreInformation: jsonb("more_information").$type<SerializedEditorState>(),
     attribution: jsonb("attribution").$type<SerializedEditorState>(),
@@ -107,7 +108,7 @@ export const conditions = pgTable(
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
-  (table) => [index("condition_name_idx").on(table.name)]
+  (table) => [index("condition_name_idx").on(table.name)],
 );
 export const conditionsRelations = relations(conditions, ({ many }) => ({
   conditionToCategory: many(conditionToCategories),
@@ -146,7 +147,7 @@ export const conditionCausesRelations = relations(
       fields: [conditionCauses.conditionId],
       references: [conditions.id],
     }),
-  })
+  }),
 );
 
 // 4. Join Table: Condition <-> BodyPart (Many-to-Many)
@@ -162,7 +163,7 @@ export const conditionToBodyParts = pgTable(
     // Composite index: speeds up finding conditions for a specific part
     primaryKey({ columns: [t.bodyPartId, t.conditionId] }),
     index("condition_lookup_idx").on(t.conditionId),
-  ]
+  ],
 );
 export const conditionToBodyPartsRelations = relations(
   conditionToBodyParts,
@@ -171,7 +172,7 @@ export const conditionToBodyPartsRelations = relations(
       fields: [conditionToBodyParts.conditionId],
       references: [conditions.id],
     }),
-  })
+  }),
 );
 
 // 5. Join Table: Condition <-> Category (Many-to-Many)
@@ -183,7 +184,7 @@ export const conditionToCategories = pgTable(
     }),
     categoryId: uuid("category_id").references(() => categories.id),
   },
-  (table) => [primaryKey({ columns: [table.categoryId, table.conditionId] })]
+  (table) => [primaryKey({ columns: [table.categoryId, table.conditionId] })],
 );
 export const conditionToCategoriesRelations = relations(
   conditionToCategories,
@@ -192,5 +193,5 @@ export const conditionToCategoriesRelations = relations(
       fields: [conditionToCategories.conditionId],
       references: [conditions.id],
     }),
-  })
+  }),
 );

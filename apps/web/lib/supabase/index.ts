@@ -13,7 +13,7 @@ export function getSupabaseClient(): SupabaseClient {
 
     if (!supabaseUrl || !supabaseKey) {
       throw new Error(
-        "Missing required Supabase environment variables: NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"
+        "Missing required Supabase environment variables: NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
       );
     }
 
@@ -27,5 +27,5 @@ export function getSupabaseClient(): SupabaseClient {
 export const supabase = new Proxy({} as SupabaseClient, {
   get(_target, prop) {
     return getSupabaseClient()[prop as keyof SupabaseClient];
-  }
+  },
 });
