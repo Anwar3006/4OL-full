@@ -34,8 +34,8 @@ import {
 // Step 1 Fields - To make sure we validate these fields before moving on to Step 2
 const STEP_1_FIELDS: (keyof TSymptomsInput)[] = [
   "name",
-  "bodyPartIds",
-  "categoryIds",
+  "bodyParts",
+  "categories",
   "about",
 ];
 
@@ -62,20 +62,20 @@ const AddSymptomDialog = () => {
     resolver: zodResolver(symptomsSchema),
     defaultValues: {
       name: "",
-      bodyPartIds: [],
-      categoryIds: [],
+      bodyParts: [],
+      categories: [],
       about: EMPTY_LEXICAL_STATE,
       diagnosis: EMPTY_LEXICAL_STATE,
       treatment: EMPTY_LEXICAL_STATE,
       complications: EMPTY_LEXICAL_STATE,
       prevention: EMPTY_LEXICAL_STATE,
-      contactYourDoctor: EMPTY_LEXICAL_STATE,
-      moreInformation: EMPTY_LEXICAL_STATE,
-      specialistToContact: "",
-      nhsLink: "",
-      imageUrl: "",
-      types: [{ typeName: "", aboutType: EMPTY_LEXICAL_STATE }],
-      causes: [{ causeName: "", otherPossibleCauses: EMPTY_LEXICAL_STATE }],
+      contact_your_doctor: EMPTY_LEXICAL_STATE,
+      more_information: EMPTY_LEXICAL_STATE,
+      specialist_to_contact: "",
+      nhs_link: "",
+      image_url: "",
+      types: [{ type_name: "", about_type: EMPTY_LEXICAL_STATE }],
+      causes: [{ cause_name: "", other_possible_causes: EMPTY_LEXICAL_STATE }],
     },
   });
 
@@ -99,26 +99,30 @@ const AddSymptomDialog = () => {
         form.reset({
           ...data,
           // Rehydrate the visual selection for the tree components
-          bodyPartIds: rehydrateHierarchy(data.bodyPartIds, bodyParts),
-          categoryIds: rehydrateHierarchy(data.categoryIds, categories),
+          bodyParts: rehydrateHierarchy(data.bodyParts, bodyParts),
+          categories: rehydrateHierarchy(data.categories, categories),
+          image_url: data.image_url ?? "",
+          nhs_link: data.nhs_link ?? "",
         });
       } else {
         form.reset({
           name: "",
-          bodyPartIds: [],
-          categoryIds: [],
+          bodyParts: [],
+          categories: [],
           about: EMPTY_LEXICAL_STATE,
           diagnosis: EMPTY_LEXICAL_STATE,
           treatment: EMPTY_LEXICAL_STATE,
           complications: EMPTY_LEXICAL_STATE,
           prevention: EMPTY_LEXICAL_STATE,
-          contactYourDoctor: EMPTY_LEXICAL_STATE,
-          moreInformation: EMPTY_LEXICAL_STATE,
-          specialistToContact: "",
-          nhsLink: "",
-          imageUrl: "",
-          types: [{ typeName: "", aboutType: EMPTY_LEXICAL_STATE }],
-          causes: [{ causeName: "", otherPossibleCauses: EMPTY_LEXICAL_STATE }],
+          contact_your_doctor: EMPTY_LEXICAL_STATE,
+          more_information: EMPTY_LEXICAL_STATE,
+          specialist_to_contact: "",
+          nhs_link: "",
+          image_url: "",
+          types: [{ type_name: "", about_type: EMPTY_LEXICAL_STATE }],
+          causes: [
+            { cause_name: "", other_possible_causes: EMPTY_LEXICAL_STATE },
+          ],
         });
       }
     }
@@ -134,18 +138,15 @@ const AddSymptomDialog = () => {
   };
   const handleSubmit = async (data: TSymptomsInput) => {
     try {
-      const optimizedBodyPartIds = getDeepestNodes(data.bodyPartIds, bodyParts);
-      const optimizedCategoryIds = getDeepestNodes(
-        data.categoryIds,
-        categories
-      );
+      const optimizedBodyPartIds = getDeepestNodes(data.bodyParts, bodyParts);
+      const optimizedCategoryIds = getDeepestNodes(data.categories, categories);
       const slug = slugify(data.name, {
         lower: true,
       });
       const payload = {
         ...data,
-        bodyPartIds: optimizedBodyPartIds,
-        categoryIds: optimizedCategoryIds,
+        bodyParts: optimizedBodyPartIds,
+        categories: optimizedCategoryIds,
         slug,
       };
 
@@ -181,7 +182,7 @@ const AddSymptomDialog = () => {
               key={index}
               className={cn(
                 "h-2 w-1/5 rounded",
-                index <= step ? "bg-primary" : "bg-muted"
+                index <= step ? "bg-primary" : "bg-muted",
               )}
             />
           ))}
@@ -202,7 +203,7 @@ const AddSymptomDialog = () => {
               (errors) => {
                 toast.error("Errors: " + errors);
                 console.log("Errors: ", errors);
-              }
+              },
             )}
             className="space-y-6"
           >
@@ -227,21 +228,21 @@ const AddSymptomDialog = () => {
 
                   <TreeMultiSelectForm
                     label="Select Associated Body Part/s"
-                    name="bodyPartIds"
+                    name="bodyParts"
                     control={form.control}
                     rawParts={bodyParts}
                   />
 
                   <TreeMultiSelectForm
                     label="Select Associated Category/s"
-                    name="categoryIds"
+                    name="categories"
                     control={form.control}
                     rawParts={categories}
                   />
 
                   <CustomInput
                     type="text"
-                    name="specialistToContact"
+                    name="specialist_to_contact"
                     control={form.control}
                     label="Specialists To Contact(Comma-Separated)"
                     readOnly={false}
@@ -257,7 +258,7 @@ const AddSymptomDialog = () => {
                       variant="outline"
                       size="sm"
                       className="bg-green-100"
-                      onClick={() => append({ typeName: "", aboutType: "" })}
+                      onClick={() => append({ type_name: "", about_type: "" })}
                     >
                       Add Type
                     </Button>
@@ -269,7 +270,7 @@ const AddSymptomDialog = () => {
                         {/* Type Name Input */}
                         <CustomInput
                           type="text"
-                          name={`types.${index}.typeName`} // Important: include index
+                          name={`types.${index}.type_name`} // Important: include index
                           control={form.control}
                           label="Type Name"
                           readOnly={false}
@@ -277,7 +278,7 @@ const AddSymptomDialog = () => {
 
                         {/* About Type Input (RichText logic usually goes here) */}
                         <RichTextEditor
-                          name={`types.${index}.aboutType`}
+                          name={`types.${index}.about_type`}
                           control={form.control}
                           label="About Type"
                         />
@@ -338,7 +339,10 @@ const AddSymptomDialog = () => {
                       size="sm"
                       className="bg-green-100"
                       onClick={() =>
-                        causesAppend({ causeName: "", otherPossibleCauses: "" })
+                        causesAppend({
+                          cause_name: "",
+                          other_possible_causes: "",
+                        })
                       }
                     >
                       Add Cause
@@ -351,7 +355,7 @@ const AddSymptomDialog = () => {
                         {/* Causes Input */}
                         <CustomInput
                           type="text"
-                          name={`causes.${index}.causeName`}
+                          name={`causes.${index}.cause_name`}
                           control={form.control}
                           label="Cause Name"
                           readOnly={false}
@@ -359,7 +363,7 @@ const AddSymptomDialog = () => {
 
                         {/* About Type Input (RichText logic usually goes here) */}
                         <RichTextEditor
-                          name={`causes.${index}.otherPossibleCauses`}
+                          name={`causes.${index}.other_possible_causes`}
                           control={form.control}
                           label="Other Possible Causes"
                         />
@@ -481,14 +485,14 @@ const AddSymptomDialog = () => {
                   <RichTextEditor
                     label="Contact Your Doctor"
                     control={form.control}
-                    name="contactYourDoctor"
+                    name="contact_your_doctor"
                   />
 
                   {/* More Information */}
                   <RichTextEditor
                     label="More Information"
                     control={form.control}
-                    name="moreInformation"
+                    name="more_information"
                   />
 
                   {/* Attribution */}
@@ -528,7 +532,7 @@ const AddSymptomDialog = () => {
 
                 <CustomInput
                   control={form.control}
-                  name="nhsLink"
+                  name="nhs_link"
                   label="NHS Link for this Symptom"
                   type="text"
                   readOnly={false}
@@ -538,7 +542,7 @@ const AddSymptomDialog = () => {
                   filePath={filePath}
                   text="Drop media for the Symptom"
                   onFilesChange={(url) =>
-                    url.map((u) => form.setValue("imageUrl", u))
+                    url.map((u) => form.setValue("image_url", u))
                   }
                   initialFiles={[]}
                 />

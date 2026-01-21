@@ -34,15 +34,13 @@ import {
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { DialogTitle } from "@/components/ui/dialog";
 import { LexicalRenderer } from "@/components/LexicalRenderer";
+import { useSymptom } from "@/hooks/supabase-calls/useSymptoms";
 
 const ViewSymptomDialog = () => {
   const { isOpen, entityId, close } = useViewConditionDialog();
   const addDialog = useAddConditionDialog();
 
-  const { data, isLoading } = trpc.symptomsRouter.getById.useQuery(
-    { id: entityId! },
-    { enabled: isOpen && !!entityId }
-  );
+  const { data, isLoading } = useSymptom(entityId!);
 
   if (!isOpen) return null;
 
@@ -213,7 +211,7 @@ const ViewSymptomDialog = () => {
                     label="Last Verified"
                     value={new Date(data?.updatedAt).toLocaleDateString(
                       undefined,
-                      { dateStyle: "medium" }
+                      { dateStyle: "medium" },
                     )}
                   />
                 </div>

@@ -2,16 +2,16 @@ import { router } from "./trpc";
 
 import { storageRouter } from "./routers/media-storage";
 
-import { conditionsRouter } from "./routers/conditions-router";
-import { symptomsRouter } from "./routers/symptoms-router";
-import { healthyLivingRouter } from "./routers/healthyLiving-router";
+// import { conditionsRouter } from "./routers/conditions-router";
+// import { symptomsRouter } from "./routers/symptoms-router";
+// import { healthyLivingRouter } from "./routers/healthyLiving-router";
 
 export const appRouter = router({
   mediaStorage: storageRouter,
 
-  conditionsRouter: conditionsRouter,
-  symptomsRouter: symptomsRouter,
-  healthyLivingRouter: healthyLivingRouter,
+  // conditionsRouter: conditionsRouter,
+  // symptomsRouter: symptomsRouter,
+  // healthyLivingRouter: healthyLivingRouter,
 });
 
 // Export the type for the client
