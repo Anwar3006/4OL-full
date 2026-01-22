@@ -70,6 +70,8 @@ export type TUserProfile = {
   user_id: string;
   created_at: Date | string;
   updated_at: Date | string;
+  first_name: string;
+  last_name: string;
   name: string;
   email: string;
   sex: "male" | "female" | "other";
@@ -78,6 +80,8 @@ export type TUserProfile = {
   role: "user" | "registrar" | "admin" | "super_admin";
   status: "active" | "pending" | "inactive" | "suspended";
   phone_number: string;
+  image: string;
+  email_verified: boolean;
 };
 
 export type TUserProfileWithUser = {

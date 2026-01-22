@@ -29,6 +29,14 @@ export const auth = betterAuth({
         defaultValue: false,
       },
     },
+    changeEmail: {
+      enabled: true,
+      sendChangeEmailVerification: async ({ user, newEmail, url, token }) => {
+        // Email verification will be handled by your email service
+        console.log(`Email change verification for ${user.email} to ${newEmail}`);
+        console.log(`Verification URL: ${url}`);
+      },
+    },
   },
 
   // CRITICAL: Add baseURL for proper callback validation

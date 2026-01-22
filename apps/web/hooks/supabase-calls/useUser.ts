@@ -135,7 +135,9 @@ export const useUser = ({ id, enabled }: { id: string; enabled: boolean }) => {
           user:user (
             id,
             name,
-            email
+            email,
+            image,
+            email_verified
           )
         `,
         )
@@ -201,43 +203,36 @@ export const useCreateUserProfile = () => {
   });
 };
 
-// //TODO: Test this hook
-// export const useCreateAdminInvite = () => {
-//   const queryClient = useQueryClient();
+export const useUpdateProfile = () => {
+  const queryClient = useQueryClient();
 
-//   return useMutation<any, Error, any>({
-//     mutationFn: async (input: TAdminInviteSchema) => {
-//       const { data, error } = await supabase
-//         .from("user_invites")
-//         .select("id")
-//         .eq("email", input.email)
-//         .single();
-
-//       if (error) throw new Error(error.message);
-//       if (data) throw new Error("Invite already sent");
-
-//       const { data: result, error: error2 } = await supabase
-//         .from("user_invites")
-//         .insert({
-//           email: input.email,
-//           role: input.role,
-//           token: input.token,
-//           expires_at: input.expires_at,
-//         })
-//         .select()
-//         .single();
-
-//       if (error2) throw error2;
-//       return result;
-//     },
-//     onSuccess: () => {
-//       queryClient.invalidateQueries({
-//         queryKey: USER_QUERY_KEYS.invites,
-//       });
-//       toast.success("Admin invite created successfully!");
-//     },
-//     onError: (error) => {
-//       toast.error(`Failed to create admin invitation: ${error.message}`);
-//     },
-//   });
-// };
+  return useMutation<TUserProfileRegistrationInput, Error, any>({
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      const { data: result, error } = await supabase
+        .from("user_profiles")
+        .update({
+          first_name: data.first_name,
+          last_name: data.last_name,
+          sex: data.sex,
+          dob: data.dob,
+          user_type: data.user_type,
+          role: data.role,
+          phone_number: data.phone_number,
+        })
+        .eq("user_id", id)
+        .select()
+        .single();
+      if (error) throw error;
+      return result;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({
+        queryKey: USER_QUERY_KEYS.detail(data.userId as string),
+      });
+      toast.success("User profile updated successfully!");
+    },
+    onError: (error) => {
+      toast.error(`Failed to update user profile: ${error.message}`);
+    },
+  });
+};
