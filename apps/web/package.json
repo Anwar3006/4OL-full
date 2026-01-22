@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "seed": "tsx scripts/bodyPart_category_seeder.ts"
+    "seed": "tsx scripts/bodyPart_category_seeder.ts",
+    "db:migrate": "npm run migrate -w @4ol/db",
+    "vercel-build": "npm run db:migrate && npm run seed && npm run dev"
   },
   "dependencies": {
     "@4ol/api": "*",

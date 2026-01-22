@@ -45,7 +45,7 @@ export const symptoms = pgTable(
     complications: jsonb("complications").$type<SerializedEditorState>(),
     prevention: jsonb("prevention").$type<SerializedEditorState>(),
     contactYourDoctor: jsonb(
-      "contact_your_doctor"
+      "contact_your_doctor",
     ).$type<SerializedEditorState>(),
     moreInformation: jsonb("more_information").$type<SerializedEditorState>(),
     attribution: jsonb("attribution").$type<SerializedEditorState>(),
@@ -63,7 +63,7 @@ export const symptoms = pgTable(
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
-  (table) => [index("symptom_name_idx").on(table.name)]
+  (table) => [index("symptom_name_idx").on(table.name)],
 );
 export const symptomRelations = relations(symptoms, ({ many }) => ({
   symptomToCategory: many(symptomToCategories),
@@ -74,7 +74,7 @@ export const symptomRelations = relations(symptoms, ({ many }) => ({
 
 export const symptomTypes = pgTable("symptom_types", {
   id: uuid("id").primaryKey().defaultRandom(),
-  symptomId: uuid("symtom_id").references(() => symptoms.id, {
+  symptomId: uuid("symptom_id").references(() => symptoms.id, {
     onDelete: "cascade",
   }),
   typeName: text("type_name").notNull(),
@@ -115,7 +115,7 @@ export const symptomToBodyParts = pgTable(
     // Composite index: speeds up finding symptoms for a specific part
     primaryKey({ columns: [t.bodyPartId, t.symptomId] }),
     index("symptom_lookup_idx").on(t.symptomId),
-  ]
+  ],
 );
 export const symptomToBodyPartsRelations = relations(
   symptomToBodyParts,
@@ -124,7 +124,7 @@ export const symptomToBodyPartsRelations = relations(
       fields: [symptomToBodyParts.symptomId],
       references: [symptoms.id],
     }),
-  })
+  }),
 );
 
 // 5. Join Table: Symptom <-> Category (Many-to-Many)
@@ -136,7 +136,7 @@ export const symptomToCategories = pgTable(
     }),
     categoryId: uuid("category_id").references(() => categories.id),
   },
-  (table) => [primaryKey({ columns: [table.categoryId, table.symptomId] })]
+  (table) => [primaryKey({ columns: [table.categoryId, table.symptomId] })],
 );
 export const symptomToCategoriesRelations = relations(
   symptomToCategories,
@@ -145,5 +145,5 @@ export const symptomToCategoriesRelations = relations(
       fields: [symptomToCategories.symptomId],
       references: [symptoms.id],
     }),
-  })
+  }),
 );

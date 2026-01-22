@@ -27,7 +27,7 @@ import { ROLE_OPTIONS, SEX_OPTIONS } from "@4ol/db/types/formInput";
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { trpc } from "@/lib/trpc";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useCreateUserProfile } from "@/hooks/supabase-calls/useUser";
 
 const RegisterForm = ({
@@ -55,6 +55,7 @@ const RegisterForm = ({
     },
   });
   const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // useEffect(() => {
   //   if (isInvited && inviteData) {
@@ -63,12 +64,12 @@ const RegisterForm = ({
   //   }
   // }, [isInvited, form]);
 
-  //============= tRPC mutation for profile creation
   const { mutateAsync, isPending } = useCreateUserProfile();
-  //===================================
+  const isSubmittingForm = isSubmitting || isPending;
 
   const handleSubmit = async (data: TUserProfileRegistrationInput) => {
     console.log("handle submit click ");
+    setIsSubmitting(true);
     try {
       // Step 1: Create auth user with Better Auth
       const authResult = await authClient.signUp.email({
@@ -103,6 +104,8 @@ const RegisterForm = ({
     } catch (error: unknown) {
       console.error("Error registering user: ", error);
       toast.error("Registration failed! : " + (error as Error).message);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -230,7 +233,7 @@ const RegisterForm = ({
             <Button
               type="submit"
               className="py-5 bg-emerald-600"
-              disabled={isPending}
+              disabled={isSubmittingForm}
               onClick={() => {
                 console.log("I am clicked but: ", form.formState.errors);
               }}

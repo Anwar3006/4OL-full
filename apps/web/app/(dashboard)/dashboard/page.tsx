@@ -5,6 +5,7 @@ import {
   Megaphone,
   Pill,
   PlusCircleIcon,
+  UserCircleIcon,
   Users,
   UserStar,
 } from "lucide-react";
@@ -23,6 +24,7 @@ import {
 } from "recharts";
 import MedicalNetworkGrowth from "./_components/charts/MedicalNetworkGrowth";
 import ConditionCategoriesChart from "./_components/charts/ConditionCategories";
+import { useGetDashboardStats } from "@/hooks/supabase-calls/useDashboard";
 
 // Mock Data for visualization
 const conditionData = [
@@ -34,6 +36,13 @@ const conditionData = [
 ];
 
 const DashboardPage = () => {
+  const { data, isLoading } = useGetDashboardStats();
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  console.log("Data: ", data);
   return (
     <section className="container mx-auto lg:px-4 py-4 sm:py-6 lg:pb-10 lg:pt-2 max-w-7xl">
       <SectionHeader
@@ -48,30 +57,58 @@ const DashboardPage = () => {
         <DashBoardStatsCard
           Icon={Hospital}
           title="Total Registered Facilities"
-          value="0"
+          value={data.live.total_facilities}
           href="/facilities"
           variant="success"
         />
         <DashBoardStatsCard
           Icon={PlusCircleIcon}
           title="Facilities Pending Approval"
-          value="0"
+          value={data?.live.pending_facilities}
           href="/facilities"
           variant="warning"
         />
         <DashBoardStatsCard
           Icon={Users}
           title="Total Registered Users"
-          value="0"
+          value={data.live.total_users}
           href="/users"
           variant="success"
         />
         <DashBoardStatsCard
           Icon={UserStar}
           title="Active Users (24h)"
-          value="0"
+          value={data.live.active_users_24h}
           href="/users"
           variant="primary"
+        />
+        <DashBoardStatsCard
+          Icon={UserStar}
+          title="Active Users (30days)"
+          value={data.live.active_users_30d}
+          href="/users"
+          variant="default"
+        />
+        <DashBoardStatsCard
+          Icon={UserCircleIcon}
+          title="New Signups (Today)"
+          value={data.live.new_signups_today}
+          href="/users"
+          variant="default"
+        />
+        <DashBoardStatsCard
+          Icon={UserCircleIcon}
+          title="Demographic Count (Male)"
+          value={data.live.male_count}
+          href="/users"
+          variant="default"
+        />
+        <DashBoardStatsCard
+          Icon={UserCircleIcon}
+          title="Demographic Count (Female)"
+          value={data.live.female_count}
+          href="/users"
+          variant="default"
         />
         <DashBoardStatsCard
           Icon={Megaphone}

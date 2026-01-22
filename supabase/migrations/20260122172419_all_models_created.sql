@@ -5,14 +5,42 @@
 -- 2. Drop the public schema and all its objects
 -- DROP SCHEMA IF EXISTS "public" CASCADE;
 
+
+
+DO $$ 
+DECLARE 
+    r RECORD;
+BEGIN
+    -- 1. Drop all tables in the public schema
+    FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP
+        EXECUTE 'DROP TABLE IF EXISTS "public"."' || r.tablename || '" CASCADE';
+    END LOOP;
+
+    -- 2. Optional: Drop all custom types/enums in the public schema 
+    -- (Essential since your migration creates 'facility_status_enum', etc.)
+    FOR r IN (SELECT typname FROM pg_type t JOIN pg_namespace n ON n.oid = t.typnamespace 
+              WHERE n.nspname = 'public' AND typtype = 'e') LOOP
+        EXECUTE 'DROP TYPE IF EXISTS "public"."' || r.typname || '" CASCADE';
+    END LOOP;
+    
+    -- 3. Clear Drizzle's migration history to force a re-run
+    EXECUTE 'DROP TABLE IF EXISTS "drizzle"."__drizzle_migrations" CASCADE';
+END $$;
+
 -- 3. Recreate the public schema
 -- CREATE SCHEMA "public";
 -- Grant necessary permissions (adjust as needed)
-GRANT ALL ON SCHEMA "public" TO PUBLIC;
-GRANT ALL ON SCHEMA "public" TO postgres;
+GRANT ALL ON ALL TABLES IN SCHEMA public TO postgres, service_role, authenticated;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO postgres, service_role, authenticated;
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO PUBLIC;
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO PUBLIC;
+
+ALTER DEFAULT PRIVILEGES IN SCHEMA public 
+GRANT ALL ON TABLES TO postgres, service_role, authenticated;
+
+ALTER DEFAULT PRIVILEGES IN SCHEMA public 
+GRANT ALL ON SEQUENCES TO postgres, service_role, authenticated;
 
 
 --- Enable Extensions
@@ -29,7 +57,7 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA extensions;
 -- This ensures 'geometry' and 'ltree' types are recognized without 'extensions.' prefix
 ALTER DATABASE postgres SET search_path TO "$user", public, extensions;
 
-COMMIT;
+
 
 CREATE TYPE "public"."facility_status_enum" AS ENUM('pending', 'active', 'rejected', 'inactive');--> statement-breakpoint
 CREATE TYPE "public"."facility_type_enum" AS ENUM('hospitals_&_clinics', 'herbal_centers', 'diagnostic_labs', 'pharmacies', 'dental_clinics', 'homes', 'eye_clinics', 'osteopathy_centers', 'physiotherapy_centers', 'prosthetics_centers', 'psychiatric_centers', 'ibps', 'health_schools');--> statement-breakpoint
@@ -320,6 +348,38 @@ CREATE TABLE "verification" (
 	"updated_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
+
+-- Trends Table: platform metrics for dashboard
+CREATE TABLE IF NOT EXISTS platform_metrics_history (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  date date DEFAULT CURRENT_DATE UNIQUE,
+
+  -- User Growth & Stickiness
+  total_users integer NOT NULL,
+  new_signups_today integer NOT NULL, -- NEW: Track growth speed
+  daily_active_users integer NOT NULL,
+  monthly_active_users integer NOT NULL,
+  sticky_users_count integer NOT NULL, -- NEW: Active users who return frequently
+
+  -- Demographics (Consider moving to JSONB for flexibility)
+  male_count integer NOT NULL,
+  female_count integer NOT NULL,
+  other_gender_count integer NOT NULL,
+
+  -- Facility Metrics
+  total_facilities integer NOT NULL,
+  facility_types jsonb NOT NULL, -- e.g., {"hospital": 20, "pharmacy": 5}
+
+  -- Health Engagement
+  active_medication_remainders integer NOT NULL,
+  vitals_logged_count integer NOT NULL DEFAULT 0, -- NEW: Are they actually using the health tools?
+  symptoms_reported_count integer NOT NULL DEFAULT 0, -- NEW: Tracking illness trends
+
+  created_at timestamp with time zone DEFAULT now(),
+  upated_at timestamp with time zone DEFAULT now()
+);
+--> statement-breakpoint
+
 ALTER TABLE "account" ADD CONSTRAINT "account_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "body_parts" ADD CONSTRAINT "body_parts_parent_id_body_parts_id_fk" FOREIGN KEY ("parent_id") REFERENCES "public"."body_parts"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "categories" ADD CONSTRAINT "categories_parent_id_categories_id_fk" FOREIGN KEY ("parent_id") REFERENCES "public"."categories"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
@@ -358,7 +418,7 @@ CREATE INDEX "symptom_lookup_idx" ON "symptom_body_parts" USING btree ("symptom_
 CREATE INDEX "symptom_name_idx" ON "symptoms" USING btree ("name");--> statement-breakpoint
 CREATE INDEX "verification_identifier_idx" ON "verification" USING btree ("identifier");
 
-COMMIT;
+
 --- Added from Supabase
 
 CREATE OR REPLACE FUNCTION insert_condition (
@@ -857,9 +917,48 @@ AFTER DELETE OR UPDATE OF status ON facility_profile
 FOR EACH ROW
 EXECUTE FUNCTION queue_facility_files_for_deletion();
 -- Next create cron job to empty the table every day/once a week
-END;
 
-DO $$ 
-BEGIN 
-    RAISE NOTICE 'Migration Finished. Table Count: %', (SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public');
-END $$;
+
+--- Function to compile our metrics
+CREATE OR REPLACE FUNCTION capture_daily_metrics()
+RETURNS void AS $$
+BEGIN
+  INSERT INTO platform_metrics_history (
+    date,
+    total_users,
+    new_signups_today,
+    daily_active_users,
+    monthly_active_users,
+    -- sticky_users_count, --- need to write the sql below
+    male_count,
+    female_count,
+    total_facilities,
+    facility_types,
+    -- active_medication_remainders,  ---table not created yet
+    -- vitals_logged_count --- table not created yet
+  )
+VALUES (
+  CURRENT_DATE,
+  (SELECT count(*) FROM users),
+  (SELECT count(*) FROM users WHERE created_at >= CURRENT_DATE), -- New Signups
+  (SELECT count(*) FROM users WHERE last_active >= now() - interval '24 hours'),
+  (SELECT count(*) FROM users WHERE last_active >= now() - interval '30 days'),
+  (SELECT count(*) FROM users WHERE gender = 'male'),
+  (SELECT count(*) FROM users WHERE gender = 'female'),
+  (SELECT count(*) FROM facility_profile WHERE status = 'active'),
+  (SELECT jsonb_object_agg(facility_type, count)
+   FROM (SELECT facility_type, count(*) FROM facility_profile GROUP BY facility_type) AS t)
+--   (SELECT count(*) FROM medication_reminders WHERE is_active = true),
+--   (SELECT count(*) FROM health_logs WHERE created_at >= CURRENT_DATE) -- Engagement
+)
+  ON CONFLICT (date) DO UPDATE SET
+    total_users = EXCLUDED.total_users,
+    daily_active_users = EXCLUDED.daily_active_users,
+    total_facilities = EXCLUDED.total_facilities,
+    monthly_active_users = EXCLUDED.monthly_active_users,
+    new_signups_today = EXCLUDED.new_signups_today,
+    male_count = EXCLUDED.male_count,
+    female_count = EXCLUDED.female_count,
+    facility_types = EXCLUDED.facility_types;
+END;
+$$ LANGUAGE plpgsql;

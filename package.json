@@ -9,6 +9,7 @@
   ],
   "scripts": {
     "dev:web": "npm run dev -w @4ol/web",
+    "dev:vercel-build": "npm run vercel-build -w @4ol/web",
     "build:web": "npm run build -w @4ol/web",
     "start:web": "npm run start -w @4ol/web",
     "dev:mobile": "npm run dev -w @4ol/mobile",
