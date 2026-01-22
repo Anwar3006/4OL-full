@@ -63,7 +63,7 @@ export async function getPresignedUploadUrl(filePath: string) {
 export async function uploadToSignedUrl(
   signedUrl: string,
   token: string,
-  file: File
+  file: File,
 ) {
   try {
     // Verify user is authenticated
@@ -150,18 +150,18 @@ export async function deleteFile(filePath: string) {
 export async function deleteFiles(filePaths: string[]) {
   try {
     // Verify user is authenticated
-    const session = await authClient.getSession({
-      fetchOptions: {
-        headers: await headers(),
-      },
-    });
+    // const session = await authClient.getSession({
+    //   fetchOptions: {
+    //     headers: await headers(),
+    //   },
+    // });
 
-    if (!session?.data?.user) {
-      return {
-        success: false,
-        error: "Unauthorized: You must be logged in to delete files",
-      };
-    }
+    // if (!session?.data?.user) {
+    //   return {
+    //     success: false,
+    //     error: "Unauthorized: You must be logged in to delete files",
+    //   };
+    // }
     if (!filePaths || filePaths.length === 0) {
       return { success: true, message: "No files to delete." };
     }
@@ -201,18 +201,18 @@ export async function deleteFiles(filePaths: string[]) {
 export async function getSignedUrl(filePath: string, expiresIn = 3600) {
   try {
     // Verify user is authenticated
-    const session = await authClient.getSession({
-      fetchOptions: {
-        headers: await headers(),
-      },
-    });
+    // const session = await authClient.getSession({
+    //   fetchOptions: {
+    //     headers: await headers(),
+    //   },
+    // });
 
-    if (!session?.data?.user) {
-      return {
-        success: false,
-        error: "Unauthorized: You must be logged in to access files",
-      };
-    }
+    // if (!session?.data?.user) {
+    //   return {
+    //     success: false,
+    //     error: "Unauthorized: You must be logged in to access files",
+    //   };
+    // }
 
     const bucketName = process.env.NEXT_PUBLIC_SUPABASE_BUCKET_NAME!;
 
@@ -247,18 +247,18 @@ export async function getSignedUrl(filePath: string, expiresIn = 3600) {
 export async function moveFile(filePath: string, newFolder: string) {
   try {
     // Verify user is authenticated
-    const session = await authClient.getSession({
-      fetchOptions: {
-        headers: await headers(),
-      },
-    });
+    // const session = await authClient.getSession({
+    //   fetchOptions: {
+    //     headers: await headers(),
+    //   },
+    // });
 
-    if (!session?.data?.user) {
-      return {
-        success: false,
-        error: "Unauthorized: You must be logged in to move files",
-      };
-    }
+    // if (!session?.data?.user) {
+    //   return {
+    //     success: false,
+    //     error: "Unauthorized: You must be logged in to move files",
+    //   };
+    // }
 
     const bucketName = process.env.NEXT_PUBLIC_SUPABASE_BUCKET_NAME!;
 

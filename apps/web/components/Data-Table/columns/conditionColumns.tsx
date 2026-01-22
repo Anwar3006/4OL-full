@@ -118,14 +118,13 @@ export const conditionColumns: ColumnDef<TConditionsOutput>[] = [
     cell: ({ row }) => {
       const condition = row.original;
       const { open: openView } = useViewConditionDialog();
-      const { open: openEdit, isEditMode } = useAddConditionDialog();
+      const { open: openEdit } = useAddConditionDialog();
 
       // Helper to handle actions safely
       const handleAction = (e: React.MouseEvent, action: () => void) => {
         e.preventDefault();
         e.stopPropagation(); // This is the magic line
         action();
-        console.log("Editting: ", isEditMode);
       };
 
       // const conditionToEdit = {

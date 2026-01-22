@@ -31,7 +31,6 @@ export const CONDITIONS_QUERY_KEYS = {
   detail: (id: string) => [...CONDITIONS_QUERY_KEYS.details(), id] as const,
 };
 
-//TODO: Finish all these hooks
 export const useConditions = ({
   params,
   enabled,

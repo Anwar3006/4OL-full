@@ -24,7 +24,15 @@ import CustomSelect from "@/components/CustomSelect";
 import { useGeolocation } from "@/hooks/use-geolocation";
 import useGhanaPostGPS from "@/hooks/useGhanaPostGPS";
 import { toast } from "sonner";
-import { Loader2, MapPinHouse, Star, Trash, X } from "lucide-react";
+import {
+  ImageIcon,
+  Loader2,
+  MapPinHouse,
+  Star,
+  Trash,
+  Trash2,
+  X,
+} from "lucide-react";
 import z from "zod";
 import { MultiSelect } from "@/components/MultiSelect";
 import { cn } from "@/lib/utils";
@@ -38,8 +46,10 @@ import {
   useCreateFacilityProfile,
   useUpdateFacilityProfile,
 } from "@/hooks/supabase-calls/useFacilities";
-import { useGetSignedUrls } from "@/hooks/supabase-calls/useMediaStorage";
+
 import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
 
 // Step 1 Fields - To make sure we validate these fields before moving on to Step 2
 const STEP_1_FIELDS: (keyof TFacilityProfileInput)[] = [
@@ -144,6 +154,7 @@ const AddFacilityDialog = () => {
       // Clear deletion and new upload lists on open
       setImagesToDelete([]);
       setNewlyUploadedFiles([]);
+      setFeaturedImage(data.featured_image_url);
     }
   }, [isOpen, isEditMode, data, form.reset]);
 
@@ -284,10 +295,6 @@ const AddFacilityDialog = () => {
   };
   //////////////////
 
-  // Hook to get temporary, viewable URLs for existing images
-  const { data: existingImageUrls, isLoading: isUrlsLoading } =
-    useGetSignedUrls(existingImages, isOpen && isEditMode);
-
   // Handlers for image management
   const handleDeleteExistingImage = (imagePath: string) => {
     setExistingImages((prev) => prev.filter((p) => p !== imagePath));
@@ -312,7 +319,7 @@ const AddFacilityDialog = () => {
 
       const payload = {
         ...profileData,
-        featured_image_url: featuredImage || finalImageUrls[0], // Fallback to first if none selected
+        featured_image_url: featuredImage || finalImageUrls[0],
       };
 
       // SCENARIO 1: EDIT MODE
@@ -359,9 +366,15 @@ const AddFacilityDialog = () => {
       if (!ownerId)
         throw new Error("Could not assign an owner to this facility.");
 
+      console.log("f_p_c -> ", payload);
+
       const result = await facilityMutation.mutateAsync({
         ...payload,
         ownerId,
+        featured_image_url: payload.featured_image_url.replace(
+          "temporary",
+          "approved",
+        ),
       });
 
       if (result) {
@@ -383,6 +396,17 @@ const AddFacilityDialog = () => {
       setSubmitting(false);
     }
   };
+
+  const getImageUrl = (img: string) =>
+    `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${process.env.NEXT_PUBLIC_SUPABASE_BUCKET_NAME}/${img}`;
+
+  const existingImageUrls = useMemo(() => {
+    return existingImages.map(getImageUrl);
+  }, [existingImages]);
+
+  const newlyUploadedUrls = useMemo(() => {
+    return newlyUploadedFiles.map(getImageUrl);
+  }, [newlyUploadedFiles]);
 
   return (
     <Dialog open={isOpen} onOpenChange={handleDialogClose}>
@@ -751,103 +775,131 @@ const AddFacilityDialog = () => {
 
             {step === 2 && (
               <>
-                <h3 className="font-semibold mb-4 underline text-center">
-                  Facility Images
-                </h3>
-
-                <div className="mb-6">
+                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 mb-6">
                   <div className="flex items-center justify-between mb-4">
-                    <h4 className="text-sm font-semibold text-muted-foreground">
-                      Manage & Select Thumbnail
-                    </h4>
-                    <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-bold uppercase">
-                      Select Star for Main Photo
-                    </span>
+                    <div>
+                      <h3 className="font-bold text-slate-900">
+                        Facility Gallery
+                      </h3>
+                      <p className="text-xs text-muted-foreground">
+                        Select the star icon to set the featured thumbnail
+                      </p>
+                    </div>
+                    <Badge
+                      variant="outline"
+                      className="bg-white border-emerald-200 text-emerald-700"
+                    >
+                      {isEditMode ? "Manage Mode" : "Initial Upload"}
+                    </Badge>
                   </div>
 
-                  {/* The Selection Grid: Available in both Create and Edit mode */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {(() => {
-                      // Combine everything to show in the selector
-                      const allImages = isEditMode
-                        ? [
-                            ...(existingImageUrls || []),
-                            ...newlyUploadedFiles.map((path) => ({
-                              path,
-                              url: path,
-                            })),
-                          ]
-                        : form
-                            .watch("media_urls")
-                            .map((path) => ({ path, url: path })); // During create, media_urls are local paths
+                      const createModeImages = form
+                        .watch("media_urls")
+                        .map((path) => ({
+                          path,
+                          url: getImageUrl(path),
+                          isExisting: false,
+                        }));
+                      // Unified list: Existing images + Newly uploaded ones
+                      const gallery = [
+                        ...newlyUploadedFiles.map((path) => ({
+                          path,
+                          url: getImageUrl(path),
+                          isExisting: false,
+                        })),
+                        ...existingImages.map((path) => ({
+                          path,
+                          url: getImageUrl(path),
+                          isExisting: true,
+                        })),
+                        // Add this for Create Mode support
+                        ...(!isEditMode ? createModeImages : []),
+                      ];
 
-                      if (allImages.length === 0)
+                      // 2. Check if BOTH arrays are empty
+                      const hasNoImages =
+                        newlyUploadedFiles.length === 0 &&
+                        existingImages.length === 0 &&
+                        createModeImages.length === 0;
+
+                      if (hasNoImages) {
                         return (
-                          <div className="col-span-full text-center py-8 border-2 border-dashed rounded-xl bg-slate-50">
-                            <p className="text-sm text-muted-foreground">
-                              No images uploaded yet. Start by dropping files
-                              below.
+                          <div className="col-span-full py-10 flex flex-col items-center justify-center border-2 border-dashed rounded-xl bg-white/50">
+                            <ImageIcon className="h-8 w-8 text-slate-300 mb-2" />
+                            <p className="text-sm text-slate-400">
+                              No images yet
                             </p>
                           </div>
                         );
+                      }
 
-                      return allImages.map((img) => {
+                      // 3. Render the gallery if images exist
+                      return gallery.map((img) => {
                         const isFeatured = featuredImage === img.path;
+
                         return (
                           <div
                             key={img.path}
                             className={cn(
-                              "relative group aspect-video rounded-xl overflow-hidden border-2 transition-all duration-300",
+                              "relative aspect-[4/3] rounded-xl overflow-hidden border-2 transition-all group",
                               isFeatured
-                                ? "border-emerald-500 ring-2 ring-emerald-500/20"
-                                : "border-slate-200",
+                                ? "border-emerald-500 shadow-md ring-2 ring-emerald-500/10"
+                                : "border-white shadow-sm",
                             )}
                           >
                             <img
-                              src={
-                                img.url.startsWith("http")
-                                  ? img.url
-                                  : `https://YOUR_SUPABASE_URL/storage/v1/object/public/temp/${img.url}`
-                              }
+                              src={img.url}
+                              alt="Gallery item"
                               className="object-cover w-full h-full"
                             />
 
-                            <div className="absolute top-1.5 inset-x-1.5 flex justify-between items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            {/* Overlay Controls */}
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                               <button
                                 type="button"
-                                onClick={() => setFeaturedImage(img.path)}
+                                onClick={() => setFeaturedImage(img.path)} // Sets the storage path
                                 className={cn(
-                                  "p-1.5 rounded-lg shadow-sm backdrop-blur-md transition-colors",
+                                  "p-2 rounded-full transition-all hover:scale-110",
                                   isFeatured
                                     ? "bg-emerald-500 text-white"
-                                    : "bg-white/90 text-slate-400 hover:text-emerald-500",
+                                    : "bg-white text-slate-600",
                                 )}
                               >
                                 <Star
-                                  size={14}
-                                  fill={isFeatured ? "white" : "none"}
+                                  size={16}
+                                  fill={isFeatured ? "currentColor" : "none"}
                                 />
                               </button>
 
-                              {isEditMode &&
-                                !newlyUploadedFiles.includes(img.path) && (
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      handleDeleteExistingImage(img.path)
-                                    }
-                                    className="p-1.5 bg-red-500/90 text-white rounded-lg shadow-sm hover:bg-red-600"
-                                  >
-                                    <Trash className="h-3.5 w-3.5" />
-                                  </button>
-                                )}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (img.isExisting) {
+                                    handleDeleteExistingImage(img.path);
+                                  } else {
+                                    // Logic to remove from newlyUploadedFiles
+                                    const updated = newlyUploadedFiles.filter(
+                                      (p) => p !== img.path,
+                                    );
+                                    setNewlyUploadedFiles(updated);
+                                    // Update form if not in edit mode
+                                    if (!isEditMode)
+                                      form.setValue("media_urls", updated);
+                                  }
+                                  // Clear featured if the deleted image was the featured one
+                                  if (isFeatured) setFeaturedImage(null);
+                                }}
+                                className="p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all hover:scale-110"
+                              >
+                                <Trash2 size={16} />
+                              </button>
                             </div>
 
                             {isFeatured && (
-                              <div className="absolute bottom-0 inset-x-0 bg-emerald-500 py-1 flex items-center justify-center">
-                                <p className="text-[10px] text-white font-black uppercase tracking-tighter">
-                                  Main Photo
-                                </p>
+                              <div className="absolute top-2 left-2 bg-emerald-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider shadow-sm">
+                                Featured
                               </div>
                             )}
                           </div>
@@ -857,18 +909,19 @@ const AddFacilityDialog = () => {
                   </div>
                 </div>
 
-                <h4 className="text-sm font-semibold text-muted-foreground mb-2">
-                  {isEditMode ? "Upload New Images" : "Upload Facility Images"}
-                </h4>
-                <ImageDropZone
-                  filePath={filePath}
-                  initialFiles={
-                    isEditMode ? newlyUploadedFiles : form.watch("media_urls")
-                  }
-                  text="Upload clear photos of your facility (front view, interior, signage, opposite)"
-                  onFilesChange={handleFilesChange}
-                />
-
+                <div className="space-y-2">
+                  <Label className="text-slate-700 font-semibold">
+                    {isEditMode ? "Add More Photos" : "Upload Photos"}
+                  </Label>
+                  <ImageDropZone
+                    text="Upload clear photos of your facility (front view, interior, signage, opposite)"
+                    filePath={filePath}
+                    initialFiles={
+                      isEditMode ? newlyUploadedFiles : form.watch("media_urls")
+                    }
+                    onFilesChange={handleFilesChange}
+                  />
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-6">
                   <Button
                     type="button"

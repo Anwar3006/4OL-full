@@ -76,11 +76,10 @@ const facilitySchema = facilityProfileSchema.extend({
   services: z.array(z.string()),
   business_hours: z.array(businessDaySchema),
   approved_at: z.string() || z.date(),
+  featured_image_url: z.string(),
   avg_rating: z.number(),
   keywords: z.array(z.string()),
   location: z.any(),
   status: z.string(),
-  ownership: z.string(),
-  accepts_nhis: z.boolean().default(false),
 });
 export type TFacilityProfileOutput = z.infer<typeof facilitySchema>;

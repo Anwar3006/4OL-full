@@ -36,10 +36,12 @@ import { toUppercaseFirstLetter } from "@/lib/utils";
 import {
   useApproveFacility,
   useFacilityProfile,
+  useRejectFacility,
 } from "@/hooks/supabase-calls/useFacilities";
-import { useGetSignedUrls } from "@/hooks/supabase-calls/useMediaStorage";
+
 import { TFacilityProfileOutput } from "@4ol/db/schemas/facility-profile.schema";
 import { WhatsAppIcon } from "@/public/assets/images/icon/whatsapp";
+import { useMemo } from "react";
 
 export function FacilityViewDialog() {
   const viewDialog = useViewFacilityDialog();
@@ -51,17 +53,20 @@ export function FacilityViewDialog() {
       enabled: !!viewDialog.entityId,
     });
 
-  const { data: imageUrls, isLoading: isImagesLoading } = useGetSignedUrls(
-    facilityData?.media_urls as string[],
-    viewDialog.isOpen && !!facilityData,
-  );
+  const getImageUrl = (img: string) =>
+    `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${process.env.NEXT_PUBLIC_SUPABASE_BUCKET_NAME}/${img}`;
+
+  const imageUrls = useMemo(() => {
+    return facilityData?.media_urls.map(getImageUrl);
+  }, [facilityData]);
 
   const { mutateAsync: approveFacilityMutation, isPending: isApprovePending } =
     useApproveFacility();
 
-  const isLoading = isFacilityLoading || isImagesLoading;
+  const { mutateAsync: rejectFacilityMutation, isPending: isRejectPending } =
+    useRejectFacility();
 
-  // console.log("Data : ", facilityData);
+  const isLoading = isFacilityLoading;
 
   const facility = {
     ...facilityData,
@@ -81,6 +86,18 @@ export function FacilityViewDialog() {
       });
     } catch (error) {
       console.error("Error approving facility: ", error);
+      return;
+    } finally {
+      viewDialog.close();
+    }
+  };
+  const handleRejection = async () => {
+    try {
+      await rejectFacilityMutation({
+        id: facility.id as string,
+      });
+    } catch (error) {
+      console.error("Error rejecting facility: ", error);
       return;
     } finally {
       viewDialog.close();
@@ -142,7 +159,7 @@ export function FacilityViewDialog() {
                           className="overflow-hidden rounded-l-lg"
                         >
                           <img
-                            src={imageUrls?.[0].url}
+                            src={getImageUrl(facilityData?.media_urls[0] ?? "")}
                             className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-105"
                           />
                         </AspectRatio>
@@ -151,14 +168,14 @@ export function FacilityViewDialog() {
 
                       {imageUrls && imageUrls.length > 1 && (
                         <div className="col-span-1 flex flex-col gap-1">
-                          {imageUrls?.slice(1, 3).map(({ url, path }, i) => (
+                          {imageUrls?.slice(1, 3).map((img, i) => (
                             <AspectRatio
                               key={i}
                               ratio={4 / 3}
                               className="overflow-hidden rounded-tr-lg"
                             >
                               <img
-                                src={url}
+                                src={img}
                                 className="object-cover w-full h-full"
                               />
                             </AspectRatio>
@@ -355,7 +372,11 @@ export function FacilityViewDialog() {
                           "Approve Registration"
                         )}
                       </button>
-                      <button className="px-6 border border-destructive text-destructive font-bold rounded-xl hover:bg-destructive/10">
+                      <button
+                        onClick={handleRejection}
+                        disabled={isRejectPending}
+                        className="px-6 border border-destructive text-destructive font-bold rounded-xl hover:bg-destructive/10"
+                      >
                         Reject
                       </button>
                     </>

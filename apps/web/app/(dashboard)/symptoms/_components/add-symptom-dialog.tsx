@@ -92,6 +92,7 @@ const AddSymptomDialog = () => {
     name: "causes",
   });
 
+  console.log("Data: ", data);
   // PREVENT LAG: Use a clean reset when the dialog opens/closes
   useEffect(() => {
     if (isOpen) {
@@ -129,36 +130,48 @@ const AddSymptomDialog = () => {
   }, [isOpen, isEditMode, data, form]);
 
   const name = form.watch("name") ?? "";
-  const filename = name.replaceAll(/\s+/g, "");
-  const filePath = `${filename}-${nanoid(8)}`;
+  const filename = `${name.replaceAll(/\s+/g, "")}-${nanoid(8)}`;
+  const filePath = `symptoms/${filename}`;
 
   const handleDialogClose = () => {
     setStep(1);
     close();
   };
-  const handleSubmit = async (data: TSymptomsInput) => {
+  const handleSubmit = async (formdata: TSymptomsInput) => {
     try {
-      const optimizedBodyPartIds = getDeepestNodes(data.bodyParts, bodyParts);
-      const optimizedCategoryIds = getDeepestNodes(data.categories, categories);
-      const slug = slugify(data.name, {
+      const optimizedBodyPartIds = getDeepestNodes(
+        formdata.bodyParts,
+        bodyParts,
+      );
+      const optimizedCategoryIds = getDeepestNodes(
+        formdata.categories,
+        categories,
+      );
+      const slug = slugify(formdata.name, {
         lower: true,
       });
       const payload = {
-        ...data,
+        ...formdata,
         bodyParts: optimizedBodyPartIds,
         categories: optimizedCategoryIds,
         slug,
       };
 
-      if (isEditMode) {
-        await mutateAsyncEdit(payload);
-      }
+      console.log("Payload: ", payload);
 
-      await mutateAsync(payload);
+      if (isEditMode) {
+        await mutateAsyncEdit({
+          id: data.id,
+          payload: payload,
+        });
+      } else {
+        await mutateAsync(payload);
+      }
     } catch (error) {
       console.error("Registration Error: ", error);
     } finally {
       form.reset();
+      setStep(1);
       close();
     }
   };

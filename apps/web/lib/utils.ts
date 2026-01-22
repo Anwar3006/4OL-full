@@ -52,7 +52,13 @@ export const rehydrateHierarchy = (junctionData: any[], allData: any[]) => {
   // and condition_categories[i].categories.id
   const leafIds = junctionData
     .map((item) => {
-      return item.body_parts?.id || item.categories?.id || item.id;
+      return (
+        item.body_parts?.id ||
+        item.categories?.id ||
+        item.id ||
+        item.body_part_id ||
+        item.category_id
+      );
     })
     .filter(Boolean);
 
@@ -124,4 +130,8 @@ export const canAccessRoute = (role: TUserProfile["role"], route: string) => {
 
 export const toUppercaseFirstLetter = (str: string) => {
   return str.charAt(0).toUpperCase() + str.slice(1);
+};
+
+export const getPublicImageUrl = (url: string) => {
+  return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/bucket4ol/${url}`;
 };

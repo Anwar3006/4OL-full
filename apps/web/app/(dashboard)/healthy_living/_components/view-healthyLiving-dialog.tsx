@@ -32,7 +32,13 @@ import {
   useAddHealthyLivingDialog,
   useViewHealthyLivingDialog,
 } from "@/stores/dialog-store";
-import { useHealthyLiving } from "@/hooks/supabase-calls/useHealthyLiving";
+import {
+  useDeleteHealthyLiving,
+  useHealthyLiving,
+} from "@/hooks/supabase-calls/useHealthyLiving";
+import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
+import { getPublicImageUrl } from "@/lib/utils";
 
 interface Props {
   isOpen: boolean;
@@ -47,13 +53,25 @@ const ViewHealthyLivingDialog = () => {
   const { open: openAdd } = useAddHealthyLivingDialog();
 
   const { data, isLoading } = useHealthyLiving(entityId!);
+  const { mutateAsync } = useDeleteHealthyLiving();
 
-  console.log(">>> ", entityId, data);
+  if (isLoading) {
+    return (
+      <div className="p-6">
+        <ConditionSkeleton />
+      </div>
+    );
+  }
+
+  const handleDelete = async () => {
+    await mutateAsync(entityId!);
+    close();
+  };
 
   return (
     <Sheet open={isOpen} onOpenChange={close}>
       <SheetContent className="w-full sm:max-w-3xl p-0 flex flex-col bg-slate-50 border-l shadow-2xl">
-        {data ? (
+        {!isLoading && data ? (
           <>
             {/* 1. Impactful Header Section */}
             <div className="bg-white p-6 md:p-8 pt-12 border-b border-slate-200 relative overflow-hidden">
@@ -86,6 +104,7 @@ const ViewHealthyLivingDialog = () => {
                     <Edit className="h-4 w-4 mr-2" /> Edit Article
                   </Button>
                   <Button
+                    onClick={handleDelete}
                     variant="ghost"
                     size="icon"
                     className="text-slate-400 hover:text-destructive hover:bg-destructive/10 ml-auto rounded-full"
@@ -102,7 +121,7 @@ const ViewHealthyLivingDialog = () => {
               {data.image_url && (
                 <div className="rounded-3xl overflow-hidden border border-slate-200 shadow-sm aspect-video bg-slate-200">
                   <img
-                    src={data.image_url}
+                    src={getPublicImageUrl(data.image_url)}
                     alt={data.name}
                     className="w-full h-full object-cover"
                   />
@@ -199,7 +218,7 @@ const ViewHealthyLivingDialog = () => {
                       Created On
                     </p>
                     <p className="text-sm font-medium text-slate-600">
-                      {new Date(data.createdAt).toLocaleDateString(undefined, {
+                      {new Date(data.created_at).toLocaleDateString(undefined, {
                         dateStyle: "long",
                       })}
                     </p>
@@ -236,5 +255,22 @@ const ContentSection = ({ icon: Icon, title, content, color }: any) => (
     </div>
   </section>
 );
+
+function ConditionSkeleton() {
+  return (
+    <div className="p-8 space-y-6">
+      <Skeleton className="h-12 w-3/4" />
+      <div className="flex gap-2">
+        <Skeleton className="h-8 w-24 rounded-full" />
+        <Skeleton className="h-8 w-24 rounded-full" />
+      </div>
+      <Skeleton className="h-64 w-full rounded-xl" />
+      <div className="grid grid-cols-2 gap-4">
+        <Skeleton className="h-32 w-full rounded-xl" />
+        <Skeleton className="h-32 w-full rounded-xl" />
+      </div>
+    </div>
+  );
+}
 
 export default ViewHealthyLivingDialog;

@@ -58,7 +58,7 @@ export const useUploadToSupabase = () => {
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(
-          `Upload failed with status ${response.status}: ${errorText}`
+          `Upload failed with status ${response.status}: ${errorText}`,
         );
       }
 
@@ -108,28 +108,28 @@ export const useDeleteFile = () => {
  * Hook to get signed URL for private files
  * Use for temporary access to private files
  */
-export const useGetSignedUrls = (
-  filePaths: string[] | undefined,
-  enabled: boolean
-) => {
-  return useQuery({
-    queryKey: ["signed-urls", filePaths],
-    queryFn: async () => {
-      if (!filePaths || filePaths.length === 0) return [];
+// export const useGetSignedUrls = (
+//   filePaths: string[] | undefined,
+//   enabled: boolean
+// ) => {
+//   return useQuery({
+//     queryKey: ["signed-urls", filePaths],
+//     queryFn: async () => {
+//       if (!filePaths || filePaths.length === 0) return [];
 
-      const signedUrls = await Promise.all(
-        filePaths.map(async (path) => {
-          const result = await getSignedUrl(path); // Your server action
-          if (!result.success) throw new Error(result.error);
-          return {
-            url: result.data!.signedUrl,
-            path: path,
-          };
-        })
-      );
-      return signedUrls;
-    },
-    enabled: enabled && !!filePaths && filePaths.length > 0,
-    staleTime: 1000 * 60 * 50, // 50 minutes (slightly less than 1hr expiry)
-  });
-};
+//       const signedUrls = await Promise.all(
+//         filePaths.map(async (path) => {
+//           const result = await getSignedUrl(path); // Your server action
+//           if (!result.success) throw new Error(result.error);
+//           return {
+//             url: result.data!.signedUrl,
+//             path: path,
+//           };
+//         })
+//       );
+//       return signedUrls;
+//     },
+//     enabled: enabled && !!filePaths && filePaths.length > 0,
+//     staleTime: 1000 * 60 * 50, // 50 minutes (slightly less than 1hr expiry)
+//   });
+// };

@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { trpc } from "@/lib/trpc";
-import { hasLexicalContent } from "@/lib/utils";
+import { getPublicImageUrl, hasLexicalContent } from "@/lib/utils";
 import {
   useAddConditionDialog,
   useViewConditionDialog,
@@ -30,23 +30,33 @@ import {
   Syringe,
   Trash2,
   User,
+  UserCheck2Icon,
 } from "lucide-react";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { DialogTitle } from "@/components/ui/dialog";
 import { LexicalRenderer } from "@/components/LexicalRenderer";
-import { useSymptom } from "@/hooks/supabase-calls/useSymptoms";
+import {
+  useDeleteSymptom,
+  useSymptom,
+} from "@/hooks/supabase-calls/useSymptoms";
 
 const ViewSymptomDialog = () => {
   const { isOpen, entityId, close } = useViewConditionDialog();
   const addDialog = useAddConditionDialog();
 
   const { data, isLoading } = useSymptom(entityId!);
+  const { mutateAsync: deleteSymptom } = useDeleteSymptom();
 
   if (!isOpen) return null;
 
   const handleEdit = () => {
     close();
     addDialog.open(data as TSymptomsOutput);
+  };
+
+  const handleDelete = async () => {
+    await deleteSymptom(entityId!);
+    close();
   };
 
   return (
@@ -63,7 +73,7 @@ const ViewSymptomDialog = () => {
             <div className="bg-white p-6 md:p-8 pt-12 border-b border-slate-200">
               <SheetHeader className="space-y-4">
                 <VisuallyHidden.Root>
-                  <DialogTitle>Details for {data.name}</DialogTitle>
+                  <SheetTitle>Details for {data.name}</SheetTitle>
                 </VisuallyHidden.Root>
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
@@ -106,6 +116,7 @@ const ViewSymptomDialog = () => {
                     </Button>
                   )}
                   <Button
+                    onClick={handleDelete}
                     variant="ghost"
                     size="icon"
                     className="text-slate-400 hover:text-destructive hover:bg-destructive/10 ml-auto rounded-full"
@@ -118,6 +129,16 @@ const ViewSymptomDialog = () => {
 
             {/* 2. Scrollable Content Area */}
             <div className="flex-1 overflow-y-auto px-6 md:px-8 py-8 space-y-12">
+              {/* Cover Image Placeholder/Display */}
+              {data.image_url && (
+                <div className="rounded-3xl overflow-hidden border border-slate-200 shadow-sm aspect-video bg-slate-200">
+                  <img
+                    src={getPublicImageUrl(data.image_url)}
+                    alt={data.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
               {/* Primary Content Grid */}
               <div className="space-y-10">
                 <ContentSection
@@ -128,28 +149,20 @@ const ViewSymptomDialog = () => {
                 />
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                  {/* <ContentSection
-                      icon={Activity}
-                      title="Symptoms"
-                      content={data?.symptoms}
-                      color="text-amber-600"
-                    /> */}
                   <ContentSection
                     icon={Stethoscope}
                     title="Diagnosis"
                     content={data?.diagnosis}
                     color="text-emerald-600"
                   />
+
+                  <ContentSection
+                    icon={Syringe}
+                    title="Treatment & Management"
+                    content={data?.treatment}
+                    color="text-indigo-600"
+                  />
                 </div>
-
-                <Separator className="bg-slate-200" />
-
-                <ContentSection
-                  icon={Syringe}
-                  title="Treatment & Management"
-                  content={data?.treatment}
-                  color="text-indigo-600"
-                />
 
                 <div className="bg-rose-50/50 p-6 rounded-3xl border border-rose-100 ring-4 ring-rose-50/20">
                   <ContentSection
@@ -164,6 +177,13 @@ const ViewSymptomDialog = () => {
                   icon={ShieldCheck}
                   title="Prevention"
                   content={data?.prevention}
+                  color="text-teal-600"
+                />
+
+                <ContentSection
+                  icon={UserCheck2Icon}
+                  title="Attribution"
+                  content={data?.attribution}
                   color="text-teal-600"
                 />
               </div>
@@ -209,7 +229,7 @@ const ViewSymptomDialog = () => {
                   <MetaItem
                     icon={Calendar}
                     label="Last Verified"
-                    value={new Date(data?.updatedAt).toLocaleDateString(
+                    value={new Date(data?.updated_at).toLocaleDateString(
                       undefined,
                       { dateStyle: "medium" },
                     )}

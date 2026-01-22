@@ -21,7 +21,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { TSymptomsOutput } from "@4ol/db/schemas/conditions.schema";
-import { useViewConditionDialog } from "@/stores/dialog-store";
+import {
+  useAddConditionDialog,
+  useViewConditionDialog,
+} from "@/stores/dialog-store";
 
 export const symptomsColumns: ColumnDef<TSymptomsOutput>[] = [
   {
@@ -114,21 +117,34 @@ export const symptomsColumns: ColumnDef<TSymptomsOutput>[] = [
     cell: ({ row }) => {
       const condition = row.original;
       const { open: openView } = useViewConditionDialog();
+      const { open: openEdit, data } = useAddConditionDialog();
 
       return (
         <div className="text-right">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
+              <Button type="button" variant="ghost" className="h-8 w-8 p-0">
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-52">
               <DropdownMenuLabel>Management</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => openView(condition.id)}>
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  openView(condition.id);
+                }}
+              >
                 <FileText className="mr-2 h-4 w-4" /> View Full Details
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  openEdit(condition);
+                }}
+              >
                 <Edit className="mr-2 h-4 w-4" /> Edit Content
               </DropdownMenuItem>
               <DropdownMenuSeparator />

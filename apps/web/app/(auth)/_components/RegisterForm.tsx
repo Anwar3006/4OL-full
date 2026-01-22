@@ -79,6 +79,9 @@ const RegisterForm = ({
 
       if (authResult.error) {
         form.setError("root", { message: authResult.error.message });
+        if (authResult.data) {
+          await authClient.deleteUser((authResult as any).data.user?.id);
+        }
         return;
       }
 

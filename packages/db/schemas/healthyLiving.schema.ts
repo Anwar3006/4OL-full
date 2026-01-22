@@ -9,7 +9,7 @@ export const healthyLivingSchema = z.object({
     z.object({
       type_name: z.string(),
       about_type: richTextSchema,
-    })
+    }),
   ),
   category: richTextSchema,
   contact_your_doctor: richTextSchema,
@@ -22,7 +22,7 @@ export type THealthyLivingInput = z.infer<typeof healthyLivingSchema>;
 
 const healthyLivingSchemaOutput = healthyLivingSchema.extend({
   id: z.string(),
-  createdAt: z.date(),
+  created_at: z.date(),
   slug: z.string(),
 });
 export type THealthyLivingOutput = z.infer<typeof healthyLivingSchemaOutput>;

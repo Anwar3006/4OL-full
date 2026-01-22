@@ -12,7 +12,10 @@ import ViewSymptomDialog from "./_components/view-symptom-dialog";
 import { createPaginationHandlers } from "@/lib/utils";
 import { DataTable } from "@/components/Data-Table/data-table";
 import { symptomsColumns } from "@/components/Data-Table/columns/symptomsColumns";
-import { useSymptoms } from "@/hooks/supabase-calls/useSymptoms";
+import {
+  useSymptoms,
+  useSymptomStats,
+} from "@/hooks/supabase-calls/useSymptoms";
 
 const SymptomsPage = () => {
   const addSymptom = useAddConditionDialog();
@@ -28,14 +31,18 @@ const SymptomsPage = () => {
     page,
   });
 
+  const { data: stats, isLoading: isStatsLoading } = useSymptomStats();
+
+  console.log("Stats: ", stats);
+
   const pagination = useMemo(
     () => createPaginationHandlers(page, setPage, data?.meta.totalPages),
-    [page, data?.meta.totalPages]
+    [page, data?.meta.totalPages],
   );
 
   useEffect(() => {
-    if (data?.analytics?.mostAffectedBodyParts) {
-      const bodyPart = data?.analytics?.mostAffectedBodyParts[0]?.name;
+    if (stats?.bodyPartDistribution) {
+      const bodyPart = stats?.bodyPartDistribution[0]?.name;
       setBodyPart(bodyPart);
     }
   }, [data]);
@@ -45,7 +52,7 @@ const SymptomsPage = () => {
   // which would otherwise cause the memoized `DataTable` to re-render unnecessarily.
   const onRowClick = useCallback(
     (condition: any) => viewSymptom.open(condition.id),
-    [viewSymptom]
+    [viewSymptom],
   );
 
   const paginationConfig = useMemo(
@@ -60,7 +67,7 @@ const SymptomsPage = () => {
       canNextPage: page < (data?.meta?.totalPages || 1),
       canPreviousPage: page > 1,
     }),
-    [page, data, pagination]
+    [page, data, pagination],
   );
 
   return (
@@ -82,12 +89,12 @@ const SymptomsPage = () => {
         />
         <ConditionsStats
           label="Total Condition Categories"
-          value={data?.analytics?.totalCategories || 0}
+          value={stats?.totalCategories || 0}
           isLoading={isLoading}
         />
         <ConditionsStats
-          label="Most Affected Body Part"
-          value={bodyPart || "N/A"}
+          label="Systemic Count"
+          value={stats?.systemicCount || "N/A"}
           isLoading={isLoading}
         />
       </div>

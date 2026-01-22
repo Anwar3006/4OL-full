@@ -75,8 +75,6 @@ const FacilitiesPage = () => {
     [page, data, facilitiesPagination],
   );
 
-  console.log("facilites ", data);
-
   return (
     <section className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10 space-y-10">
       {/* Admins Table */}

@@ -30,7 +30,7 @@ import { Label } from "@/components/ui/label";
 import { nanoid } from "nanoid";
 import { trpc } from "@/lib/trpc";
 import { Card } from "@/components/ui/card";
-import { Phone, ExternalLink, Calendar } from "lucide-react";
+import { Phone, ExternalLink, Calendar, ImageIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAddMarketingDialog } from "@/stores/dialog-store";
 import {
@@ -76,29 +76,28 @@ const AddMarketingDialog = () => {
   const [step, setStep] = useState<1 | 2>(1);
   const [uploadSessionId] = useState(() => `campaign_${nanoid(12)}`);
   const [hasUploadedImage, setHasUploadedImage] = useState(false);
-  const [filePath] = useState(
-    () => `marketing/${uploadSessionId}/${Date.now()}-${nanoid(4)}`
-  );
+  const [filePath] = useState(() => `marketing/${uploadSessionId}`);
   const selectedCta = form.watch("cta");
   const config = CTA_CONFIG[selectedCta as keyof typeof CTA_CONFIG];
+
+  const [isImageLoading, setIsImageLoading] = useState(true);
 
   // Watch all form values for preview
   const formValues = form.watch();
   const uploadedImagePath = formValues.imageUrl;
 
+  // Reset loading state when the image path changes (e.g., if the user goes back and uploads a new one)
+  useEffect(() => {
+    if (uploadedImagePath) {
+      setIsImageLoading(true);
+    }
+  }, [uploadedImagePath]);
+
   const { mutateAsync, isPending } = useCreateMarketingProfile();
   const { mutateAsync: mutateAsyncEdit, isPending: isPendingEdit } =
     useUpdateMarketingProfile();
 
-  const { data, isLoading } = trpc.mediaStorage.getImageUrl.useQuery(
-    {
-      paths: [uploadedImagePath as string],
-      width: 800,
-    },
-    {
-      enabled: hasUploadedImage,
-    }
-  );
+  const imageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${process.env.NEXT_PUBLIC_SUPABASE_BUCKET_NAME}/${uploadedImagePath}`;
 
   useEffect(() => {
     if (!addMarketingDialog.isOpen) {
@@ -155,7 +154,7 @@ const AddMarketingDialog = () => {
     if (!selectedCta || !config) return null;
 
     const ctaLabel = MARKETING_CTA_OPTIONS.find(
-      (opt) => opt.value === selectedCta
+      (opt) => opt.value === selectedCta,
     )?.label;
 
     if (config.type === "single") {
@@ -235,7 +234,7 @@ const AddMarketingDialog = () => {
               (errors) => {
                 toast.error("Please fix the form errors");
                 console.log("Errors: ", errors);
-              }
+              },
             )}
             className="space-y-6"
           >
@@ -409,26 +408,41 @@ const AddMarketingDialog = () => {
                   <div className="flex flex-row-reverse gap-3 items-center">
                     {/* Image Preview */}
                     {/* Image Preview Area */}
-                    <div className="w-full aspect-video rounded-lg overflow-hidden bg-gray-100 relative">
-                      {isLoading ? (
-                        // Shimmering Skeleton Loader
-                        <div className="w-full h-full animate-pulse bg-gray-200 flex items-center justify-center">
-                          <div className="flex flex-col items-center gap-2">
-                            <div className="w-12 h-12 rounded-full border-4 border-emerald-500 border-t-transparent animate-spin" />
-                            <p className="text-xs text-muted-foreground font-medium">
-                              Optimizing Media...
-                            </p>
-                          </div>
-                        </div>
-                      ) : data && data[0]?.url ? (
-                        <img
-                          src={data[0].url}
-                          alt="Campaign media"
-                          className="w-full h-full object-cover transition-opacity duration-300"
-                        />
+                    {/* Image Preview Area */}
+                    <div className="w-full aspect-video rounded-lg overflow-hidden bg-gray-100 relative shadow-inner">
+                      {uploadedImagePath ? (
+                        <>
+                          {/* Shimmering Skeleton Loader - Visible while isImageLoading is true */}
+                          {isImageLoading && (
+                            <div className="absolute inset-0 z-10 animate-pulse bg-gray-200 flex flex-col items-center justify-center">
+                              <div className="w-10 h-10 rounded-full border-4 border-emerald-500 border-t-transparent animate-spin mb-2" />
+                              <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-widest">
+                                Loading Media...
+                              </p>
+                            </div>
+                          )}
+
+                          {/* Actual Image */}
+                          <img
+                            src={imageUrl}
+                            alt="Campaign media"
+                            className={cn(
+                              "w-full h-full object-cover transition-all duration-500",
+                              isImageLoading
+                                ? "opacity-0 scale-95"
+                                : "opacity-100 scale-100",
+                            )}
+                            onLoad={() => setIsImageLoading(false)}
+                            onError={() => {
+                              setIsImageLoading(false);
+                              toast.error("Failed to load campaign image");
+                            }}
+                          />
+                        </>
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-gray-50 border-2 border-dashed">
-                          <p className="text-sm text-muted-foreground">
+                        <div className="w-full h-full flex flex-col items-center justify-center bg-gray-50 border-2 border-dashed border-gray-200">
+                          <ImageIcon className="w-10 h-10 text-gray-300 mb-2" />
+                          <p className="text-xs text-muted-foreground">
                             No media uploaded
                           </p>
                         </div>

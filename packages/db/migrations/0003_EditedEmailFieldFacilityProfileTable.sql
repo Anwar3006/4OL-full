@@ -1,1 +1,0 @@
-ALTER TABLE "facility_profile" ALTER COLUMN "email" DROP NOT NULL;

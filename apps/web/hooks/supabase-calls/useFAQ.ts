@@ -6,6 +6,7 @@ import { toast } from "sonner";
 // Query Keys
 export const FAQ_QUERY_KEYS = {
   all: ["faqs"] as const,
+  categories: ["categories"] as const,
   lists: () => [...FAQ_QUERY_KEYS.all, "list"] as const,
   list: (page: number, limit: number) =>
     [...FAQ_QUERY_KEYS.lists(), { page, limit }] as const,
@@ -89,7 +90,7 @@ export const useFAQ = (id: string | null) => {
 
 export const useFAQCategories = () => {
   return useQuery<any, Error>({
-    queryKey: ["faqCategories"],
+    queryKey: ["categories"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("faq_categories")
@@ -212,7 +213,7 @@ export const useCreateFAQCategory = () => {
     },
     onSuccess: () => {
       // This forces the FAQ dropdown to refresh automatically
-      queryClient.invalidateQueries({ queryKey: ["faq_categories"] });
+      queryClient.invalidateQueries({ queryKey: FAQ_QUERY_KEYS.categories });
     },
   });
 };

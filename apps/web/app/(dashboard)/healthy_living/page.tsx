@@ -26,12 +26,12 @@ const HealthyLivingPage = () => {
 
   const paginationHandler = useMemo(
     () => createPaginationHandlers(page, setPage, data?.meta.totalPages),
-    [page, data?.meta.totalPages]
+    [page, data?.meta.totalPages],
   );
 
   const onRowClick = useCallback(
-    (data: any) => viewHealthyLiving.open(data),
-    [viewHealthyLiving]
+    (data: any) => viewHealthyLiving.open(data.id),
+    [viewHealthyLiving],
   );
   const pagination = useMemo(
     () => ({
@@ -45,7 +45,7 @@ const HealthyLivingPage = () => {
       canNextPage: page < (data?.meta?.totalPages || 1),
       canPreviousPage: page > 1,
     }),
-    [page, data, paginationHandler]
+    [page, data, paginationHandler],
   );
 
   return (

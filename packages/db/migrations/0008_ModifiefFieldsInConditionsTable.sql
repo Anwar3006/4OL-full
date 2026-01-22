@@ -1,1 +1,0 @@
-ALTER TABLE "conditions" RENAME COLUMN "treament" TO "treatment";

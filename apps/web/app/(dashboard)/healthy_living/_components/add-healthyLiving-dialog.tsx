@@ -96,8 +96,8 @@ const AddHealthyLivingDialog = () => {
   }, [isOpen, isEditMode, data, form]);
 
   const name = form.watch("name") ?? "";
-  const filename = name.replaceAll(/\s+/g, "");
-  const filePath = `${filename}-${nanoid(8)}`;
+  const filename = `${name.replaceAll(/\s+/g, "").toLowerCase()}-${nanoid(8)}`;
+  const filePath = `healthy_living/${filename}`;
 
   const isSubmitting = isPending || submittingEdit;
 
@@ -105,24 +105,24 @@ const AddHealthyLivingDialog = () => {
     setStep(1);
     close();
   };
-  const handleSubmit = async (data: any) => {
+  const handleSubmit = async (formData: any) => {
     try {
-      const slug = slugify(data.name, {
+      const slug = slugify(formData.name, {
         lower: true,
       });
       const payload = {
-        ...data,
+        ...formData,
         slug,
       };
 
       if (isEditMode) {
-        mutateAsyncEdit({
+        await mutateAsyncEdit({
           id: data.id,
           data: payload,
         });
+      } else {
+        await mutateAsync(payload);
       }
-
-      await mutateAsync(payload);
     } catch (error) {
       console.error("Registration Error: ", error);
     } finally {
@@ -151,7 +151,7 @@ const AddHealthyLivingDialog = () => {
               key={index}
               className={cn(
                 "h-2 flex-1 rounded",
-                index <= step ? "bg-primary" : "bg-muted"
+                index <= step ? "bg-primary" : "bg-muted",
               )}
             />
           ))}
@@ -171,7 +171,7 @@ const AddHealthyLivingDialog = () => {
               (errors) => {
                 toast.error("Errors: " + errors);
                 console.log("Errors: ", errors);
-              }
+              },
             )}
             className="space-y-6"
           >

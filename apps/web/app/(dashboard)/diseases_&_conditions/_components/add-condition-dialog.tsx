@@ -142,8 +142,8 @@ const AddConditionDialog = () => {
   console.log("Editting: ", isEditMode, condition);
 
   const name = form.watch("name") ?? "";
-  const filename = name.replace(/\s+/g, "");
-  const filePath = `conditions/${filename}-${nanoid(8)}`;
+  const filename = `${name.replace(/\s+/g, "").toLowerCase()}-${nanoid(8)}`;
+  const filePath = `conditions/${filename}`;
 
   const handleDialogClose = () => {
     setStep(1);

@@ -89,7 +89,7 @@ export const useHealthyLiving = (id: string | null) => {
             type_name,
             about_type
           )
-        `
+        `,
         )
         .eq("id", id!)
         .single();
@@ -237,9 +237,9 @@ export const useUpdateHealthyLiving = () => {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({
-        queryKey: HEALTHY_LIVING_QUERY_KEYS.all,
+        queryKey: HEALTHY_LIVING_QUERY_KEYS.detail(data.id),
       });
-      queryClient.setQueryData(HEALTHY_LIVING_QUERY_KEYS.detail(data.id), data);
+      // queryClient.setQueryData(HEALTHY_LIVING_QUERY_KEYS.detail(data.id), data);
       toast.success("Healthy living item updated successfully!");
     },
     onError: (error) => {

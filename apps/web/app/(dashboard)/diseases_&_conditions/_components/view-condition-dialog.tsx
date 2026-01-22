@@ -85,7 +85,7 @@ export function ViewConditionDialog() {
         {condition ? (
           <>
             {/* 1. Impactful Header Section */}
-            <div className="bg-white p-6 md:p-8 pt-12 border-b border-slate-200">
+            <div className="bg-white p-6 md:px-8 md:py-3 pt-3 border-b border-slate-200">
               <SheetHeader className="space-y-4">
                 <VisuallyHidden.Root>
                   <SheetTitle>Details for {condition.name}</SheetTitle>

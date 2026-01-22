@@ -61,7 +61,7 @@ export const useUsers = (params: Pagination) => {
             email
           )
         `,
-        { count: "exact" }
+        { count: "exact" },
       );
 
       // 2. Role Condition
@@ -80,7 +80,7 @@ export const useUsers = (params: Pagination) => {
       // 4. Search Filter (ILike across multiple columns)
       if (params.search) {
         query = query.or(
-          `first_name.ilike.%${params.search}%,last_name.ilike.%${params.search}%,phone_number.ilike.%${params.search}%`
+          `first_name.ilike.%${params.search}%,last_name.ilike.%${params.search}%,phone_number.ilike.%${params.search}%`,
         );
       }
 
@@ -102,7 +102,7 @@ export const useUsers = (params: Pagination) => {
           if (curr.status in acc) acc[curr.status as keyof typeof acc]++;
           return acc;
         },
-        { active: 0, pending: 0, inactive: 0, suspended: 0 }
+        { active: 0, pending: 0, inactive: 0, suspended: 0 },
       );
 
       const userData = data?.map((user) => ({ ...user, ...user.user }));
@@ -137,7 +137,7 @@ export const useUser = ({ id, enabled }: { id: string; enabled: boolean }) => {
             name,
             email
           )
-        `
+        `,
         )
         .eq("user_id", id) // Use user_id if that's your FK to Better Auth
         .single();
@@ -201,7 +201,7 @@ export const useCreateUserProfile = () => {
   });
 };
 
-//TODO: Test this hook
+// //TODO: Test this hook
 // export const useCreateAdminInvite = () => {
 //   const queryClient = useQueryClient();
 

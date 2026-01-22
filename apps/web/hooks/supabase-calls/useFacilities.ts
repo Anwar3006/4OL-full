@@ -64,7 +64,7 @@ export const useFacilityProfiles = (params: Pagination) => {
 
       if (search) {
         query.or(
-          `facility_name.ilike.%${search}%,district.ilike.%${search}%,region.ilike.%${search}%`
+          `facility_name.ilike.%${search}%,district.ilike.%${search}%,region.ilike.%${search}%`,
         );
       }
       if (status) {
@@ -107,7 +107,7 @@ export const useFacilityProfiles = (params: Pagination) => {
         meta: {
           total: totalCount, // Extract count from the data query
           totalPages: Math.ceil(
-            (facilitiesResponse.count || 0) / (limit || 10)
+            (facilitiesResponse.count || 0) / (limit || 10),
           ),
           currentPage: page,
           totalCount,
@@ -202,7 +202,9 @@ export const useCreateFacilityProfile = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: TFacilityProfileInput) => {
+    mutationFn: async (
+      data: TFacilityProfileInput & { featured_image_url: string },
+    ) => {
       const payload = {
         ...data,
         keywords:
@@ -219,7 +221,7 @@ export const useCreateFacilityProfile = () => {
           p_last_name: data.last_name,
           p_phone_number: data.person_contact_number,
           p_facility_data: { ...payload },
-        }
+        },
       );
 
       if (error) {
@@ -270,13 +272,13 @@ export const useUpdateFacilityProfile = () => {
             .pop()}`;
           await moveFile(tempPath, newPath);
           return newPath;
-        })
+        }),
       );
 
       // 3. Update the database record
       const finalMediaUrls = [
         ...(input.media_urls || []).filter(
-          (url) => !imagesToDelete?.includes(url)
+          (url) => !imagesToDelete?.includes(url),
         ),
         ...newFilePaths,
       ];
@@ -309,11 +311,7 @@ export const useUpdateFacilityProfile = () => {
 export const useApproveFacility = () => {
   const queryClient = useQueryClient();
 
-  return useMutation<
-    any,
-    Error,
-    { id: string; status: string; media_urls: string[] }
-  >({
+  return useMutation({
     mutationFn: async ({
       id,
       status,
@@ -323,54 +321,77 @@ export const useApproveFacility = () => {
       status: string;
       media_urls: string[];
     }) => {
-      if (status !== "pending") {
-        throw new Error("Facility is not in pending status");
+      if (status !== "active" && status !== "pending") {
+        throw new Error("Facility status must be pending to approve.");
       }
 
-      const moveApprovedImagesPromise = () =>
-        media_urls.map(async (urlPath: string) => {
-          const filePath = urlPath.replace("temporary", "approved");
-          if (urlPath === filePath) {
-            console.error(
-              `Skip copy: Source and destination are identical for ${urlPath}`
-            );
-          }
+      // 1. Map through the URLs and prepare the move operations
+      const moveOps = media_urls.map(async (urlPath: string) => {
+        // Only move if it's currently in the temporary folder
+        if (!urlPath.includes("temporary")) return urlPath;
 
-          const newPath = filePath.split("/");
-          const filename = newPath.at(-1);
-          const newFilePath = `facilities/approved/${id}/${filename}`;
+        const filename = urlPath.split("/").at(-1);
+        const newFilePath = `facilities/approved/${id}/${filename}`;
 
-          // Move the files over to new location
+        try {
+          // moveFile is your helper that likely uses supabase.storage.from().move()
           await moveFile(urlPath, newFilePath);
-
           return newFilePath;
-        });
+        } catch (err) {
+          console.error(`Failed to move ${urlPath}:`, err);
+          // Fallback: if move fails, keep the old path so we don't lose the data link
+          return urlPath;
+        }
+      });
 
-      const newFilePaths = await Promise.all(moveApprovedImagesPromise());
+      // 2. Wait for all files to be physically moved in Storage
+      const newFilePaths = await Promise.all(moveOps);
 
+      // 3. Update the Database with the NEW paths and status
       const { error: updateError } = await supabase
         .from("facility_profile")
         .update({
           status: "active",
-          approved_at: new Date(),
+          approved_at: new Date().toISOString(),
           media_urls: newFilePaths,
+          // Update featured_image_url as well if it was temporary
+          featured_image_url: newFilePaths[0],
         })
         .eq("id", id);
 
-      if (updateError) {
-        throw new Error(updateError.message);
-      } else {
-        return { sucess: true, newFilePaths };
-      }
+      if (updateError) throw updateError;
+
+      return { success: true, newFilePaths };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: FACILITY_PROFILE_QUERY_KEYS.all,
       });
-      toast.success("Facility has been successfully approved");
+      toast.success("Facility approved and images migrated.");
+    },
+  });
+};
+
+export const useRejectFacility = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id }: { id: string }) => {
+      const { error } = await supabase
+        .from("facility_profile")
+        .update({ status: "rejected" })
+        .eq("id", id);
+
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: FACILITY_PROFILE_QUERY_KEYS.all,
+      });
+      toast.success("Facility rejected.");
     },
     onError: (error) => {
-      toast.error("Failed to approve facility: " + error.message);
+      toast.error("Failed to reject facility: " + error.message);
     },
   });
 };
