@@ -152,3 +152,99 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 ```
+
+## Activity Logs
+
+- We create a table, then we create a function to run to populate that table then we create and attach triggers to each table we want to monitor so we can log CRUD activities from those tables
+
+1. Create the activity_logs Table
+   First, we create a central table to store these logs. We use jsonb for affected_record_id or metadata to allow for flexibility if you want to store more details later.
+
+```sql
+CREATE TABLE IF NOT EXISTS public.activity_logs (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    actor_id text,                    -- BetterAuth IDs are often strings
+    actor_name text,
+    action_type text NOT NULL,        -- 'INSERT', 'UPDATE', 'DELETE'
+    target_table text NOT NULL,
+    record_id text,                   -- record IDs can vary
+    old_data jsonb,
+    new_data jsonb,
+    created_at timestamp with time zone DEFAULT now()
+);
+
+-- Index for faster dashboard loading
+CREATE INDEX idx_activity_logs_created_at ON public.activity_logs(created_at DESC);
+```
+
+2. The Generic Logging Function
+   This function dynamically detects the table name and the action being performed.
+
+```sql
+CREATE OR REPLACE FUNCTION public.fn_log_admin_activity()
+RETURNS TRIGGER AS $$
+DECLARE
+    -- Read the user ID from the session variable we will set in the SDK call
+    current_actor_id text := current_setting('app.current_user_id', true);
+    actor_name text;
+BEGIN
+    -- If no user is set (e.g., a background script), we might skip or log as 'system'
+    IF current_actor_id IS NULL OR current_actor_id = '' THEN
+        current_actor_id := 'system';
+        actor_name := 'System/Automated';
+    ELSE
+        SELECT name INTO actor_name FROM public.user_profile WHERE id = current_actor_id;
+    END IF;
+
+    -- Filter: Only log user_profile changes if they involve admin roles
+    IF (TG_TABLE_NAME = 'user_profile') THEN
+        IF NOT (
+            (NEW.role IS NOT NULL AND NEW.role IN ('admin', 'super_admin', 'registrar')) OR
+            (OLD.role IS NOT NULL AND OLD.role IN ('admin', 'super_admin', 'registrar'))
+        ) THEN
+            RETURN COALESCE(NEW, OLD);
+        END IF;
+    END IF;
+
+    INSERT INTO public.activity_logs (
+        actor_id,
+        actor_name,
+        action_type,
+        target_table,
+        record_id,
+        new_data,
+        old_data
+    )
+    VALUES (
+        current_actor_id,
+        actor_name,
+        TG_OP,
+        TG_TABLE_NAME,
+        COALESCE(NEW.id::text, OLD.id::text),
+        CASE WHEN TG_OP = 'DELETE' THEN NULL ELSE to_jsonb(NEW) END,
+        CASE WHEN TG_OP = 'INSERT' THEN NULL ELSE to_jsonb(OLD) END
+    );
+
+    RETURN COALESCE(NEW, OLD);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+```
+
+- Since we are using betterAuth which is a middleware and does work at the database level, we need a way to tell the database about the person performing the action so we set a custom session variable which would be specific to the each being performed, then in the above SQL statement we can get that variable and use it.
+- We create an RPC that will set the session id to the user id for the person making the query:
+
+```sql
+-- Helper RPC to set context
+CREATE OR REPLACE FUNCTION apply_admin_change(user_id text, query_text text)
+RETURNS void AS $$
+BEGIN
+  EXECUTE format('SET LOCAL app.current_user_id = %L', user_id);
+  EXECUTE query_text;
+END;
+$$ LANGUAGE plpgsql;
+```
+
+- Unfortunately we arent using Supabase Auth which has visibility at the database level. IF we did it would have been easier because all we had to do next we attach triggers to the tables we want to monitor. But now because BetterAuth autenticated users have no visibility at the database level, we have to include a next step, we have to create RPCs for all the actions we want to monitor, this rpc will take the admin id as first argument and the payload for whatever CRUD operation as the second argument.
+- Why?
+  - Because Supabase calls run on HTTP/S, meaning each call is independent of the next, so if we call the first RPC(the one to attach the admin id to the query session), and we then make our query using supabase's sdk, these two will be independent calls, which isnt what we want because then the activity_logs table will not be populated for that action because it had no query session id attached so we could not find the user making the query.
+  - Essentially we need to do these two in a transaction and the only way to do this in Supabase is to use RPCs
