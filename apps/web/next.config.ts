@@ -26,16 +26,23 @@ const nextConfig: NextConfig = {
         hostname: "**.oraclecloud.com",
         pathname: "/**",
       },
-      // Add your CDN domain if different
+      // personal supabase
       {
         protocol: "https",
         hostname: "pyzddsvvazfrhohghuki.supabase.co",
-        pathname: "/**",
+        pathname: "/storage/v1/object/public/**",
       },
+      //personal supabase
       {
         protocol: "https",
         hostname: "rwutaufwmebkyipekybp.supabase.co",
-        pathname: "/**",
+        pathname: "/storage/v1/object/public/**",
+      },
+      //current production supabase
+      {
+        protocol: "https",
+        hostname: "rhbbxttxnvcziyqzptqs.supabase.co",
+        pathname: "/storage/v1/object/public/**",
       },
     ],
   },

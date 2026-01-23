@@ -349,6 +349,37 @@ CREATE TABLE "verification" (
 );
 --> statement-breakpoint
 
+CREATE TABLE IF NOT EXISTS public.medication_reminders (
+    "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    "user_id" text NOT NULL REFERENCES public.user_profiles(user_id) ON DELETE CASCADE,
+    "medication_name" text NOT NULL,
+    "dosage" text NOT NULL, -- e.g., "5mg" or "2 tablets"
+    "instructions" text,    -- e.g., "Take with food"
+    
+    -- Scheduling Logic
+    "start_date" date NOT NULL DEFAULT CURRENT_DATE,
+    "end_date" date,        -- NULL if ongoing
+    "reminder_time" time NOT NULL, -- e.g., '08:00:00'
+    "frequency_days" integer DEFAULT 1, -- e.g., 1 for daily, 2 for every other day
+    
+    -- Control & Metadata
+    "is_enabled" boolean DEFAULT true, -- For user/admin pausing
+    "created_at" timestamp with time zone DEFAULT now(),
+    "updated_at" timestamp with time zone DEFAULT now()
+);
+-- Essential Indexes for Performance
+CREATE INDEX idx_med_reminders_user_id ON public.medication_reminders(user_id);
+CREATE INDEX idx_med_reminders_active_lookup ON public.medication_reminders(is_enabled) WHERE is_enabled = true;
+-- Index to help the cron job find reminders due at a specific time
+CREATE INDEX idx_med_reminders_time ON public.medication_reminders(reminder_time);
+--> statement-breakpoint
+
+
+ALTER TABLE "user_profiles" ADD COLUMN expo_push_token text;
+-- Index this so your notification worker can find tokens fast
+CREATE INDEX "idx_user_push_token" ON "user_profiles"(expo_push_token);
+--> statement-breakpoint
+
 -- Trends Table: platform metrics for dashboard
 CREATE TABLE IF NOT EXISTS platform_metrics_history (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),

@@ -47,6 +47,7 @@ export function LexicalRenderer({
           ul: "list-disc ml-6 space-y-1",
           listitem: "pl-1",
         },
+        link: "text-blue-600 hover:underline cursor-pointer",
       },
       nodes: nodes,
       onError: (error: Error) => {
@@ -61,7 +62,7 @@ export function LexicalRenderer({
         }
       },
     }),
-    [editorState]
+    [editorState],
   );
 
   // Don't render during SSR or if no state
