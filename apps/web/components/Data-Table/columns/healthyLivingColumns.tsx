@@ -42,7 +42,7 @@ export const healthyLivingColumns: ColumnDef<THealthyLivingOutput>[] = [
     ),
     cell: ({ row }) => (
       <div className="hidden xl:table-cell text-xs text-muted-foreground">
-        {new Date(row.original.createdAt).toLocaleDateString(undefined, {
+        {new Date(row.original.created_at).toLocaleDateString(undefined, {
           dateStyle: "medium",
         })}
       </div>

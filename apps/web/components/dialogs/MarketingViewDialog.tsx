@@ -20,8 +20,6 @@ import {
   Trash2,
   Pause,
   Play,
-  ExternalLink,
-  Phone,
   FileText,
   Info,
   Globe,
@@ -31,7 +29,6 @@ import { MarkrtingStatusMap } from "@/constants/marketing.const";
 import { useViewMarketingDialog } from "@/stores/dialog-store";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { useMarketingProfile } from "@/hooks/supabase-calls/useMarketing";
-import { useGetSignedUrls } from "@/hooks/supabase-calls/useMediaStorage";
 
 export function MarketingViewDialog() {
   const { isOpen, entityId, close } = useViewMarketingDialog();
@@ -43,10 +40,8 @@ export function MarketingViewDialog() {
 
   const { data: imageData } = trpc.mediaStorage.getImageUrl.useQuery(
     { paths: [campaign?.imageUrl || ""], width: 800 },
-    { enabled: !!campaign?.imageUrl }
+    { enabled: !!campaign?.imageUrl },
   );
-
-  //  const { data: imageData2 } = useGetSignedUrls([campaign?.imageUrl || ""], !!campaign?.imageUrl);
 
   if (!isOpen) return null;
 
@@ -177,7 +172,7 @@ export function MarketingViewDialog() {
                         </label>
                         <div className="flex flex-wrap gap-2">
                           {Object.entries(
-                            campaign.links as Record<string, string>
+                            campaign.links as Record<string, string>,
                           ).map(([key, value]) => (
                             <Button
                               key={key}
