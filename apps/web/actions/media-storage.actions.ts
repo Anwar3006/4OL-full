@@ -1,6 +1,6 @@
 "use server";
 
-import { authClient } from "@/lib/auth-client";
+import { auth } from "@4ol/api/auth";
 import { supabaseAdmin } from "@/lib/supabase/indexAdmin";
 import { headers } from "next/headers";
 
@@ -11,13 +11,11 @@ import { headers } from "next/headers";
 export async function getPresignedUploadUrl(filePath: string) {
   try {
     // Verify user is authenticated
-    const session = await authClient.getSession({
-      fetchOptions: {
-        headers: await headers(),
-      },
+    const session = await auth.api.getSession({
+      headers: await headers(),
     });
 
-    if (!session?.data?.user) {
+    if (!session?.user) {
       return {
         success: false,
         error: "Unauthorized: You must be logged in to upload files",
@@ -67,13 +65,11 @@ export async function uploadToSignedUrl(
 ) {
   try {
     // Verify user is authenticated
-    const session = await authClient.getSession({
-      fetchOptions: {
-        headers: await headers(),
-      },
+    const session = await auth.api.getSession({
+      headers: await headers(),
     });
 
-    if (!session?.data?.user) {
+    if (!session?.user) {
       return {
         success: false,
         error: "Unauthorized: You must be logged in to upload files",
@@ -102,13 +98,11 @@ export async function uploadToSignedUrl(
 export async function deleteFile(filePath: string) {
   try {
     // Verify user is authenticated
-    const session = await authClient.getSession({
-      fetchOptions: {
-        headers: await headers(),
-      },
+    const session = await auth.api.getSession({
+      headers: await headers(),
     });
 
-    if (!session?.data?.user) {
+    if (!session?.user) {
       return {
         success: false,
         error: "Unauthorized: You must be logged in to delete files",

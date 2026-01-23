@@ -57,56 +57,56 @@ const DashboardPage = () => {
         <DashBoardStatsCard
           Icon={Hospital}
           title="Total Registered Facilities"
-          value={data.live.total_facilities}
+          value={data?.live?.total_facilities ?? 0}
           href="/facilities"
           variant="success"
         />
         <DashBoardStatsCard
           Icon={PlusCircleIcon}
           title="Facilities Pending Approval"
-          value={data?.live.pending_facilities}
+          value={data?.live?.pending_facilities ?? 0}
           href="/facilities"
           variant="warning"
         />
         <DashBoardStatsCard
           Icon={Users}
           title="Total Registered Users"
-          value={data.live.total_users}
+          value={data?.live?.total_users ?? 0}
           href="/users"
           variant="success"
         />
         <DashBoardStatsCard
           Icon={UserStar}
           title="Active Users (24h)"
-          value={data.live.active_users_24h}
+          value={data?.live?.active_users_24h ?? 0}
           href="/users"
           variant="primary"
         />
         <DashBoardStatsCard
           Icon={UserStar}
           title="Active Users (30days)"
-          value={data.live.active_users_30d}
+          value={data?.live?.active_users_30d ?? 0}
           href="/users"
           variant="default"
         />
         <DashBoardStatsCard
           Icon={UserCircleIcon}
           title="New Signups (Today)"
-          value={data.live.new_signups_today}
+          value={data?.live?.new_signups_today ?? 0}
           href="/users"
           variant="default"
         />
         <DashBoardStatsCard
           Icon={UserCircleIcon}
           title="Demographic Count (Male)"
-          value={data.live.male_count}
+          value={data?.live?.male_count ?? 0}
           href="/users"
           variant="default"
         />
         <DashBoardStatsCard
           Icon={UserCircleIcon}
           title="Demographic Count (Female)"
-          value={data.live.female_count}
+          value={data?.live?.female_count ?? 0}
           href="/users"
           variant="default"
         />

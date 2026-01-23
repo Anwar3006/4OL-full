@@ -8,11 +8,11 @@ import * as schema from "./models/index.model";
 import * as dotenv from "dotenv";
 dotenv.config({ path: "../../.env.local" });
 
-const connectionString = process.env.DATABASE_URL!;
+const connectionString = process.env.SUPABASE_DATABASE_URL!;
 
 // 1. HTTP Client: The "Speed Demon" (Use for Queries/Reads)
-// const sql = neon(connectionString);
-// export const db = drizzleHttp(sql, { schema });
+const sql = neon(connectionString);
+export const db = drizzleHttp(sql, { schema });
 
 // 2. TCP Client: The "Transaction Master" (Use for Writes/Auth)
 // Note: Use the Neon connection string with '-pooler' for this
