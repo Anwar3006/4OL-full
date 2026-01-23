@@ -70,6 +70,7 @@ const STEP_1_FIELDS: (keyof TFacilityProfileInput)[] = [
 
 const AddFacilityDialog = () => {
   const { isOpen, data, isEditMode, close } = useAddFacilityDialog();
+  const { data: session } = authClient.useSession();
   // Progress Step Management
   const [step, setStep] = useState<1 | 2>(1);
   const [submitting, setSubmitting] = useState<boolean>(false);
@@ -320,6 +321,7 @@ const AddFacilityDialog = () => {
       const payload = {
         ...profileData,
         featured_image_url: featuredImage || finalImageUrls[0],
+        adminId: session?.user?.id ?? "",
       };
 
       // SCENARIO 1: EDIT MODE

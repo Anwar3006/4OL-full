@@ -826,7 +826,7 @@ $$ LANGUAGE plpgsql;
 --- Table to track images to delete
 CREATE TABLE IF NOT EXISTS public.storage_cleanup_queue (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  file_paths text[] NOT NULL,
+  file_paths jsonb NOT NULL,
   bucket_name text DEFAULT 'facilities' NOT NULL,
   created_at timestamp DEFAULT now()
 );

@@ -203,7 +203,10 @@ export const useCreateFacilityProfile = () => {
 
   return useMutation({
     mutationFn: async (
-      data: TFacilityProfileInput & { featured_image_url: string },
+      data: TFacilityProfileInput & {
+        featured_image_url: string;
+        adminId: string;
+      },
     ) => {
       const payload = {
         ...data,
@@ -216,6 +219,7 @@ export const useCreateFacilityProfile = () => {
       const { data: facility, error } = await supabase.rpc(
         "register_facility_with_profile",
         {
+          p_admin_id: data.adminId,
           p_owner_id: data.ownerId,
           p_first_name: data.first_name,
           p_last_name: data.last_name,
@@ -243,131 +247,95 @@ export const useCreateFacilityProfile = () => {
   });
 };
 
+// 1. Update Facility Hook
 export const useUpdateFacilityProfile = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation<
-    any,
-    Error,
-    TFacilityProfileInput & {
-      imagesToDelete?: string[];
-      newlyUploadedFiles?: string[];
-      id: string;
-    }
-  >({
-    mutationFn: async (input) => {
-      const { imagesToDelete, newlyUploadedFiles, id, ...updatePayload } =
-        input;
-
-      // 1. Delete images marked for removal
-      if (imagesToDelete && imagesToDelete.length > 0) {
-        await deleteFiles(imagesToDelete);
-      }
-
-      // 2. Move newly uploaded files from temp to permanent storage
-      const newFilePaths = await Promise.all(
-        (newlyUploadedFiles || []).map(async (tempPath) => {
-          const newPath = `facilities/approved/${id}/${tempPath
-            .split("/")
-            .pop()}`;
-          await moveFile(tempPath, newPath);
-          return newPath;
-        }),
-      );
-
-      // 3. Update the database record
-      const finalMediaUrls = [
-        ...(input.media_urls || []).filter(
-          (url) => !imagesToDelete?.includes(url),
-        ),
-        ...newFilePaths,
-      ];
-
-      const { data, error } = await supabase
-        .from("facility_profile")
-        .update({ ...updatePayload, media_urls: finalMediaUrls })
-        .eq("id", input.id!);
-
-      if (error) throw new Error(error.message);
-
-      return data;
-    },
-    onSuccess: (_, variables) => {
-      // Invalidate queries to refetch data
-      queryClient.invalidateQueries({
-        queryKey: FACILITY_PROFILE_QUERY_KEYS.lists(),
-      });
-      queryClient.invalidateQueries({
-        queryKey: FACILITY_PROFILE_QUERY_KEYS.detail(variables.id!),
-      });
-      toast.success("Facility profile updated successfully!");
-    },
-    onError: (error) => {
-      toast.error(`Failed to update facility profile: ${error.message}`);
-    },
-  });
-};
-
-export const useApproveFacility = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async ({
       id,
-      status,
-      media_urls,
-    }: {
-      id: string;
-      status: string;
-      media_urls: string[];
-    }) => {
-      if (status !== "active" && status !== "pending") {
-        throw new Error("Facility status must be pending to approve.");
-      }
+      imagesToDelete,
+      newlyUploadedFiles,
+      ...updatePayload
+    }: any) => {
+      // Storage Logic: Delete and Move files (Same as your original)
+      if (imagesToDelete?.length) await deleteFiles(imagesToDelete);
 
-      // 1. Map through the URLs and prepare the move operations
-      const moveOps = media_urls.map(async (urlPath: string) => {
-        // Only move if it's currently in the temporary folder
-        if (!urlPath.includes("temporary")) return urlPath;
+      const newFilePaths = await Promise.all(
+        (newlyUploadedFiles || []).map(async (tempPath: string) => {
+          const newPath = `facilities/approved/${id}/${tempPath.split("/").pop()}`;
+          await moveFile(tempPath, newPath);
+          return newPath;
+        }),
+      );
 
-        const filename = urlPath.split("/").at(-1);
-        const newFilePath = `facilities/approved/${id}/${filename}`;
+      const finalMediaUrls = [
+        ...(updatePayload.media_urls || []).filter(
+          (url: string) => !imagesToDelete?.includes(url),
+        ),
+        ...newFilePaths,
+      ];
 
-        try {
-          // moveFile is your helper that likely uses supabase.storage.from().move()
-          await moveFile(urlPath, newFilePath);
-          return newFilePath;
-        } catch (err) {
-          console.error(`Failed to move ${urlPath}:`, err);
-          // Fallback: if move fails, keep the old path so we don't lose the data link
-          return urlPath;
-        }
+      // RPC Call: Finalize DB + Audit Log
+      const { error } = await supabase.rpc("admin_update_facility_profile", {
+        p_admin_id: updatePayload.adminId,
+        p_facility_id: id,
+        p_payload: updatePayload,
+        p_final_media_urls: finalMediaUrls,
       });
 
-      // 2. Wait for all files to be physically moved in Storage
-      const newFilePaths = await Promise.all(moveOps);
+      if (error) throw error;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: FACILITY_PROFILE_QUERY_KEYS.all,
+      });
+      toast.success("Facility updated and logged.");
+    },
+  });
+};
 
-      // 3. Update the Database with the NEW paths and status
-      const { error: updateError } = await supabase
-        .from("facility_profile")
-        .update({
-          status: "active",
-          approved_at: new Date().toISOString(),
-          media_urls: newFilePaths,
-          // Update featured_image_url as well if it was temporary
-          featured_image_url: newFilePaths[0],
-        })
-        .eq("id", id);
+// 2. Approve Facility Hook
+export const useApproveFacility = () => {
+  const queryClient = useQueryClient();
 
-      if (updateError) throw updateError;
+  return useMutation({
+    mutationFn: async ({
+      adminId,
+      id,
+      media_urls,
+    }: {
+      adminId: string;
+      id: string;
+      media_urls: string[];
+    }) => {
+      // Storage Logic: Migrate temporary files to permanent
+      const newFilePaths = await Promise.all(
+        media_urls.map(async (url: string) => {
+          if (!url.includes("temporary")) return url;
+          const newPath = `facilities/approved/${id}/${url.split("/").at(-1)}`;
+          await moveFile(url, newPath);
+          return newPath;
+        }),
+      );
 
-      return { success: true, newFilePaths };
+      // RPC Call
+      const { error } = await supabase.rpc("admin_change_facility_status", {
+        p_admin_id: adminId,
+        payload: {
+          p_facility_id: id,
+          p_new_status: "active",
+          p_media_urls: newFilePaths,
+        },
+      });
+
+      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: FACILITY_PROFILE_QUERY_KEYS.all,
       });
-      toast.success("Facility approved and images migrated.");
+      toast.success("Facility approved!");
     },
   });
 };
@@ -376,48 +344,65 @@ export const useRejectFacility = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id }: { id: string }) => {
-      const { error } = await supabase
-        .from("facility_profile")
-        .update({ status: "rejected" })
-        .eq("id", id);
+    mutationFn: async ({
+      adminId,
+      id,
+      media_urls,
+    }: {
+      adminId: string;
+      id: string;
+      media_urls: string[];
+    }) => {
+      // Storage Logic: Migrate temporary files to permanent
+      const newFilePaths = await Promise.all(
+        media_urls.map(async (url: string) => {
+          if (!url.includes("temporary")) return url;
+          const newPath = `facilities/rejected/${id}/${url.split("/").at(-1)}`;
+          await moveFile(url, newPath);
+          return newPath;
+        }),
+      );
 
-      if (error) throw new Error(error.message);
+      console.log("new-> ", newFilePaths);
+
+      // RPC Call
+      const { error } = await supabase.rpc("admin_change_facility_status", {
+        p_admin_id: adminId,
+        payload: {
+          p_facility_id: id,
+          p_new_status: "rejected",
+          p_media_urls: newFilePaths,
+        },
+      });
+
+      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: FACILITY_PROFILE_QUERY_KEYS.all,
       });
-      toast.success("Facility rejected.");
-    },
-    onError: (error) => {
-      toast.error("Failed to reject facility: " + error.message);
+      toast.success("Facility approved!");
     },
   });
 };
 
-//TODO: Test this hook
+// 3. Delete Facility Hook
 export const useDeleteFacility = () => {
   const queryClient = useQueryClient();
 
-  return useMutation<any, Error, { id: string }>({
-    mutationFn: async ({ id }: { id: string }) => {
-      const { data, error } = await supabase
-        .from("facility_profile")
-        .delete()
-        .eq("id", id);
-
-      if (error) throw new Error(error.message);
-      return { success: true, data };
+  return useMutation({
+    mutationFn: async ({ adminId, id }: { adminId: string; id: string }) => {
+      const { error } = await supabase.rpc("admin_delete_facility", {
+        p_admin_id: adminId,
+        p_facility_id: id,
+      });
+      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: FACILITY_PROFILE_QUERY_KEYS.all,
       });
-      toast.success("Facility successfully deleted!");
-    },
-    onError: (error) => {
-      toast.success("Failed to delete facility: " + error.message);
+      toast.success("Facility deleted.");
     },
   });
 };

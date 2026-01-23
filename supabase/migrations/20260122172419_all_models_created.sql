@@ -679,7 +679,11 @@ CREATE OR REPLACE FUNCTION register_facility_with_profile(
 DECLARE
   v_facility JSONB;
 BEGIN
-  -- 1. Ensure user_profile exists
+
+  -- Set context for activity_logs trigger
+  EXECUTE format('SET LOCAL app.current_user_id = %L', p_admin_id)
+
+  -- 2. Ensure user_profile exists
   INSERT INTO user_profiles (
     user_id, first_name, last_name, phone_number, user_type, role, dob, sex
   ) 
@@ -688,7 +692,7 @@ BEGIN
   )
   ON CONFLICT (user_id) DO NOTHING;
 
-  -- 2. Insert into facility_profile
+  -- 3. Insert into facility_profile
   INSERT INTO facility_profile (
     owner_id,
     facility_name,

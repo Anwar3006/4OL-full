@@ -42,10 +42,13 @@ import {
 import { TFacilityProfileOutput } from "@4ol/db/schemas/facility-profile.schema";
 import { WhatsAppIcon } from "@/public/assets/images/icon/whatsapp";
 import { useMemo } from "react";
+import { authClient } from "@/lib/auth-client";
 
 export function FacilityViewDialog() {
   const viewDialog = useViewFacilityDialog();
   const addDialog = useAddFacilityDialog();
+
+  const { data: session } = authClient.useSession();
 
   const { data: facilityData, isLoading: isFacilityLoading } =
     useFacilityProfile({
@@ -80,8 +83,9 @@ export function FacilityViewDialog() {
   const handleApproval = async () => {
     try {
       await approveFacilityMutation({
+        adminId: session?.user.id as string,
         id: facility.id as string,
-        status: facility.status as string,
+
         media_urls: facility.media_urls as string[],
       });
     } catch (error) {
@@ -94,7 +98,9 @@ export function FacilityViewDialog() {
   const handleRejection = async () => {
     try {
       await rejectFacilityMutation({
+        adminId: session?.user.id as string,
         id: facility.id as string,
+        media_urls: facility.media_urls as string[],
       });
     } catch (error) {
       console.error("Error rejecting facility: ", error);
