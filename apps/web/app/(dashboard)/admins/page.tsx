@@ -3,7 +3,7 @@ import React from "react";
 
 import AdminSection from "./_components/AdminSection";
 import AddAdminDialog from "./_components/add-admin-dialog";
-import { ViewUserDialog } from "@/components/dialogs/ViewUserDialog";
+import { ViewUserDialog } from "../users/_components/view-user-dialog";
 
 export default function UsersPage() {
   return (

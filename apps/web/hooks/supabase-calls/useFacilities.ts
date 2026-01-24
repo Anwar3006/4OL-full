@@ -304,10 +304,12 @@ export const useApproveFacility = () => {
       adminId,
       id,
       media_urls,
+      featured_image_url,
     }: {
       adminId: string;
       id: string;
       media_urls: string[];
+      featured_image_url: string;
     }) => {
       // Storage Logic: Migrate temporary files to permanent
       const newFilePaths = await Promise.all(
@@ -326,6 +328,7 @@ export const useApproveFacility = () => {
           p_facility_id: id,
           p_new_status: "active",
           p_media_urls: newFilePaths,
+          featured_image_url: featured_image_url,
         },
       });
 

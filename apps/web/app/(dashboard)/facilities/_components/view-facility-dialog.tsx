@@ -1,37 +1,37 @@
 "use client";
 
-import { trpc } from "@/lib/trpc";
-
 import {
   Building2,
   MapPin,
   Globe,
   Phone,
   Mail,
-  Clock,
   ShieldCheck,
   User,
   Calendar,
   CheckCircle2,
   AlertCircle,
-  ExternalLink,
   PhoneCall,
   MailboxIcon,
   Loader2,
 } from "lucide-react";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "../ui/sheet";
-import { Badge } from "../ui/badge";
-import { Separator } from "../ui/separator";
-import { ScrollArea } from "../ui/scroll-area";
-import { AspectRatio } from "../ui/aspect-ratio";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
-import { toast } from "sonner";
 import {
   useAddFacilityDialog,
   useViewFacilityDialog,
 } from "@/stores/dialog-store";
 import BusinessHoursDisplay from "@/app/(dashboard)/facilities/_components/business-hours-display";
-import { Button } from "../ui/button";
+import { Button } from "@/components/ui/button";
 import { toUppercaseFirstLetter } from "@/lib/utils";
 import {
   useApproveFacility,
@@ -85,7 +85,10 @@ export function FacilityViewDialog() {
       await approveFacilityMutation({
         adminId: session?.user.id as string,
         id: facility.id as string,
-
+        featured_image_url: facility.featured_image_url?.replace(
+          "temporary",
+          "approved",
+        ) as string,
         media_urls: facility.media_urls as string[],
       });
     } catch (error) {

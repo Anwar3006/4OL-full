@@ -9,12 +9,13 @@ import { DataTable } from "@/components/Data-Table/data-table";
 import { createPaginationHandlers } from "@/lib/utils";
 import { facilityColumns } from "@/components/Data-Table/columns/facilityColumns";
 import { facilityCardConfig } from "@/components/Data-Table/mobile-table-configs/facilityCardConfig";
-import { FacilityViewDialog } from "@/components/dialogs/ViewFacilityDialog";
+
 import {
   useAddFacilityDialog,
   useViewFacilityDialog,
 } from "@/stores/dialog-store";
 import { useFacilityProfiles } from "@/hooks/supabase-calls/useFacilities";
+import { FacilityViewDialog } from "../_components/view-facility-dialog";
 
 const FacilityPage = () => {
   const params = useParams();

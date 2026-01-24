@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { ViewUserDialog } from "@/components/dialogs/ViewUserDialog";
+import { ViewUserDialog } from "@/app/(dashboard)/users/_components/view-user-dialog";
 import AddAdminDialog from "../admins/_components/add-admin-dialog";
 
 import UserSection from "./_components/UserSection";

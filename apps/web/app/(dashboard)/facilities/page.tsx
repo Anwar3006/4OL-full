@@ -17,12 +17,13 @@ import {
   useViewFacilityDialog,
 } from "@/stores/dialog-store";
 import AddFacilityDialog from "./_components/add-facility-dialog";
-import { FacilityViewDialog } from "@/components/dialogs/ViewFacilityDialog";
+
 import { useFacilityProfiles } from "@/hooks/supabase-calls/useFacilities";
 import { createPaginationHandlers } from "@/lib/utils";
 import { DataTable } from "@/components/Data-Table/data-table";
 import { facilityColumns } from "@/components/Data-Table/columns/facilityColumns";
 import { facilityCardConfig } from "@/components/Data-Table/mobile-table-configs/facilityCardConfig";
+import { FacilityViewDialog } from "./_components/view-facility-dialog";
 
 const FacilitiesPage = () => {
   const addFacility = useAddFacilityDialog();

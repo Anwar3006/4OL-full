@@ -373,10 +373,7 @@ const AddFacilityDialog = () => {
       const result = await facilityMutation.mutateAsync({
         ...payload,
         ownerId,
-        featured_image_url: payload.featured_image_url.replace(
-          "temporary",
-          "approved",
-        ),
+        featured_image_url: payload.featured_image_url,
       });
 
       if (result) {
@@ -531,6 +528,7 @@ const AddFacilityDialog = () => {
                     options={[
                       { label: "Private", value: "private" },
                       { label: "Government / Public", value: "government" },
+                      { label: "Faith-Based", value: "faith" },
                     ]}
                     control={form.control}
                   />

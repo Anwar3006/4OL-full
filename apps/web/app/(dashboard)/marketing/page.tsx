@@ -9,14 +9,14 @@ import { createPaginationHandlers } from "@/lib/utils";
 import { DataTable } from "@/components/Data-Table/data-table";
 import { marketingCardConfig } from "@/components/Data-Table/mobile-table-configs/marketingCardConfig";
 
-import { MarketingViewDialog } from "@/components/dialogs/MarketingViewDialog";
 import {
   useAddMarketingDialog,
   useViewMarketingDialog,
 } from "@/stores/dialog-store";
-import AddMarketingDialog from "./_components/marketing-dialog";
+import AddMarketingDialog from "./_components/add-marketing-dialog";
 import { useMarketingProfiles } from "@/hooks/supabase-calls/useMarketing";
 import { marketingColumns } from "@/components/Data-Table/columns/marketingColumns";
+import { ViewMarketingDialog } from "./_components/view-marketing-dialog";
 
 const MarketingPage = () => {
   const addMarket = useAddMarketingDialog();
@@ -37,7 +37,7 @@ const MarketingPage = () => {
   const adsPagination = useMemo(
     () =>
       createPaginationHandlers(adsPage, setAdsPage, adsData?.meta.totalPages),
-    [adsPage, adsData?.meta.totalPages]
+    [adsPage, adsData?.meta.totalPages],
   );
 
   // ⚡ Bolt Optimization: Memoize props for the `DataTable` component.
@@ -45,7 +45,7 @@ const MarketingPage = () => {
   // which would otherwise cause the memoized `DataTable` to re-render unnecessarily.
   const onRowClick = useCallback(
     (campaign: any) => viewMarket.open(campaign.id),
-    [viewMarket]
+    [viewMarket],
   );
 
   const pagination = useMemo(
@@ -60,7 +60,7 @@ const MarketingPage = () => {
       canNextPage: adsPage < (adsData?.meta.totalPages || 1),
       canPreviousPage: adsPage > 1,
     }),
-    [adsPage, adsData, adsPagination]
+    [adsPage, adsData, adsPagination],
   );
 
   const fetchingAds = false;
@@ -138,7 +138,7 @@ const MarketingPage = () => {
           </>
         )}
 
-        <MarketingViewDialog />
+        <ViewMarketingDialog />
         <AddMarketingDialog />
       </section>
     </div>

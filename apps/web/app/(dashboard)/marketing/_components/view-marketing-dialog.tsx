@@ -30,7 +30,7 @@ import { useViewMarketingDialog } from "@/stores/dialog-store";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { useMarketingProfile } from "@/hooks/supabase-calls/useMarketing";
 
-export function MarketingViewDialog() {
+export function ViewMarketingDialog() {
   const { isOpen, entityId, close } = useViewMarketingDialog();
 
   const { data: campaign, isLoading } = useMarketingProfile({
