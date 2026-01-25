@@ -43,6 +43,8 @@ import { TFacilityProfileOutput } from "@4ol/db/schemas/facility-profile.schema"
 import { WhatsAppIcon } from "@/public/assets/images/icon/whatsapp";
 import { useMemo } from "react";
 import { authClient } from "@/lib/auth-client";
+import { FacilityRatingSection } from "./facility-rating";
+import { useAdminFacilityAudit } from "@/hooks/supabase-calls/useReviews";
 
 export function FacilityViewDialog() {
   const viewDialog = useViewFacilityDialog();
@@ -68,6 +70,13 @@ export function FacilityViewDialog() {
 
   const { mutateAsync: rejectFacilityMutation, isPending: isRejectPending } =
     useRejectFacility();
+
+  const { data: adminReviews } = useAdminFacilityAudit({
+    facilityId: viewDialog.entityId as string,
+    adminId: session?.user.id as string,
+  });
+
+  console.log("Admin reviews: ", adminReviews);
 
   const isLoading = isFacilityLoading;
 
@@ -123,7 +132,7 @@ export function FacilityViewDialog() {
       open={viewDialog.isOpen}
       onOpenChange={(open) => !open && viewDialog.close()}
     >
-      <SheetContent className="w-full sm:max-w-2xl p-0 flex flex-col overflow-x-hidden overflow-y-scroll border-l shadow-2xl">
+      <SheetContent className="w-full sm:max-w-2xl xl:max-w-4xl p-0 flex flex-col overflow-x-hidden overflow-y-scroll border-l shadow-2xl">
         <SheetHeader>
           <VisuallyHidden.Root>
             <SheetTitle>
@@ -340,6 +349,20 @@ export function FacilityViewDialog() {
                           })}
                         />
                       </div>
+                    </section>
+
+                    <Separator className="bg-border/60" />
+
+                    <section className="space-y-6">
+                      <h3 className="text-sm font-bold uppercase tracking-[0.2em] text-muted-foreground/70">
+                        Review & Performance History
+                      </h3>
+                      <FacilityRatingSection
+                        facility={facility}
+                        adminId={session?.user.id as string}
+                        // reviews={adminReviews?.myReviews ?? []} // Fetch this with a useQuery
+                        auditData={adminReviews}
+                      />
                     </section>
 
                     {/* 5. Keywords / Tags Footer */}

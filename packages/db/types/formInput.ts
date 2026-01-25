@@ -345,19 +345,20 @@ export const FACILITY_REQUIREMENTS = {
   },
 };
 export const FACILITY_TYPE_OPTIONS = [
-  { value: "hospitals_&_clinics", label: "Hospitals & Clinics" },
-  { value: "herbal_centers", label: "Herbal Centers" },
-  { value: "diagnostic_labs", label: "Diagnostic Labs" },
-  { value: "pharmacies", label: "Pharmacies" },
-  { value: "dental_clinics", label: "Dental Clinics" },
-  { value: "homes", label: "Homes" },
-  { value: "eye_clinics", label: "Eye Clinics" },
-  { value: "osteopathy_centers", label: "Osteopathy Centers" },
-  { value: "physiotherapy_centers", label: "Physiotherapy Centers" },
-  { value: "prosthetics_centers", label: "Prosthetics Centers" },
-  { value: "psychiatric_centers", label: "Psychiatric Centers" },
-  { value: "ibps", label: "IBPS" },
-  { value: "health_schools", label: "Health Schools" },
+  { value: "hospital_/_clinic", label: "Hospitals & Clinics" },
+  { value: "herbal_center", label: "Herbal Centers" },
+  { value: "diagnostic_lab", label: "Diagnostic Labs" },
+  { value: "pharmacy", label: "Pharmacies" },
+  { value: "dental_clinic", label: "Dental Clinics" },
+  { value: "home", label: "Homes" },
+  { value: "eye_clinic", label: "Eye Clinics" },
+  { value: "osteopathy_center", label: "Osteopathy Centers" },
+  { value: "physiotherapy_center", label: "Physiotherapy Centers" },
+  { value: "prosthetics_center", label: "Prosthetics Centers" },
+  { value: "psychiatric_center", label: "Psychiatric Centers" },
+  { value: "ibp", label: "IBPS" },
+  { value: "health_school", label: "Health Schools" },
+  { value: "wellness_center", label: "Wellness(Spa, Gym, etc)" },
 ];
 export const FACILITY_TYPE_ENUM = [
   "hospitals_&_clinics",
@@ -373,6 +374,7 @@ export const FACILITY_TYPE_ENUM = [
   "psychiatric_centers",
   "ibps",
   "health_schools",
+  "wellness_centers",
 ] as const;
 
 export const GHANA_REGIONS_ENUM = [

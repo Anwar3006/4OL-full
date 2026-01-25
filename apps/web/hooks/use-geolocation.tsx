@@ -31,9 +31,9 @@ export const useGeolocation = () => {
       },
       {
         enableHighAccuracy: true,
-        timeout: 1000,
+        timeout: 15000,
         maximumAge: 0,
-      }
+      },
     );
   };
 
