@@ -5,14 +5,19 @@ import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
+  SidebarGroup,
   SidebarHeader,
+  SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
   SidebarRail,
   useSidebar,
 } from "@/components/ui/sidebar";
 
-import { X } from "lucide-react";
+import { ChevronRight, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { NavUser } from "./NavUser";
@@ -21,6 +26,11 @@ import { Button } from "./ui/button";
 import { SIDEBAR_NAV_ITEMS } from "@/constants/sidebar.const";
 import Image from "next/image";
 import { useAdminPermissions } from "@/hooks/use-admin-permissions";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "./ui/collapsible";
 
 export function AppSidebar({
   user,
@@ -61,30 +71,79 @@ export function AppSidebar({
           <X size={16} />
         </Button>
       </SidebarHeader>
-      <SidebarContent className="px-2">
-        {/* We create a SidebarGroup for each parent. */}
-        {navItems.map((item) => {
-          const isActive = pathname === item.url;
+      <SidebarContent className="px-2 flex-1">
+        <SidebarGroup>
+          {/* 1. Added the missing SidebarMenu wrapper */}
+          <SidebarMenu className="flex flex-col min-h-full">
+            {navItems.map((item) => {
+              const hasChildren = item.items && item.items.length > 0;
+              const isActive =
+                pathname === item.url ||
+                item.items?.some((child) => pathname === child.url);
 
-          return (
-            <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton
-                asChild
-                isActive={isActive}
-                className={`${isActive ? "bg-green-200! font-bold!" : ""}`}
-                onClick={() => isMobile && setOpenMobile(false)}
-              >
-                <Link href={item.url} className="flex items-center gap-2">
-                  <item.icon size={16} />
-                  <span>{item.title}</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          );
-        })}
+              if (hasChildren) {
+                return (
+                  <Collapsible
+                    key={item.title}
+                    asChild
+                    defaultOpen={isActive}
+                    className="group/collapsible"
+                  >
+                    <SidebarMenuItem>
+                      <CollapsibleTrigger asChild>
+                        <SidebarMenuButton
+                          className={isActive ? "bg-green-200!" : ""}
+                        >
+                          <item.icon size={16} />
+                          <span>{item.title}</span>
+                          <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                        </SidebarMenuButton>
+                      </CollapsibleTrigger>
+
+                      <CollapsibleContent>
+                        <SidebarMenuSub>
+                          {item.items.map((subItem) => (
+                            <SidebarMenuSubItem key={subItem.title}>
+                              <SidebarMenuSubButton
+                                asChild
+                                isActive={pathname === subItem.url}
+                                onClick={() => isMobile && setOpenMobile(false)}
+                              >
+                                <Link href={subItem.url}>
+                                  <subItem.icon size={14} />
+                                  <span>{subItem.title}</span>
+                                </Link>
+                              </SidebarMenuSubButton>
+                            </SidebarMenuSubItem>
+                          ))}
+                        </SidebarMenuSub>
+                      </CollapsibleContent>
+                    </SidebarMenuItem>
+                  </Collapsible>
+                );
+              }
+
+              return (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={isActive}
+                    className={isActive ? "bg-green-200! font-bold!" : ""}
+                    onClick={() => isMobile && setOpenMobile(false)}
+                  >
+                    <Link href={item.url}>
+                      <item.icon size={16} />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              );
+            })}
+          </SidebarMenu>
+        </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="my-5">
+      <SidebarFooter className="mt-auto pb-5">
         <NavUser user={user} />
       </SidebarFooter>
 

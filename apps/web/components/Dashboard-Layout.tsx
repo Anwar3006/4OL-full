@@ -49,7 +49,7 @@ export const DashboardLayoutClient = ({
           <DashboardHeader />
         </header>
 
-        <div className="flex-1 overflow-auto p-4">{children}</div>
+        <div className="flex-1 overflow-auto p-4 min-h-screen">{children}</div>
       </SidebarInset>
     </SidebarProvider>
   );

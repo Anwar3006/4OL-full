@@ -44,7 +44,7 @@ export const FACILITY_STATUS_ENUM = [
 ] as const;
 
 export const FACILITY_REQUIREMENTS = {
-  "hospitals_&_clinics": {
+  "hospital_/_clinic": {
     amenities: [
       "Emergency Room",
       "Pharmacy",
@@ -57,6 +57,7 @@ export const FACILITY_REQUIREMENTS = {
       "Maternity Wing",
       "Cafeteria",
       "ATM center",
+      "Credit/Debit card accepted",
     ],
     services: [
       "NHIS Accepted",
@@ -126,7 +127,7 @@ export const FACILITY_REQUIREMENTS = {
       "Gastroscopy Procedures",
     ],
   },
-  herbal_centers: {
+  herbal_center: {
     amenities: [
       "Consultation Rooms",
       "Herbal Pharmacy",
@@ -134,6 +135,7 @@ export const FACILITY_REQUIREMENTS = {
       "Waiting Lounge",
       "Traditional Healing Area",
       "Processing Unit",
+      "Credit/Debit card accepted",
     ],
     services: [
       "Herbal Consultations",
@@ -144,7 +146,7 @@ export const FACILITY_REQUIREMENTS = {
       "Acupuncture",
     ],
   },
-  diagnostic_labs: {
+  diagnostic_lab: {
     amenities: [
       "Phlebotomy Station",
       "Sample Collection Room",
@@ -152,6 +154,7 @@ export const FACILITY_REQUIREMENTS = {
       "Modern Lab Equipment",
       "Wheelchair Access",
       "Secure Data Storage",
+      "Credit/Debit card accepted",
     ],
     services: [
       "Blood Testing",
@@ -164,14 +167,14 @@ export const FACILITY_REQUIREMENTS = {
       "Pathology Services",
     ],
   },
-  pharmacies: {
+  pharmacy: {
     amenities: [
       "Medication Storage (Cold Chain)",
       "Consultation Desk",
-      "Waiting Seating",
-      "CCTV Security",
-      "Point of Sale System",
-      "Delivery Vehicle",
+      "Waiting Area",
+      "Security",
+      "Credit/Debit card accepted",
+      "Delivery",
     ],
     services: [
       "Prescription Dispensing",
@@ -183,7 +186,7 @@ export const FACILITY_REQUIREMENTS = {
       "First Aid Supplies",
     ],
   },
-  dental_clinics: {
+  dental_clinic: {
     amenities: [
       "Dental Chairs",
       "Sterilization Room",
@@ -191,6 +194,7 @@ export const FACILITY_REQUIREMENTS = {
       "Recovery Area",
       "Patient Restrooms",
       "Waiting Lounge",
+      "Credit/Debit card accepted",
     ],
     services: [
       "Teeth Whitening",
@@ -202,7 +206,7 @@ export const FACILITY_REQUIREMENTS = {
       "Pediatric Dentistry",
     ],
   },
-  homes: {
+  home: {
     amenities: [
       "Private Bedrooms",
       "Communal Dining Area",
@@ -211,6 +215,7 @@ export const FACILITY_REQUIREMENTS = {
       "Outdoor Garden",
       "Laundry Service",
       "Safety Handrails",
+      "Credit/Debit card accepted",
     ],
     services: [
       "Palliative Care",
@@ -222,7 +227,7 @@ export const FACILITY_REQUIREMENTS = {
       "Assisted Living",
     ],
   },
-  eye_clinics: {
+  eye_clinic: {
     amenities: [
       "Optical Shop",
       "Dark Room for Exams",
@@ -230,6 +235,7 @@ export const FACILITY_REQUIREMENTS = {
       "Testing Lane",
       "Waiting Area",
       "Surgical Suite",
+      "Credit/Debit card accepted",
     ],
     services: [
       "Eye Examinations",
@@ -241,7 +247,7 @@ export const FACILITY_REQUIREMENTS = {
       "Pediatric Ophthalmology",
     ],
   },
-  osteopathy_centers: {
+  osteopathy_center: {
     amenities: [
       "Adjustment Tables",
       "Private Treatment Rooms",
@@ -249,6 +255,7 @@ export const FACILITY_REQUIREMENTS = {
       "Waiting Room",
       "Anatomical Models",
       "Sanitation Stations",
+      "Credit/Debit card accepted",
     ],
     services: [
       "Manual Therapy",
@@ -259,7 +266,7 @@ export const FACILITY_REQUIREMENTS = {
       "Corrective Exercises",
     ],
   },
-  physiotherapy_centers: {
+  physiotherapy_center: {
     amenities: [
       "Rehabilitation Gym",
       "Hydrotherapy Pool",
@@ -267,6 +274,7 @@ export const FACILITY_REQUIREMENTS = {
       "Ultrasound Equipment",
       "Parallel Bars",
       "Cryotherapy Units",
+      "Credit/Debit card accepted",
     ],
     services: [
       "Stroke Rehabilitation",
@@ -278,7 +286,7 @@ export const FACILITY_REQUIREMENTS = {
       "Geriatric Rehab",
     ],
   },
-  prosthetics_centers: {
+  prosthetics_center: {
     amenities: [
       "Fitting Rooms",
       "Fabrication Workshop",
@@ -286,6 +294,7 @@ export const FACILITY_REQUIREMENTS = {
       "3D Scanning Lab",
       "Waiting Area",
       "Showroom",
+      "Credit/Debit card accepted",
     ],
     services: [
       "Artificial Limb Fitting",
@@ -296,7 +305,7 @@ export const FACILITY_REQUIREMENTS = {
       "Pediatric Orthotics",
     ],
   },
-  psychiatric_centers: {
+  psychiatric_center: {
     amenities: [
       "Counseling Rooms",
       "Group Therapy Hall",
@@ -304,6 +313,7 @@ export const FACILITY_REQUIREMENTS = {
       "Secure Inpatient Wards",
       "Recreational Area",
       "Visitor Room",
+      "Credit/Debit card accepted",
     ],
     services: [
       "Psychological Assessment",
@@ -315,7 +325,7 @@ export const FACILITY_REQUIREMENTS = {
       "Family Counseling",
     ],
   },
-  health_schools: {
+  health_school: {
     amenities: [
       "Students Hostel",
       "Science & ICT Labs",
@@ -328,6 +338,7 @@ export const FACILITY_REQUIREMENTS = {
       "Ancilliary facilities",
       "Family Health Hospital",
       "Sports Facilities",
+      "Credit/Debit card accepted",
     ],
     services: [
       "Foundation Diploma",
@@ -343,9 +354,34 @@ export const FACILITY_REQUIREMENTS = {
       "Nurse Practitioner",
     ],
   },
+  wellness_center: {
+    amenities: [
+      "Fitness & Cardio machines",
+      "Weight training areas",
+      "Specialized spaces",
+      "Yoga studios",
+      "Meditation rooms",
+      "Spa & Recovery facilities",
+      "Therapeutic massage",
+      "Aquatics & Relaxation facilities",
+    ],
+    services: [
+      "General Wellness",
+      "Corporate Wellness",
+      "Chiropractic",
+      "Massage Therapy",
+      "Facial & Skin Care",
+      "Nail & Foot Care",
+      "Outcall / Home Services",
+      "Personalized Coaching",
+      "Cardio & Strength Training",
+      "Group Fitness",
+      "Health & Nutritional Support",
+    ],
+  },
 };
 export const FACILITY_TYPE_OPTIONS = [
-  { value: "hospital_/_clinic", label: "Hospitals & Clinics" },
+  { value: "hospital_/_clinic", label: "Hospitals / Clinics" },
   { value: "herbal_center", label: "Herbal Centers" },
   { value: "diagnostic_lab", label: "Diagnostic Labs" },
   { value: "pharmacy", label: "Pharmacies" },
@@ -361,20 +397,20 @@ export const FACILITY_TYPE_OPTIONS = [
   { value: "wellness_center", label: "Wellness(Spa, Gym, etc)" },
 ];
 export const FACILITY_TYPE_ENUM = [
-  "hospitals_&_clinics",
-  "herbal_centers",
-  "diagnostic_labs",
-  "pharmacies",
-  "dental_clinics",
-  "homes",
-  "eye_clinics",
-  "osteopathy_centers",
-  "physiotherapy_centers",
-  "prosthetics_centers",
-  "psychiatric_centers",
-  "ibps",
-  "health_schools",
-  "wellness_centers",
+  "hospital_/_clinic",
+  "herbal_center",
+  "diagnostic_lab",
+  "pharmacy",
+  "dental_clinic",
+  "home",
+  "eye_clinic",
+  "osteopathy_center",
+  "physiotherapy_center",
+  "prosthetics_center",
+  "psychiatric_center",
+  "ibp",
+  "health_school",
+  "wellness_center",
 ] as const;
 
 export const GHANA_REGIONS_ENUM = [

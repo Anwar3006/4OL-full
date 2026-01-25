@@ -61,7 +61,7 @@ const CustomSelect = <T extends FieldValues>({
                     className={cn(
                       "w-full justify-between font-normal",
                       !field.value && "text-muted-foreground",
-                      className
+                      className,
                     )}
                   >
                     {selectedOption ? selectedOption.label : placeholder}
@@ -80,7 +80,7 @@ const CustomSelect = <T extends FieldValues>({
                           "mr-2 h-4 w-4",
                           field.value === option.value
                             ? "opacity-100"
-                            : "opacity-0"
+                            : "opacity-0",
                         )}
                       />
                       {option.label}
@@ -90,7 +90,7 @@ const CustomSelect = <T extends FieldValues>({
               </DropdownMenu>
             </FormControl>
             {description && <FormDescription>{description}</FormDescription>}
-            <FormMessage />
+            <FormMessage className="text-xs" />
           </FormItem>
         );
       }}

@@ -1,9 +1,11 @@
 import {
+  BarChart3,
   BellRing,
   CircleGauge,
   Droplets,
   HeartPulse,
   Hospital,
+  LayoutDashboard,
   Map,
   Megaphone,
   MessageCircleQuestion,
@@ -21,7 +23,19 @@ export const SIDEBAR_NAV_ITEMS = [
   {
     title: "Dashboard",
     icon: CircleGauge,
-    url: "/dashboard",
+    url: "#", // No direct navigation
+    items: [
+      {
+        title: "Overview",
+        icon: LayoutDashboard,
+        url: "/dashboard/overview",
+      },
+      {
+        title: "Analytics",
+        icon: BarChart3,
+        url: "/dashboard/analytics",
+      },
+    ],
   },
   {
     title: "Admins",

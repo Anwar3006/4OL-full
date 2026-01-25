@@ -50,6 +50,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 // Step 1 Fields - To make sure we validate these fields before moving on to Step 2
 const STEP_1_FIELDS: (keyof TFacilityProfileInput)[] = [
@@ -86,6 +87,7 @@ const AddFacilityDialog = () => {
   const [imagesToDelete, setImagesToDelete] = useState<string[]>([]);
   const [newlyUploadedFiles, setNewlyUploadedFiles] = useState<string[]>([]);
   const [featuredImage, setFeaturedImage] = useState<string | null>(null);
+  const isMobileScreen = useIsMobile();
 
   const [uploadSessionId] = useState(() => `pending_${nanoid(12)}`);
   const filePath = `facilities/temporary/${uploadSessionId}`;
@@ -96,7 +98,7 @@ const AddFacilityDialog = () => {
     coordinates,
     loading: coordinatesLoading,
     error: geolocationError,
-    permissionState,
+    // permissionState,
   } = useGeolocation();
   const { fetchGhanaPostAddress, loading: addressLoading } = useGhanaPostGPS();
   const isLoadingLocation = coordinatesLoading || addressLoading;
@@ -109,7 +111,7 @@ const AddFacilityDialog = () => {
       }),
     ),
     defaultValues: {
-      facility_type: "hospitals_&_clinics",
+      facility_type: "hospital_/_clinic",
       facility_name: "",
       contact_number: "",
       whatsapp_number: "",
@@ -138,6 +140,23 @@ const AddFacilityDialog = () => {
   });
 
   // --- Effects ---
+  // 1. Auto-fetch location on Mobile when Dialog opens
+  useEffect(() => {
+    if (isOpen && isMobileScreen) {
+      // We only auto-fetch if we don't already have location data
+      // (e.g., in Edit Mode, we might want to keep the existing data)
+      const hasLocation = form.getValues("gps_address");
+
+      if (!hasLocation) {
+        getLocationCoordinates();
+        toast.info("Auto-detecting your location...", {
+          description: "Please allow location access if prompted.",
+          duration: 3000,
+        });
+      }
+    }
+  }, [isOpen, isMobileScreen]);
+
   // When the dialog opens for editing, wait for data to be available, then reset the form.
   useEffect(() => {
     if (isOpen && isEditMode && data) {
@@ -164,7 +183,7 @@ const AddFacilityDialog = () => {
   useEffect(() => {
     if (isOpen && !isEditMode) {
       form.reset({
-        facility_type: "hospitals_&_clinics",
+        facility_type: "hospital_/_clinic",
         facility_name: "",
         contact_number: "",
         whatsapp_number: "",
@@ -267,6 +286,12 @@ const AddFacilityDialog = () => {
     [selectedType],
   );
 
+  // console.log(
+  //   "Selected: ",
+  //   selectedType,
+  //   availableAmenities,
+  //   availableServices,
+  // );
   const handleContinue = async () => {
     const isValid = await form.trigger(STEP_1_FIELDS);
     if (!isValid) {
@@ -568,22 +593,22 @@ const AddFacilityDialog = () => {
 
                 {(() => {
                   // 1. Show a message if permission is denied
-                  if (permissionState === "denied") {
-                    return (
-                      <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-xl bg-red-50/50">
-                        <MapPinHouse className="h-8 w-8 text-destructive/40 mb-3" />
-                        <p className="text-sm text-destructive mb-4 text-center">
-                          Location access has been denied. Please enable it in
-                          your browser settings to use this feature.
-                        </p>
-                        {geolocationError && (
-                          <p className="text-xs text-red-500 mb-4">
-                            {geolocationError}
-                          </p>
-                        )}
-                      </div>
-                    );
-                  }
+                  // if (permissionState === "denied") {
+                  //   return (
+                  //     <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-xl bg-red-50/50">
+                  //       <MapPinHouse className="h-8 w-8 text-destructive/40 mb-3" />
+                  //       <p className="text-sm text-destructive mb-4 text-center">
+                  //         Location access has been denied. Please enable it in
+                  //         your browser settings to use this feature.
+                  //       </p>
+                  //       {geolocationError && (
+                  //         <p className="text-xs text-red-500 mb-4">
+                  //           {geolocationError}
+                  //         </p>
+                  //       )}
+                  //     </div>
+                  //   );
+                  // }
 
                   // 1. Show Loader if we are currently fetching
                   if (isLoadingLocation) {
@@ -656,25 +681,23 @@ const AddFacilityDialog = () => {
                     );
                   }
 
-                  // 3. Show the "Detect" button if we aren't loading and have no data
-                  return (
-                    <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-xl bg-primary/5">
-                      <MapPinHouse className="h-8 w-8 text-primary/40 mb-3" />
-                      <p className="text-sm text-muted-foreground mb-4 text-center">
-                        Auto-populate location details using your current GPS
-                        coordinates.
-                      </p>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="gap-2 border-primary text-primary hover:bg-primary/10"
-                        onClick={() => getLocationCoordinates()}
-                      >
-                        <MapPinHouse className="h-4 w-4" />
-                        Detect My Location
-                      </Button>
-                    </div>
-                  );
+                  // Show manual button only for Desktop if data hasn't been fetched yet
+                  if (!isMobileScreen) {
+                    return (
+                      <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-xl bg-primary/5">
+                        <MapPinHouse className="h-8 w-8 text-primary/40 mb-3" />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => getLocationCoordinates()}
+                        >
+                          Detect My Location
+                        </Button>
+                      </div>
+                    );
+                  }
+
+                  return null;
                 })()}
 
                 {/* Facility Amenities and Services */}

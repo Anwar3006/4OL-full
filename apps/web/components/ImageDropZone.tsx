@@ -1,17 +1,24 @@
 "use client";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "./ui/button";
 import { FileRejection, useDropzone } from "react-dropzone";
 import { Card, CardContent } from "./ui/card";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { nanoid } from "nanoid";
-import { Trash, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import {
+  Trash,
+  Loader2,
+  CheckCircle2,
+  AlertCircle,
+  UploadCloud,
+  Camera,
+} from "lucide-react";
 import {
   useGetPresignedUploadUrl,
-  useUploadToSupabase,
   useDeleteFile,
 } from "@/hooks/supabase-calls/useMediaStorage";
+import imageCompression from "browser-image-compression";
 
 type ImageDropZoneProps = {
   text: string;
@@ -38,6 +45,7 @@ const ImageDropZone = ({
   initialFiles,
 }: ImageDropZoneProps) => {
   const [files, setFiles] = useState<FileState[]>([]);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
 
   // Cleanup object URLs on unmount
   useEffect(() => {
@@ -49,7 +57,6 @@ const ImageDropZone = ({
   }, [files]);
 
   const getPresignedUrlMutation = useGetPresignedUploadUrl();
-  // const uploadToSupabaseMutation = useUploadToSupabase();
   const deleteFileMutation = useDeleteFile();
 
   const notifyParent = useCallback(
@@ -65,18 +72,25 @@ const ImageDropZone = ({
         });
       }
     },
-    [onFilesChange]
+    [onFilesChange],
   );
 
   const uploadFile = useCallback(
-    async (file: File) => {
+    async (originalFile: File) => {
       const fileId = nanoid(6);
-      const timestamp = Date.now();
-      const sanitizedFileName = file.name.replace(/\s/g, "_");
-
+      const sanitizedFileName = originalFile.name.replace(/\s/g, "_");
+      let file = originalFile;
       const fileKey = `${filePath}/${nanoid(4)}-${sanitizedFileName}`;
 
-      // Add file to state with uploading status
+      // 1. Setup Compression Options
+      const options = {
+        maxSizeMB: 1, // Aim for ~1MB max
+        maxWidthOrHeight: 1920, // High-def but reasonable for web/mobile
+        useWebWorker: true, // Keeps the UI responsive
+        initialQuality: 0.8, // 80% quality is usually indistinguishable from 100%
+      };
+
+      // Add file to state immediately so the UI shows a "Compressing..." state
       setFiles((prevFiles) => [
         ...prevFiles,
         {
@@ -91,6 +105,24 @@ const ImageDropZone = ({
       ]);
 
       try {
+        // 2. Perform Compression
+        // This is the part that handles your Tech Lead's request for high-res camera photos
+        if (file.type.startsWith("image/")) {
+          try {
+            const compressedBlob = await imageCompression(file, options);
+            // Convert blob back to a File object to maintain metadata
+            file = new File([compressedBlob], originalFile.name, {
+              type: compressedBlob.type,
+            });
+          } catch (compressionError) {
+            console.error(
+              "Compression failed, proceeding with original",
+              compressionError,
+            );
+            // We don't block the upload if compression fails; we just use the original
+          }
+        }
+
         // Step 1: Get presigned URL from server action
         const { signedUrl, token, path } =
           await getPresignedUrlMutation.mutateAsync(fileKey);
@@ -105,8 +137,8 @@ const ImageDropZone = ({
               const percentComplete = (e.loaded / e.total) * 100;
               setFiles((prevFiles) =>
                 prevFiles.map((f) =>
-                  f.id === fileId ? { ...f, progress: percentComplete } : f
-                )
+                  f.id === fileId ? { ...f, progress: percentComplete } : f,
+                ),
               );
             }
           });
@@ -118,7 +150,7 @@ const ImageDropZone = ({
                 const updated = prevFiles.map((f) =>
                   f.id === fileId
                     ? { ...f, uploading: false, progress: 100, key: path }
-                    : f
+                    : f,
                 );
                 notifyParent(updated);
                 return updated;
@@ -147,7 +179,7 @@ const ImageDropZone = ({
           const updated = prevFiles.map((f) =>
             f.id === fileId
               ? { ...f, error: true, uploading: false, progress: 0 }
-              : f
+              : f,
           );
           notifyParent(updated);
           return updated;
@@ -155,11 +187,11 @@ const ImageDropZone = ({
         toast.error(
           `Failed to upload ${file.name}: ${
             error instanceof Error ? error.message : "Unknown error"
-          }`
+          }`,
         );
       }
     },
-    [filePath, getPresignedUrlMutation, notifyParent]
+    [filePath, getPresignedUrlMutation, notifyParent],
   );
 
   const removeFile = useCallback(
@@ -172,8 +204,8 @@ const ImageDropZone = ({
       if (fileToRemove.key) {
         setFiles((prevFiles) =>
           prevFiles.map((f) =>
-            f.id === fileId ? { ...f, isDeleting: true } : f
-          )
+            f.id === fileId ? { ...f, isDeleting: true } : f,
+          ),
         );
 
         try {
@@ -182,8 +214,8 @@ const ImageDropZone = ({
           console.error("Delete error:", error);
           setFiles((prevFiles) =>
             prevFiles.map((f) =>
-              f.id === fileId ? { ...f, isDeleting: false } : f
-            )
+              f.id === fileId ? { ...f, isDeleting: false } : f,
+            ),
           );
           return;
         }
@@ -199,7 +231,7 @@ const ImageDropZone = ({
         return updated;
       });
     },
-    [files, deleteFileMutation, notifyParent]
+    [files, deleteFileMutation, notifyParent],
   );
 
   const onDrop = useCallback(
@@ -208,16 +240,16 @@ const ImageDropZone = ({
         acceptedFiles.forEach(uploadFile);
       }
     },
-    [uploadFile]
+    [uploadFile],
   );
 
   const onDropRejected = useCallback((fileRejections: FileRejection[]) => {
     if (fileRejections.length > 0) {
       const tooManyFiles = fileRejections.find(
-        (fr) => fr.errors[0].code === "too-many-files"
+        (fr) => fr.errors[0].code === "too-many-files",
       );
       const fileTooLarge = fileRejections.find(
-        (fr) => fr.errors[0].code === "file-too-large"
+        (fr) => fr.errors[0].code === "file-too-large",
       );
 
       if (tooManyFiles) {
@@ -232,7 +264,12 @@ const ImageDropZone = ({
     }
   }, []);
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+  const {
+    getRootProps,
+    getInputProps,
+    isDragActive,
+    open: openFileSelector,
+  } = useDropzone({
     onDrop,
     onDropRejected,
     maxFiles: 6,
@@ -241,7 +278,15 @@ const ImageDropZone = ({
     accept: {
       "image/*": [],
     },
+    noClick: true,
   });
+
+  const handleCameraCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const capturedFiles = Array.from(e.target.files);
+      capturedFiles.forEach(uploadFile);
+    }
+  };
 
   return (
     <>
@@ -250,21 +295,58 @@ const ImageDropZone = ({
           "relative border-2 border-dashed rounded-xl p-6 text-center transition-colors duration-200 ease-in-out w-full h-64",
           isDragActive
             ? "border-primary bg-primary/10 border-solid"
-            : "border-border hover:border-primary"
+            : "border-border hover:border-primary",
         )}
         {...getRootProps()}
       >
-        <CardContent className="flex flex-col items-center justify-center h-full w-full">
-          <p className="text-sm text-muted-foreground mb-4">{text}</p>
+        <CardContent className="flex flex-col items-center justify-center w-full space-y-4">
+          <div className="p-4 bg-primary/10 rounded-full text-primary">
+            <UploadCloud size={32} />
+          </div>
+
+          <div className="space-y-1">
+            <p className="text-sm font-semibold">{text}</p>
+            <p className="text-xs text-muted-foreground">
+              Supports: JPG, PNG, WEBP (Max 6MB)
+            </p>
+          </div>
+
           <input {...getInputProps()} />
-          {isDragActive ? (
-            <p>Drop the files here...</p>
-          ) : (
-            <div className="flex flex-col items-center justify-center h-full gap-y-3">
-              <p className="text-xs md:text-sm text-muted-foreground">
-                Drag & drop your files here or click to upload
-              </p>
-              <Button type="button">Upload a file</Button>
+
+          {/* Hidden input specifically for triggering Camera on Mobile */}
+          <input
+            type="file"
+            accept="image/*"
+            capture="environment" // Forces back camera on mobile
+            className="hidden"
+            ref={cameraInputRef}
+            onChange={handleCameraCapture}
+          />
+
+          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={openFileSelector} // Opens standard file system
+              className="rounded-xl gap-2 border-primary/20 hover:bg-primary/5"
+            >
+              <UploadCloud size={16} />
+              Choose Files
+            </Button>
+
+            <Button
+              type="button"
+              onClick={() => cameraInputRef.current?.click()} // Triggers camera
+              className="rounded-xl gap-2 shadow-lg"
+            >
+              <Camera size={16} />
+              Take Photo
+            </Button>
+          </div>
+
+          {isDragActive && (
+            <div className="absolute inset-0 bg-primary/10 backdrop-blur-[2px] rounded-2xl flex items-center justify-center border-2 border-primary">
+              <p className="font-bold text-primary">Drop images here</p>
             </div>
           )}
         </CardContent>
@@ -282,11 +364,22 @@ const ImageDropZone = ({
 
             {/* Upload Progress Overlay */}
             {file.uploading && (
-              <div className="absolute inset-0 bg-black/60 rounded-xl flex flex-col items-center justify-center">
-                <Loader2 className="w-8 h-8 animate-spin text-white mb-2" />
-                <span className="text-white text-sm font-medium">
-                  {Math.round(file.progress)}%
-                </span>
+              <div className="absolute inset-0 bg-black/60 rounded-xl flex flex-col items-center justify-center animate-in fade-in duration-300">
+                {file.progress === 0 ? (
+                  <>
+                    <Loader2 className="w-8 h-8 animate-spin text-white mb-2" />
+                    <span className="text-white text-[10px] font-bold uppercase tracking-wider">
+                      Optimizing...
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <Loader2 className="w-8 h-8 animate-spin text-white mb-2" />
+                    <span className="text-white text-sm font-medium">
+                      {Math.round(file.progress)}%
+                    </span>
+                  </>
+                )}
               </div>
             )}
 
