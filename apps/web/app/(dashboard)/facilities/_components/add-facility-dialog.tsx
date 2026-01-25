@@ -95,7 +95,8 @@ const AddFacilityDialog = () => {
     getLocationCoordinates,
     coordinates,
     loading: coordinatesLoading,
-    error: coordintatesError,
+    error: geolocationError,
+    permissionState,
   } = useGeolocation();
   const { fetchGhanaPostAddress, loading: addressLoading } = useGhanaPostGPS();
   const isLoadingLocation = coordinatesLoading || addressLoading;
@@ -566,7 +567,22 @@ const AddFacilityDialog = () => {
                 </h3>
 
                 {(() => {
-                  // 1. Show Loader if we are currently fetching
+                  // 1. Show a message if permission is denied
+                  if (permissionState === "denied") {
+                    return (
+                      <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-xl bg-red-50/50">
+                        <MapPinHouse className="h-8 w-8 text-destructive/40 mb-3" />
+                        <p className="text-sm text-destructive mb-4 text-center">
+                          Location access has been denied. Please enable it in your browser settings to use this feature.
+                        </p>
+                        {geolocationError && (
+                          <p className="text-xs text-red-500 mb-4">{geolocationError}</p>
+                        )}
+                      </div>
+                    );
+                  }
+
+                  // 2. Show Loader if we are currently fetching
                   if (isLoadingLocation) {
                     return (
                       <div className="flex flex-col items-center justify-center p-10 border-2 border-dashed rounded-xl bg-muted/20">
@@ -578,7 +594,7 @@ const AddFacilityDialog = () => {
                     );
                   }
 
-                  // 2. Show the Data Form if we have a GPS address
+                  // 3. Show the Data Form if we have a GPS address
                   if (form.watch("gps_address")) {
                     return (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in slide-in-from-bottom-2 duration-700">
@@ -637,7 +653,7 @@ const AddFacilityDialog = () => {
                     );
                   }
 
-                  // 3. Show the "Detect" button if we aren't loading and have no data
+                  // 4. Show the "Detect" button if we aren't loading and have no data
                   return (
                     <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-xl bg-primary/5">
                       <MapPinHouse className="h-8 w-8 text-primary/40 mb-3" />
@@ -654,6 +670,9 @@ const AddFacilityDialog = () => {
                         <MapPinHouse className="h-4 w-4" />
                         Detect My Location
                       </Button>
+                      {geolocationError && (
+                        <p className="text-xs text-red-500 mt-4">{geolocationError}</p>
+                      )}
                     </div>
                   );
                 })()}
