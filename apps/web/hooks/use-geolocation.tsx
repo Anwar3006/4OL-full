@@ -8,10 +8,11 @@ export const useGeolocation = () => {
     latitude: number;
     longitude: number;
   } | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
-  const getLocationCoordinates = () => {
+  const getLocationCoordinates = (isRetry = false) => {
     if (!("geolocation" in navigator)) {
-      setError("Geoloaction is not supported in this browser");
+      setError("Geolocation is not supported");
       return;
     }
 
@@ -25,24 +26,30 @@ export const useGeolocation = () => {
           longitude: coords.longitude,
         });
         setLoading(false);
+        setRetryCount(0); // Reset on success
       },
-      (error) => {
-        // If it's the "Unknown/Unavailable" error, try one more time automatically
-        if (error.code === error.POSITION_UNAVAILABLE) {
-          console.warn("Location unknown, retrying...");
-          // Recursive call or a slight delay before retrying
-          // setTimeout(() => getLocationCoordinates(), 1000);
+      (err) => {
+        // iOS Fix: If high accuracy fails or is unavailable, try one more time with accuracy false
+        if (!isRetry && retryCount < 1) {
+          setRetryCount((prev) => prev + 1);
+          setTimeout(() => getLocationCoordinates(true), 1000);
           return;
         }
 
         setLoading(false);
-        setError(error.message);
-        toast.error("Location Error: " + error.message);
+        const msg =
+          err.code === 1
+            ? "Permission Denied. Please check Safari site settings."
+            : err.message;
+        setError(msg);
+        toast.error("Location Error: " + msg);
       },
       {
-        enableHighAccuracy: true,
-        timeout: 15000,
-        maximumAge: 0,
+        // Senior Tip: On some iPhones, enableHighAccuracy: true causes a 'User Denied' error
+        // if the GPS chip takes too long to wake up. Setting it to false for retries helps.
+        enableHighAccuracy: !isRetry,
+        timeout: 10000,
+        maximumAge: 30000, // Use a cached location if it's less than 30 seconds old
       },
     );
   };

@@ -128,7 +128,9 @@ export function AppSidebar({
                   <SidebarMenuButton
                     asChild
                     isActive={isActive}
-                    className={isActive ? "bg-green-200! font-bold!" : ""}
+                    className={
+                      isActive ? "bg-green-200! font-bold! my-2" : "my-2"
+                    }
                     onClick={() => isMobile && setOpenMobile(false)}
                   >
                     <Link href={item.url}>

@@ -148,11 +148,18 @@ const AddFacilityDialog = () => {
       const hasLocation = form.getValues("gps_address");
 
       if (!hasLocation) {
-        getLocationCoordinates();
-        toast.info("Auto-detecting your location...", {
-          description: "Please allow location access if prompted.",
-          duration: 3000,
-        });
+        // Check if we already have location permissions
+        // If not, we might want to wait for the user to see the "Detecting" UI
+        const timer = setTimeout(() => {
+          if (!form.getValues("gps_address")) {
+            getLocationCoordinates();
+          }
+        }, 500); // Small delay to ensure the modal animation is finished
+        toast.info(
+          "Auto-detecting your location..." +
+            " Please allow location access if prompted.",
+        );
+        return () => clearTimeout(timer);
       }
     }
   }, [isOpen, isMobileScreen]);
@@ -446,7 +453,7 @@ const AddFacilityDialog = () => {
           data={credentials}
         />
       )}
-      <DialogContent className="max-w-5xl! max-h-[95vh] md:max-h-[90vh] overflow-y-auto py-5! px-2 md:px-6">
+      <DialogContent className="max-w-5xl! h-full md:h-auto md:max-h-[90vh] overflow-y-auto pt-14! pb-10! px-4 md:px-6">
         <div className="flex justify-center gap-2 mb-4 w-full pr-4">
           <div
             className={cn(
