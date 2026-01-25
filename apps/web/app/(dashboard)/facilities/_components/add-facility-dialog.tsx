@@ -141,28 +141,28 @@ const AddFacilityDialog = () => {
 
   // --- Effects ---
   // 1. Auto-fetch location on Mobile when Dialog opens
-  useEffect(() => {
-    if (isOpen && isMobileScreen) {
-      // We only auto-fetch if we don't already have location data
-      // (e.g., in Edit Mode, we might want to keep the existing data)
-      const hasLocation = form.getValues("gps_address");
+  // useEffect(() => {
+  //   if (isOpen && isMobileScreen) {
+  //     // We only auto-fetch if we don't already have location data
+  //     // (e.g., in Edit Mode, we might want to keep the existing data)
+  //     const hasLocation = form.getValues("gps_address");
 
-      if (!hasLocation) {
-        // Check if we already have location permissions
-        // If not, we might want to wait for the user to see the "Detecting" UI
-        const timer = setTimeout(() => {
-          if (!form.getValues("gps_address")) {
-            getLocationCoordinates();
-          }
-        }, 500); // Small delay to ensure the modal animation is finished
-        toast.info(
-          "Auto-detecting your location..." +
-            " Please allow location access if prompted.",
-        );
-        return () => clearTimeout(timer);
-      }
-    }
-  }, [isOpen, isMobileScreen]);
+  //     if (!hasLocation) {
+  //       // Check if we already have location permissions
+  //       // If not, we might want to wait for the user to see the "Detecting" UI
+  //       const timer = setTimeout(() => {
+  //         if (!form.getValues("gps_address")) {
+  //           getLocationCoordinates();
+  //         }
+  //       }, 500); // Small delay to ensure the modal animation is finished
+  //       toast.info(
+  //         "Auto-detecting your location..." +
+  //           " Please allow location access if prompted.",
+  //       );
+  //       return () => clearTimeout(timer);
+  //     }
+  //   }
+  // }, [isOpen, isMobileScreen]);
 
   // When the dialog opens for editing, wait for data to be available, then reset the form.
   useEffect(() => {
@@ -689,22 +689,22 @@ const AddFacilityDialog = () => {
                   }
 
                   // Show manual button only for Desktop if data hasn't been fetched yet
-                  if (!isMobileScreen) {
-                    return (
-                      <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-xl bg-primary/5">
-                        <MapPinHouse className="h-8 w-8 text-primary/40 mb-3" />
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => getLocationCoordinates()}
-                        >
-                          Detect My Location
-                        </Button>
-                      </div>
-                    );
-                  }
+                  // if (!isMobileScreen) {
+                  return (
+                    <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-xl bg-primary/5">
+                      <MapPinHouse className="h-8 w-8 text-primary/40 mb-3" />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => getLocationCoordinates()}
+                      >
+                        Detect My Location
+                      </Button>
+                    </div>
+                  );
+                  // }
 
-                  return null;
+                  // return null;
                 })()}
 
                 {/* Facility Amenities and Services */}
