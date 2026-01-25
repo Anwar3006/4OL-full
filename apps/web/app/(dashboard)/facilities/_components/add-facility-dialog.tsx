@@ -95,7 +95,8 @@ const AddFacilityDialog = () => {
     getLocationCoordinates,
     coordinates,
     loading: coordinatesLoading,
-    error: coordintatesError,
+    error: geolocationError,
+    permissionState,
   } = useGeolocation();
   const { fetchGhanaPostAddress, loading: addressLoading } = useGhanaPostGPS();
   const isLoadingLocation = coordinatesLoading || addressLoading;
@@ -566,6 +567,24 @@ const AddFacilityDialog = () => {
                 </h3>
 
                 {(() => {
+                  // 1. Show a message if permission is denied
+                  if (permissionState === "denied") {
+                    return (
+                      <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-xl bg-red-50/50">
+                        <MapPinHouse className="h-8 w-8 text-destructive/40 mb-3" />
+                        <p className="text-sm text-destructive mb-4 text-center">
+                          Location access has been denied. Please enable it in
+                          your browser settings to use this feature.
+                        </p>
+                        {geolocationError && (
+                          <p className="text-xs text-red-500 mb-4">
+                            {geolocationError}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  }
+
                   // 1. Show Loader if we are currently fetching
                   if (isLoadingLocation) {
                     return (
