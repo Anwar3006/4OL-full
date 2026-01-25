@@ -80,6 +80,8 @@ const AddFacilityDialog = () => {
     email: string;
     password: string;
     facilityName: string;
+    phoneNumber: string;
+    ownerNumber: string;
   } | null>(null);
 
   // New state for advanced image management in edit mode
@@ -416,6 +418,9 @@ const AddFacilityDialog = () => {
             email: payload.owner_email,
             password: payload.gps_address,
             facilityName: payload.facility_name,
+            phoneNumber: payload.contact_number,
+            ownerNumber:
+              payload.whatsapp_number || payload.person_contact_number,
           });
           setFacilityModal(true);
         }
@@ -431,14 +436,6 @@ const AddFacilityDialog = () => {
 
   const getImageUrl = (img: string) =>
     `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${process.env.NEXT_PUBLIC_SUPABASE_BUCKET_NAME}/${img}`;
-
-  const existingImageUrls = useMemo(() => {
-    return existingImages.map(getImageUrl);
-  }, [existingImages]);
-
-  const newlyUploadedUrls = useMemo(() => {
-    return newlyUploadedFiles.map(getImageUrl);
-  }, [newlyUploadedFiles]);
 
   return (
     <Dialog open={isOpen} onOpenChange={handleDialogClose}>

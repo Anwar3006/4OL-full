@@ -8,6 +8,7 @@ import {
   EyeOff,
   AlertTriangle,
   ShieldCheck,
+  Share2,
 } from "lucide-react";
 import {
   Dialog,
@@ -29,6 +30,8 @@ interface Props {
     email: string;
     password: string;
     facilityName: string;
+    phoneNumber: string;
+    ownerNumber: string;
   };
 }
 
@@ -41,6 +44,10 @@ const FacilityCredentialsModal = ({ isOpen, onClose, data }: Props) => {
     setCopiedField(fieldName);
     toast.success(`${fieldName} copied to clipboard`);
     setTimeout(() => setCopiedField(null), 2000);
+  };
+
+  const handleShare = () => {
+    const phoneNumber = data.phoneNumber;
   };
 
   return (
@@ -144,6 +151,15 @@ const FacilityCredentialsModal = ({ isOpen, onClose, data }: Props) => {
         </div>
 
         <DialogFooter className="sm:justify-start">
+          <Button
+            type="button"
+            variant="default"
+            className="w-full sm:w-auto flex items-center gap-1"
+            onClick={onClose} //onclick will call shareToOwner
+          >
+            <Share2 className="h-4 w-4" />
+            Sare Login Credentials
+          </Button>
           <Button
             type="button"
             variant="outline"

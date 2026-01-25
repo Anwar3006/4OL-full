@@ -394,7 +394,7 @@ export const FACILITY_TYPE_OPTIONS = [
   { value: "psychiatric_center", label: "Psychiatric Centers" },
   { value: "ibp", label: "IBPS" },
   { value: "health_school", label: "Health Schools" },
-  { value: "wellness_center", label: "Wellness(Spa, Gym, etc)" },
+  { value: "wellness_center", label: "Wellness(Spa/Gym)" },
 ];
 export const FACILITY_TYPE_ENUM = [
   "hospital_/_clinic",

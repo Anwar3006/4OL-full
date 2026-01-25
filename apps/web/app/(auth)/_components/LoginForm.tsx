@@ -53,7 +53,7 @@ const LoginForm = ({ className, ...props }: React.ComponentProps<"form">) => {
       toast.success("Log in successful!");
 
       // Step 3: Redirect to dashboard
-      router.push("/dashboard");
+      router.push("/dashboard/overview");
     } catch (error: unknown) {
       console.error("Error logging in user: ", error);
       toast.error("Login failed! : " + (error as Error).message);
