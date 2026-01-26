@@ -12,6 +12,8 @@ import {
   Section,
   Tailwind,
   Text,
+  Row,
+  Column,
 } from "@react-email/components";
 
 interface InviteAdminEmailProps {
@@ -24,7 +26,6 @@ export const InviteAdminEmail = ({
   inviteLink,
 }: InviteAdminEmailProps) => {
   const previewText = `Exclusive Invitation: Join the 4 Our Life Administrative Team`;
-
   const username = email?.split("@")[0];
 
   return (
@@ -32,76 +33,88 @@ export const InviteAdminEmail = ({
       <Head />
       <Preview>{previewText}</Preview>
       <Tailwind>
-        <Body className="bg-[#EBF4DD] py-10 font-sans">
-          <Container className="mx-auto max-w-[600px] overflow-hidden rounded-xl bg-white shadow-lg">
-            {/* Elegant Header Banner */}
-            <Section className="bg-[#059669] p-8 text-center">
-              <Img
-                src={"http://localhost:3000/assets/images/all-img/logo.png"} //TODO: Update this to production URL
-                width="64"
-                height="64"
-                alt="4 Our Life Logo"
-                className="mx-auto mb-4 rounded-2xl shadow-md"
-              />
-              <Text className="m-0 font-medium tracking-[2px] text-[12px] uppercase text-white/80">
-                Health Administration Portal
-              </Text>
+        <Body className="bg-[#f3f4f6] py-10 font-sans">
+          <Container className="mx-auto max-w-[600px] bg-white shadow-sm border border-[#e5e7eb] rounded-lg overflow-hidden">
+            {/* Header: Solid Color Header using Row/Column for centering */}
+            <Section className="bg-[#059669] p-8">
+              <Row>
+                <Column align="center">
+                  <Img
+                    src="https://rhbbxttxnvcziyqzptqs.supabase.co/storage/v1/object/public/bucket4ol/logo.png"
+                    width="60"
+                    height="60"
+                    alt="4 Our Life Logo"
+                    style={{ marginBottom: "16px", borderRadius: "12px" }}
+                  />
+                  <Text className="m-0 font-bold tracking-[3px] text-[11px] uppercase text-white/90">
+                    Health Administration Portal
+                  </Text>
+                </Column>
+              </Row>
             </Section>
 
-            <Section className="px-12 py-12">
-              <Heading className="m-0 text-left font-serif text-[28px] font-semibold leading-tight text-[#111827]">
+            {/* Content Body */}
+            <Section className="px-10 py-12">
+              <Heading className="m-0 text-[26px] font-bold text-[#111827] leading-[32px]">
                 Elevating Healthcare <br />
-                <span className="text-[#059669]">Management.</span>
+                <span style={{ color: "#059669" }}>Management.</span>
               </Heading>
 
-              <Text className="mt-6 text-[16px] leading-6.5 text-[#4b5563]">
-                Hello {username},
+              <Text className="mt-8 text-[16px] leading-[26px] text-[#4b5563]">
+                Hello <strong>{username}</strong>,
               </Text>
 
-              <Text className="text-[16px] leading-6.5 text-[#4b5563]">
-                You have been selected by the{" "}
-                <strong>4 Our Life Super Admin</strong> to join our elite
-                network of healthcare administrators. Your expertise is required
-                to manage and approve world-class medical facilities.
+              <Text className="text-[16px] leading-[26px] text-[#4b5563]">
+                You have been selected to join the elite network of 4 Our Life
+                administrators. Your role involves managing world-class medical
+                facilities and ensuring operational excellence.
               </Text>
 
-              <Section className="mt-8 mb-10 text-center">
+              {/* Centered Bulletproof Button */}
+              <Section align="center" className="mt-10 mb-10">
                 <Button
-                  className="inline-block rounded-lg bg-[#059669] px-10 py-4 text-center text-[14px] font-bold text-white no-underline shadow-xl transition-all"
+                  className="bg-[#059669] rounded-md text-white text-[14px] font-bold no-underline text-center"
                   href={inviteLink}
+                  style={{
+                    padding: "16px 32px",
+                    display: "inline-block",
+                    lineHeight: "100%",
+                  }}
                 >
                   Accept Administrative Access
                 </Button>
               </Section>
 
-              <Text className="text-[14px] text-[#6b7280]">
-                If the button above does not work, please use the secure link
-                below:
+              <Text className="text-[13px] text-[#6b7280] leading-[20px]">
+                If the button above does not work, securely copy and paste this
+                link:
                 <br />
                 <Link href={inviteLink} className="text-[#059669] underline">
                   {inviteLink}
                 </Link>
               </Text>
 
-              <Hr className="my-8 border-[#e5e7eb]" />
+              <Hr className="my-8 border-[#eeeeee]" />
 
-              <Text className="text-[13px] italic leading-6 text-[#9ca3af]">
-                Note: This invitation was securely generated for{" "}
-                <strong>{email}</strong>. If you were not expecting this access
-                request, please contact our security team immediately to
-                safeguard the 4 Our Life infrastructure.
+              <Text className="text-[12px] italic text-[#9ca3af] leading-[18px]">
+                This invitation was securely generated for{" "}
+                <strong>{email}</strong>. Confidentiality and precision are the
+                pillars of our infrastructure.
               </Text>
             </Section>
 
-            {/* Footer Section */}
-            <Section className="bg-[#f9fafb] px-12 py-6 text-center">
-              <Text className="m-0 text-[12px] font-medium text-[#6b7280]">
-                © {new Date().getFullYear()} 4 Our Life. Confidential Health
-                Infrastructure.
-              </Text>
-              <Text className="mt-2 text-[11px] text-[#9ca3af]">
-                Precision. Security. Vitality.
-              </Text>
+            {/* Minimalist Footer */}
+            <Section className="bg-[#f9fafb] px-10 py-8 border-t border-[#f1f1f1]">
+              <Row>
+                <Column align="center">
+                  <Text className="m-0 text-[11px] font-semibold text-[#6b7280] uppercase tracking-wider">
+                    © {new Date().getFullYear()} 4 Our Life
+                  </Text>
+                  <Text className="mt-1 text-[11px] text-[#9ca3af]">
+                    Precision • Security • Vitality
+                  </Text>
+                </Column>
+              </Row>
             </Section>
           </Container>
         </Body>

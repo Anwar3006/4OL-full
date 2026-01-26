@@ -9,7 +9,7 @@ type DashBoardStatsCardProps = {
   >;
   title: string;
   value: string | number;
-  href: string;
+  href?: string;
   variant?: "success" | "cyan" | "orange" | "alt-success" | string;
 };
 
@@ -37,7 +37,7 @@ const DashBoardStatsCard = ({
         "group border-2 px-5 md:px-6 py-5 md:py-6 rounded-[2rem] shadow-sm hover:shadow-xl hover:scale-105 transition-all duration-500 ease-in-out min-h-[110px] flex items-center",
       )}
     >
-      <Link href={href} className="w-full">
+      <Link href={href as string} className="w-full">
         <div className="flex items-center gap-5">
           {/* 3. Increased Icon Size: scaled to roughly 1.2x of original */}
           <div className="p-3 rounded-2xl bg-white/40 group-hover:bg-white/60 transition-colors">

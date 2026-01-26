@@ -20,7 +20,8 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "scripts/condition.const.ts"
+    "scripts/condition.const.ts",
+    "app/(dashboard)/dashboard/analytics/page.tsx"
   ],
   "exclude": ["node_modules"]
 }
