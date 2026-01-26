@@ -33,7 +33,9 @@ export const auth = betterAuth({
       enabled: true,
       sendChangeEmailVerification: async ({ user, newEmail, url, token }) => {
         // Email verification will be handled by your email service
-        console.log(`Email change verification for ${user.email} to ${newEmail}`);
+        console.log(
+          `Email change verification for ${user.email} to ${newEmail}`,
+        );
         console.log(`Verification URL: ${url}`);
       },
     },
@@ -44,7 +46,9 @@ export const auth = betterAuth({
 
   trustedOrigins: [
     "http://localhost:3000",
-    "https://4-ol-full-web-myzx.vercel.app",
+    "https://4-ol-full-web-myzx.vercel.app", //personal
+    "https://office.4ourlife.com", //production
+    "https://4-our-life-gh-web.vercel.app", //preview
 
     // Mobile app schemes - FIXED
     "4ol://*", // Wildcard for all paths under 4ol://

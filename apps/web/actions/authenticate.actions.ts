@@ -5,11 +5,12 @@ import {
   TUserProfile,
 } from "@4ol/db/schemas/user-profile.schema";
 import { InviteAdminEmail } from "@4ol/email-sender/emails/admins/invite-admin";
-
+import sgMail from "@sendgrid/mail";
 import { auth } from "@4ol/api/auth";
 import { nanoid } from "nanoid";
 import { headers } from "next/headers";
 import { Resend } from "resend";
+import { render } from "@react-email/components";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -42,6 +43,11 @@ const createAdminInvite = async (input: TAdminInviteSchema) => {
   }
 };
 
+// Initialize SendGrid
+sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
+
+// ... createAdminInvite function (no changes) ...
+
 export async function inviteAdminAction(email: string, role: string) {
   try {
     const requestHeaders = await headers();
@@ -53,7 +59,7 @@ export async function inviteAdminAction(email: string, role: string) {
 
     if (session?.user?.role !== "admin") {
       throw new Error(
-        "Unauthorized: You do not have permission to invite admins."
+        "Unauthorized: You do not have permission to invite admins.",
       );
     }
 
@@ -69,19 +75,41 @@ export async function inviteAdminAction(email: string, role: string) {
 
     const inviteLink = `${process.env.NEXT_PUBLIC_APP_URL}/accept-invite?token=${token}`;
 
-    const isProd = process.env.NODE_ENV === "production";
-    const result = await resend.emails.send({
-      from: isProd
-        ? "4 Our Life <admin@4ourlife.com>"
-        : "onboarding@resend.dev",
-      to: [email],
-      subject: "Invitation to join 4 Our Life",
-      react: InviteAdminEmail({ email, inviteLink }),
-    });
+    // Convert React Email to HTML
+    const emailHtml = await render(InviteAdminEmail({ email, inviteLink }));
 
-    return result;
-  } catch (error) {
-    console.error("Error: ", error);
-    throw error;
+    // Send email via SendGrid
+    const isProd = process.env.NODE_ENV === "production";
+    const msg = {
+      to: email,
+      from: {
+        email: process.env.SENDGRID_FROM_EMAIL || "admin@4ourlife.com",
+        name: process.env.SENDGRID_FROM_NAME || "4 Our Life",
+      },
+      subject: "Invitation to join 4 Our Life",
+      html: emailHtml,
+    };
+
+    const result = await sgMail.send(msg);
+
+    // SendGrid returns an array [response, body]
+    return {
+      data: {
+        id: result[0].headers["x-message-id"],
+      },
+      error: null,
+    };
+  } catch (error: any) {
+    console.error("Error sending invitation:", error);
+
+    // SendGrid error handling
+    if (error.response) {
+      console.error("SendGrid Error Body:", error.response.body);
+    }
+
+    return {
+      data: null,
+      error: error.message || "Failed to send invitation",
+    };
   }
 }
