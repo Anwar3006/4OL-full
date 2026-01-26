@@ -83,8 +83,8 @@ export async function inviteAdminAction(email: string, role: string) {
     const msg = {
       to: email,
       from: {
-        email: process.env.SENDGRID_FROM_EMAIL || "admin@4ourlife.com",
-        name: process.env.SENDGRID_FROM_NAME || "4 Our Life",
+        email: process.env.SENDGRID_FROM_EMAIL || "life@4ourlife.com",
+        name: process.env.SENDGRID_FROM_NAME || "4OurLife Team",
       },
       subject: "Invitation to join 4 Our Life",
       html: emailHtml,
