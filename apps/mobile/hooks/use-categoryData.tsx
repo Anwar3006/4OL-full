@@ -1,10 +1,10 @@
+import { Image, useWindowDimensions } from "react-native";
 import {
   FontAwesome6,
   Ionicons,
   MaterialCommunityIcons,
   MaterialIcons,
 } from "@expo/vector-icons";
-import { Image, useWindowDimensions } from "react-native";
 
 type CategoryItem = {
   id: string;
@@ -24,7 +24,7 @@ export const useCategoryData = () => {
   const categories: CategoryItem[] = [
     {
       id: "1",
-      icon: <FontAwesome6 name="hospital" size={30} color="green" />,
+      icon: <FontAwesome6 name="hospital" size={30} color="#DE3163" />,
       title: "Hospitals",
       value: "hospitals_&_clinics",
       screen: "TopRated",
@@ -38,7 +38,7 @@ export const useCategoryData = () => {
           style={{
             width: getSize(40),
             height: getSize(33),
-            tintColor: "green",
+            tintColor: "#DE3163",
           }}
         />
       ),
@@ -55,7 +55,7 @@ export const useCategoryData = () => {
           style={{
             width: getSize(40),
             height: getSize(33),
-            tintColor: "green",
+            tintColor: "#DE3163",
           }}
         />
       ),
@@ -72,7 +72,7 @@ export const useCategoryData = () => {
           style={{
             width: getSize(40),
             height: getSize(33),
-            tintColor: "green",
+            tintColor: "#DE3163",
           }}
         />
       ),
@@ -82,14 +82,14 @@ export const useCategoryData = () => {
     },
     {
       id: "5",
-      icon: <FontAwesome6 name="flask" size={getSize(22)} color={"green"} />,
+      icon: <FontAwesome6 name="flask" size={getSize(22)} color={"#DE3163"} />,
       title: "Diagnostic Lab",
       value: "diagnostic_labs",
       screen: "TopRated",
     },
     {
       id: "6",
-      icon: <FontAwesome6 name="ribbon" size={getSize(26)} color={"green"} />,
+      icon: <FontAwesome6 name="ribbon" size={getSize(26)} color={"#DE3163"} />,
       title: "Symptoms",
       value: "symptoms", //change: should navigate to Symptoms not fetch facilities
       screen: "Symptoms",
@@ -97,7 +97,7 @@ export const useCategoryData = () => {
     {
       id: "7",
       icon: (
-        <Ionicons name="fitness-outline" size={getSize(30)} color={"green"} />
+        <Ionicons name="fitness-outline" size={getSize(30)} color={"#DE3163"} />
       ),
       title: "Healthy Living",
       value: "healthy_living", //change
@@ -112,7 +112,7 @@ export const useCategoryData = () => {
           style={{
             width: getSize(43),
             height: getSize(26),
-            tintColor: "green",
+            tintColor: "#DE3163",
           }}
         />
       ),
@@ -123,7 +123,11 @@ export const useCategoryData = () => {
     {
       id: "9",
       icon: (
-        <FontAwesome6 name="truck-medical" size={getSize(24)} color={"green"} />
+        <FontAwesome6
+          name="truck-medical"
+          size={getSize(24)}
+          color={"#DE3163"}
+        />
       ),
       title: "Ambulance",
       value: "ambulance", //TODO: check if we really need this
@@ -135,7 +139,7 @@ export const useCategoryData = () => {
         <MaterialCommunityIcons
           name="shield-home-outline"
           size={getSize(30)}
-          color={"green"}
+          color={"#DE3163"}
         />
       ),
       title: "Homes",
@@ -150,7 +154,7 @@ export const useCategoryData = () => {
           style={{
             width: getSize(40),
             height: getSize(40),
-            tintColor: "green",
+            tintColor: "#DE3163",
           }}
         />
       ),
@@ -166,7 +170,7 @@ export const useCategoryData = () => {
           style={{
             width: getSize(30),
             height: getSize(30),
-            tintColor: "green",
+            tintColor: "#DE3163",
           }}
         />
       ),
@@ -179,7 +183,7 @@ export const useCategoryData = () => {
       icon: (
         <Image
           source={require("@/assets/images/dentalIcon.png")}
-          style={{ width: 30, height: 31, tintColor: "green" }}
+          style={{ width: 30, height: 31, tintColor: "#DE3163" }}
         />
       ),
       title: "Dental",
@@ -194,7 +198,7 @@ export const useCategoryData = () => {
           style={{
             width: getSize(30),
             height: getSize(30),
-            tintColor: "green",
+            tintColor: "#DE3163",
           }}
         />
       ),
@@ -207,7 +211,7 @@ export const useCategoryData = () => {
       icon: (
         <Image
           source={require("@/assets/images/prostheticIcon.png")}
-          style={{ width: 50, height: 40, tintColor: "green" }}
+          style={{ width: 50, height: 40, tintColor: "#DE3163" }}
         />
       ),
       title: "Prosthetics",
@@ -216,7 +220,7 @@ export const useCategoryData = () => {
     },
     {
       id: "16",
-      icon: <Ionicons name="school-outline" size={40} color={"green"} />,
+      icon: <Ionicons name="school-outline" size={40} color={"#DE3163"} />,
       title: "Health Schools",
       value: "health_schools",
       screen: "TopRated",
@@ -226,7 +230,7 @@ export const useCategoryData = () => {
       icon: (
         <Image
           source={require("@/assets/images/mentalHealthIcon.png")}
-          style={{ width: 40, height: 40, tintColor: "green" }}
+          style={{ width: 40, height: 40, tintColor: "#DE3163" }}
         />
       ),
       title: "Psychiatric",

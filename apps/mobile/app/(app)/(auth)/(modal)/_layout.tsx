@@ -13,11 +13,25 @@ const ModalsLayout = () => {
       }}
     >
       <Stack.Screen
-        name="SearchResult"
+        name="SearchResultModal"
         options={{
           presentation: "modal", // This triggers the slide-up effect
           headerShown: true,
           headerTitle: "Search Results",
+          headerLeft: () => (
+            <TouchableOpacity onPress={() => router.back()}>
+              <Text className="text-green-600 font-semibold">Cancel</Text>
+            </TouchableOpacity>
+          ),
+        }}
+      />
+
+      <Stack.Screen
+        name="DiseasesModal"
+        options={{
+          presentation: "modal", // This triggers the slide-up effect
+          headerShown: false,
+          headerTitle: "Diseases",
           headerLeft: () => (
             <TouchableOpacity onPress={() => router.back()}>
               <Text className="text-green-600 font-semibold">Cancel</Text>

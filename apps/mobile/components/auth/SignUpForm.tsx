@@ -102,7 +102,6 @@ export default function SignUpForm() {
     await authClient.signIn.email({
       email: data.email!,
       password: data.password,
-      callbackURL: "/dashboard",
       fetchOptions: {
         onError: (ctx: any) => {
           Alert.alert("Registration Failed", ctx.error.message);
@@ -260,7 +259,7 @@ export default function SignUpForm() {
                     "flex-1 h-14 rounded-2xl border items-center justify-center bg-white/5",
                     watch("sex") === option
                       ? "border-green-500 bg-green-500/10"
-                      : "border-gray-400"
+                      : "border-gray-400",
                   )}
                 >
                   <Text
@@ -268,7 +267,7 @@ export default function SignUpForm() {
                       "font-bold",
                       watch("sex") === option
                         ? "text-green-500"
-                        : "text-gray-400"
+                        : "text-gray-400",
                     )}
                   >
                     {option}

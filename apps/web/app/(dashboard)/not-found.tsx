@@ -20,7 +20,7 @@ export default function DashboardNotFound() {
 
   const quickLinks = [
     {
-      href: "/dashboard",
+      href: "/dashboard/overview",
       icon: Home,
       label: "Dashboard",
       description: "Return to main dashboard",
@@ -67,9 +67,7 @@ export default function DashboardNotFound() {
 
       {/* Main Message */}
       <div className="text-center max-w-2xl mb-8">
-        <h1 className="text-3xl md:text-4xl font-bold mb-4">
-          Page Not Found
-        </h1>
+        <h1 className="text-3xl md:text-4xl font-bold mb-4">Page Not Found</h1>
         <p className="text-lg text-muted-foreground mb-6">
           The page you're looking for doesn't exist yet or may have been moved.
           This feature might be under development.
@@ -102,7 +100,7 @@ export default function DashboardNotFound() {
           Go Back
         </Button>
         <Button
-          onClick={() => router.push("/dashboard")}
+          onClick={() => router.push("/dashboard/overview")}
           size="lg"
           className="gap-2"
         >
@@ -113,9 +111,7 @@ export default function DashboardNotFound() {
 
       {/* Quick Links */}
       <div className="w-full max-w-4xl">
-        <h2 className="text-lg font-semibold mb-4 text-center">
-          Quick Links
-        </h2>
+        <h2 className="text-lg font-semibold mb-4 text-center">Quick Links</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {quickLinks.map((link) => {
             const Icon = link.icon;
@@ -128,9 +124,7 @@ export default function DashboardNotFound() {
                 <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-3 group-hover:bg-primary/20 transition-colors">
                   <Icon className="w-6 h-6 text-primary" />
                 </div>
-                <h3 className="font-semibold mb-1 text-center">
-                  {link.label}
-                </h3>
+                <h3 className="font-semibold mb-1 text-center">{link.label}</h3>
                 <p className="text-xs text-muted-foreground text-center">
                   {link.description}
                 </p>

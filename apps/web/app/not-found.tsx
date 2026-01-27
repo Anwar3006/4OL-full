@@ -41,7 +41,7 @@ export default function GlobalNotFound() {
             Go Back
           </Button>
           <Button
-            onClick={() => router.push("/dashboard")}
+            onClick={() => router.push("/dashboard/overview")}
             size="lg"
             className="gap-2"
           >

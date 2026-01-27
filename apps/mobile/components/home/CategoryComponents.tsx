@@ -24,7 +24,7 @@ export const CategorySmall = ({
   const handlePress = () => {
     // Navigate to SearchResult modal with facilityType param
     router.push({
-      pathname: "/(app)/(auth)/(modal)/SearchResult",
+      pathname: "/(app)/(auth)/(modal)/DiseasesModal",
       params: { facilityType: value },
     });
   };
@@ -67,7 +67,7 @@ export const CategoryLarge = ({
   const handlePress = () => {
     // Navigate to SearchResult modal with facilityType param
     router.push({
-      pathname: "/(app)/(auth)/(modal)/SearchResult",
+      pathname: "/(app)/(auth)/(modal)/DiseasesModal",
       params: { facilityType: value },
     });
   };

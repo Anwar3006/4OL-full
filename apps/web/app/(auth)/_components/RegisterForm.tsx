@@ -26,8 +26,7 @@ import { ROLE_OPTIONS, SEX_OPTIONS } from "@4ol/db/types/formInput";
 
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
-import { trpc } from "@/lib/trpc";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useCreateUserProfile } from "@/hooks/supabase-calls/useUser";
 
 const RegisterForm = ({
@@ -100,7 +99,7 @@ const RegisterForm = ({
       });
 
       // Step 3: Redirect to dashboard
-      router.push("/dashboard");
+      router.push("/dashboard/overview");
     } catch (error: unknown) {
       console.error("Error registering user: ", error);
       toast.error("Registration failed! : " + (error as Error).message);
