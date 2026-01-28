@@ -127,6 +127,8 @@ export function FacilityViewDialog() {
     addDialog.open(facilityData);
   };
 
+  console.log("Facility: ", facility);
+
   return (
     <Sheet
       open={viewDialog.isOpen}
@@ -217,7 +219,7 @@ export function FacilityViewDialog() {
                         <div className="space-y-1">
                           <div className="flex items-center gap-2 text-primary font-semibold text-sm uppercase tracking-wider">
                             <Building2 className="w-4 h-4" />
-                            {facility.facility_type}
+                            {facility.facility_type?.replaceAll("_", " ")}
                           </div>
                           <SheetTitle className="text-4xl font-black tracking-tight text-foreground">
                             {facility.facility_name}

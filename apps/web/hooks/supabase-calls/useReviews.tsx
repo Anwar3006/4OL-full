@@ -112,6 +112,7 @@ export const usePerformFacilityReview = () => {
       rating?: number | null;
       parentId?: string | null;
     }) => {
+      console.log("Called with rating: ", rating);
       const { error } = await supabase.rpc(
         "admin_perform_facility_review_action",
         {
@@ -151,17 +152,34 @@ export const usePerformFacilityReview = () => {
       return { previousFacility };
     },
     onSuccess: (_, variables) => {
-      // Refresh only the relevant data
+      // Invalidate all related queries
       queryClient.invalidateQueries({
-        queryKey: FACILITY_PROFILE_QUERY_KEYS.detail(variables.facilityId),
+        queryKey: ["facility-profile", variables.facilityId],
       });
       queryClient.invalidateQueries({
         queryKey: ["facility-reviews", variables.facilityId],
       });
       queryClient.invalidateQueries({
-        queryKey: ["facility-admin-audit", variables.facilityId],
+        queryKey: [
+          "facility-admin-audit",
+          variables.facilityId,
+          variables.adminId,
+        ],
       });
-      toast.success("Audit note recorded.");
+
+      toast.success(
+        variables.rating ? "Rating submitted!" : "Audit note recorded.",
+      );
+    },
+    onError: (error, variables, context: any) => {
+      // Rollback on error
+      if (context?.previousFacility) {
+        queryClient.setQueryData(
+          ["facility-profile", variables.facilityId],
+          context.previousFacility,
+        );
+      }
+      toast.error("Failed to submit: " + (error as Error).message);
     },
   });
 };

@@ -13,16 +13,18 @@ import { Button } from "@/components/ui/button";
 import { formatDistanceToNow } from "date-fns";
 import { usePerformFacilityReview } from "@/hooks/supabase-calls/useReviews";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 
 type Props = {
   facility: any;
   adminId: string;
-  // This now expects the structure: { myReviews: [], summary: { avgRating, totalReviews } }
   auditData: any;
 };
 
 export function FacilityRatingSection({ facility, adminId, auditData }: Props) {
   const [comment, setComment] = useState("");
+  const [localRating, setLocalRating] = useState<number | null>(null);
+  const [isSubmittingRating, setIsSubmittingRating] = useState(false);
   const { mutate: submitAction, isPending } = usePerformFacilityReview();
 
   const { myReviews, summary } = auditData || {
@@ -30,48 +32,96 @@ export function FacilityRatingSection({ facility, adminId, auditData }: Props) {
     summary: { avgRating: 0, totalReviews: 0 },
   };
 
-  // Handle both Comment submission and Status Toggles
-  const handleAction = (overrides?: { isTopRated?: boolean }) => {
+  // Handle star click
+  const handleStarClick = (rating: number) => {
+    // We don't set isSubmittingRating manually; we use 'isPending' from the hook
     submitAction(
       {
         adminId,
         facilityId: facility.id,
-        // If we are just toggling, use the new value; otherwise use current state
-        isTopRated: overrides?.isTopRated ?? facility.is_top_rated,
-        comment: comment || null,
-        rating: null, // Admins bypass rating requirement
+        isTopRated: facility.is_top_rated,
+        comment: "", // Now works because of SQL fix
+        rating: rating,
         parentId: null,
       },
       {
-        onSuccess: () => setComment(""),
+        onSuccess: () => {
+          setLocalRating(null);
+          toast.success("Rating updated!");
+          // REMOVED: window.location.reload()
+          // React Query handles the update via invalidateQueries in usePerformFacilityReview
+        },
+        onError: (error) => {
+          console.error("Rating error:", error);
+          setLocalRating(null);
+        },
       },
     );
   };
 
+  // Handle comment submission (with optional rating)
+  const handleCommentSubmit = () => {
+    if (!comment.trim()) return;
+
+    submitAction(
+      {
+        adminId,
+        facilityId: facility.id,
+        isTopRated: facility.is_top_rated,
+        comment: comment,
+        rating: localRating || undefined, // Include rating if set
+        parentId: null,
+      },
+      {
+        onSuccess: () => {
+          setComment("");
+          setLocalRating(null);
+        },
+      },
+    );
+  };
+
+  // Handle status toggle
+  const handleStatusToggle = (isTopRated: boolean) => {
+    submitAction({
+      adminId,
+      facilityId: facility.id,
+      isTopRated,
+      comment: null,
+      rating: null,
+      parentId: null,
+    });
+  };
+
+  console.log("Reviews: ");
+
   return (
     <div className="space-y-8 mt-10">
       {/* 1. Summary Header */}
-      <div className="flex items-center justify-between bg-primary/5 p-6 rounded-2xl border border-primary/10">
+      <div className="flex items-center justify-between bg-primary/5 p-4 md:p-6 rounded-2xl border border-primary/10">
         <div className="flex items-center gap-4">
-          <div className="bg-primary text-white p-4 rounded-xl shadow-lg">
-            <span className="text-2xl font-black">
+          <div className="bg-primary text-white p-3 md:p-4 rounded-xl shadow-lg">
+            <span className="text-sm md:text-2xl font-black">
               {summary.avgRating?.toFixed(1) || "0.0"}
             </span>
           </div>
           <div>
+            {/* Star Rating Component */}
             <div className="flex gap-1 mb-1">
-              {[1, 2, 3, 4, 5].map((s) => (
-                <Star
-                  key={s}
-                  size={16}
-                  fill={s <= Math.round(summary.avgRating) ? "#facc15" : "none"}
-                  stroke={
-                    s <= Math.round(summary.avgRating) ? "#facc15" : "#94a3b8"
-                  }
-                />
-              ))}
+              <StarRating
+                rating={summary.avgRating || 0}
+                size={20}
+                handleClick={handleStarClick}
+                isSubmittingRating={isSubmittingRating}
+              />
+
+              {(isSubmittingRating || isPending) && (
+                <span className="ml-2 text-xs text-muted-foreground animate-pulse">
+                  Submitting...
+                </span>
+              )}
             </div>
-            <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
+            <p className="text-[0.55rem] md:text-xs font-bold text-muted-foreground uppercase tracking-widest">
               Total {summary.totalReviews} Reviews
             </p>
           </div>
@@ -79,13 +129,13 @@ export function FacilityRatingSection({ facility, adminId, auditData }: Props) {
 
         <div className="flex flex-col items-end gap-2">
           <div className="flex items-center gap-3">
-            <span className="text-sm font-bold text-slate-700">
+            <span className="text-xs md:text-sm font-bold text-slate-700">
               Top-Rated Status
             </span>
             <Switch
-              disabled={isPending}
+              disabled={isPending || isSubmittingRating}
               checked={facility.is_top_rated}
-              onCheckedChange={(val) => handleAction({ isTopRated: val })}
+              onCheckedChange={handleStatusToggle}
             />
           </div>
           {facility.is_top_rated && (
@@ -101,24 +151,74 @@ export function FacilityRatingSection({ facility, adminId, auditData }: Props) {
         <div className="absolute -top-3 left-4 px-2 bg-background text-[10px] font-bold text-primary uppercase tracking-widest z-10">
           Admin Audit Note
         </div>
+
+        {/* Star Rating in Comment Box (Optional) */}
+        <div className="mb-3 flex items-center gap-2">
+          <span className="text-xs font-medium text-muted-foreground">
+            Add rating with comment:
+          </span>
+          <div className="flex gap-0.5">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <button
+                key={star}
+                type="button"
+                onClick={() => setLocalRating(star)}
+                disabled={isPending || isSubmittingRating}
+                className="transition-transform hover:scale-110"
+              >
+                <Star
+                  size={16}
+                  fill={localRating && star <= localRating ? "#facc15" : "none"}
+                  stroke={
+                    localRating && star <= localRating ? "#facc15" : "#94a3b8"
+                  }
+                />
+              </button>
+            ))}
+          </div>
+          {localRating && (
+            <span className="text-xs text-amber-600 font-medium">
+              {localRating} star{localRating !== 1 ? "s" : ""}
+            </span>
+          )}
+        </div>
+
         <Textarea
           placeholder="Log an internal observation or follow-up note..."
           className="min-h-32 rounded-2xl border-slate-200 focus:border-primary focus:ring-primary/20 transition-all resize-none p-4 pt-5 bg-slate-50/30"
           value={comment}
           onChange={(e) => setComment(e.target.value)}
+          disabled={isPending || isSubmittingRating}
         />
-        <Button
-          onClick={() => handleAction()}
-          disabled={!comment || isPending}
-          className="absolute bottom-3 right-3 rounded-xl gap-2 shadow-md"
-        >
-          {isPending ? (
-            <span className="animate-spin text-lg">...</span>
-          ) : (
-            <Send size={16} />
-          )}
-          Post Note
-        </Button>
+
+        <div className="flex items-center justify-between mt-2">
+          <div className="text-xs text-muted-foreground">
+            {localRating ? (
+              <span className="text-amber-600 font-medium">
+                Rating will be saved with comment
+              </span>
+            ) : (
+              "Comment only (no rating)"
+            )}
+          </div>
+
+          <Button
+            onClick={handleCommentSubmit}
+            disabled={
+              (!comment.trim() && !localRating) ||
+              isPending ||
+              isSubmittingRating
+            }
+            className="rounded-xl gap-2 shadow-md"
+          >
+            {isPending || isSubmittingRating ? (
+              <span className="animate-spin text-lg">...</span>
+            ) : (
+              <Send size={16} />
+            )}
+            Post {localRating ? "Rating & Note" : "Note"}
+          </Button>
+        </div>
       </div>
 
       {/* 3. Threaded Personal History List */}
@@ -197,6 +297,100 @@ function ReviewBox({ review }: { review: any }) {
           </p>
         </div>
       </div>
+    </div>
+  );
+}
+
+// {[1, 2, 3, 4, 5].map((star) => (
+//                 <button
+//                   key={star}
+//                   type="button"
+//                   onClick={() => handleStarClick(star)}
+//                   disabled={isPending || isSubmittingRating}
+//                   className={`transition-transform hover:scale-110 active:scale-95 ${
+//                     isSubmittingRating ? "cursor-wait" : "cursor-pointer"
+//                   }`}
+//                 >
+//                   <Star
+//                     size={20}
+//                     fill={
+//                       star <= Math.round(summary.avgRating || 0) ||
+//                       (localRating && star <= localRating)
+//                         ? "#facc15"
+//                         : "none"
+//                     }
+//                     stroke={
+//                       star <= Math.round(summary.avgRating || 0) ||
+//                       (localRating && star <= localRating)
+//                         ? "#facc15"
+//                         : "#94a3b8"
+//                     }
+//                     className={`${
+//                       localRating && star <= localRating ? "animate-pulse" : ""
+//                     }`}
+//                   />
+
+//                 </button>
+
+function StarRating({
+  rating,
+  size = 20,
+  handleClick,
+  isSubmittingRating,
+}: {
+  rating: number;
+  size?: number;
+  handleClick: (rating: number) => void;
+  isSubmittingRating: boolean;
+}) {
+  // Use local state to track "Hover" or "Selection" intent
+  const [hoveredStar, setHoveredStar] = React.useState<number | null>(null);
+
+  return (
+    <div className="flex gap-1 items-center">
+      {[1, 2, 3, 4, 5].map((index) => {
+        // LOGIC:
+        // 1. If hovering, show solid gold up to the hovered star.
+        // 2. Otherwise, show the precise decimal fill of the actual rating.
+        const isHovering = hoveredStar !== null;
+        const fillAmount = isHovering
+          ? index <= hoveredStar
+            ? 1
+            : 0
+          : Math.max(0, Math.min(1, rating - (index - 1)));
+
+        return (
+          <button
+            type="button"
+            key={index}
+            onMouseEnter={() => setHoveredStar(index)}
+            onMouseLeave={() => setHoveredStar(null)}
+            onClick={() => handleClick(index)}
+            disabled={isSubmittingRating}
+            className={`relative transition-all duration-150 ${
+              isSubmittingRating
+                ? "opacity-50 cursor-wait"
+                : "hover:scale-110 active:scale-90"
+            }`}
+            style={{ width: size, height: size }}
+          >
+            {/* Layer 1: The Empty Gray Base */}
+            <Star
+              size={size}
+              className="text-slate-200"
+              style={{ position: "absolute", top: 0, left: 0 }}
+            />
+
+            {/* Layer 2: The Golden Fill (Clipped) */}
+            <div
+              className="absolute top-0 left-0 overflow-hidden transition-all duration-300"
+              style={{ width: `${fillAmount * 100}%` }}
+            >
+              <Star size={size} fill="#facc15" stroke="#facc15" />
+            </div>
+          </button>
+        );
+      })}
     </div>
   );
 }
