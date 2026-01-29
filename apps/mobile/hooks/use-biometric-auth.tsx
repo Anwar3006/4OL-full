@@ -83,7 +83,7 @@ export function useBiometricAuth(): BiometricAuthHook {
    * Authenticate user with biometrics
    * ALWAYS shows native biometric prompt
    */
-  const authenticate = async (): Promise<boolean> => {
+  const authenticate = useCallback(async (): Promise<boolean> => {
     try {
       if (!isAvailable || !isEnrolled) {
         console.warn("Biometric not available or not enrolled");
@@ -106,7 +106,7 @@ export function useBiometricAuth(): BiometricAuthHook {
       console.error("Biometric authentication error:", error);
       return false;
     }
-  };
+  }, [isAvailable, isEnrolled, biometricType]);
 
   /**
    * Enable biometric authentication and store credentials securely

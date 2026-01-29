@@ -1,12 +1,23 @@
 import CustomButton from "@/components/CustomButton";
 import { useAssets } from "expo-asset";
 import { useVideoPlayer, VideoView } from "expo-video";
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 import { Text, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient"; // Install: npx expo install expo-linear-gradient
+import * as TrackingTransparency from "expo-tracking-transparency";
 
 export default function Index() {
+  useEffect(() => {
+    (async () => {
+      const { status } =
+        await TrackingTransparency.requestTrackingPermissionsAsync();
+      if (status === "granted") {
+        console.log("Tracking permission granted");
+      }
+    })();
+  }, []);
+
   const [assets] = useAssets([require("@/assets/videos/auth-video.mp4")]);
   const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();

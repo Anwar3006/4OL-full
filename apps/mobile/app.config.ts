@@ -23,6 +23,8 @@ export default {
           "This app uses Face ID to secure your account and streamline your login experience.",
         NSLocationWhenInUseUsageDescription:
           "This app needs access to location to show nearby facilities.",
+        NSUserTrackingUsageDescription:
+          "This identifier will be used to ensure your healthcare data remains secure and to provide a personalized experience.",
       },
       config: {
         googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY,
@@ -47,6 +49,7 @@ export default {
         "screenLayout",
       ],
       softwareKeyboardLayoutMode: "pan",
+      googleServicesFile: "./google-services.json",
       config: {
         googleMaps: {
           apiKey: process.env.GOOGLE_MAPS_API_KEY,
@@ -84,6 +87,7 @@ export default {
       "expo-video",
       "expo-asset",
       "expo-secure-store",
+      "expo-notifications",
       // "react-native-map",
     ],
     experiments: {

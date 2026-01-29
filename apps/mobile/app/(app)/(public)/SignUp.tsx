@@ -5,13 +5,11 @@ import {
   KeyboardAvoidingView,
   ScrollView,
   Image,
-  TouchableOpacity,
   Platform,
 } from "react-native";
 import React from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import SignUpForm from "@/components/auth/SignUpForm";
-import { Ionicons } from "@expo/vector-icons";
 
 //include Tiktok OAuth through Better Auth. After the flow, redirect them to the User Profile form to complete the needed data
 const SignUpScreen = () => {

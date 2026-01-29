@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import React, { useEffect } from "react";
 import { Slot } from "expo-router";
+import * as Notifications from "expo-notifications";
 import { useFonts } from "expo-font";
 import {
   Nunito_300Light,
@@ -16,6 +17,14 @@ import {
 } from "react-native-reanimated";
 
 const queryClient = new QueryClient();
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
 
 const RootLayout = () => {
   const [fontsLoaded] = useFonts({

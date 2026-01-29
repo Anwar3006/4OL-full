@@ -1,4 +1,5 @@
 import "@/global.css";
+import { BiometricAuthGuard } from "@/components/auth/BiometricAuthGuard";
 import { useBiometricAuth } from "@/hooks/use-biometric-auth";
 import { useUserProfile } from "@/hooks/use-userProfile";
 import { authClient } from "@/lib/auth-Client";
@@ -17,10 +18,12 @@ SplashScreen.setOptions({
 export default function AppLayout() {
   return (
     <AuthProvider>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="(auth)" />
-        <Stack.Screen name="(public)" />
-      </Stack>
+      <BiometricAuthGuard>
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="(auth)" />
+          <Stack.Screen name="(public)" />
+        </Stack>
+      </BiometricAuthGuard>
     </AuthProvider>
   );
 }

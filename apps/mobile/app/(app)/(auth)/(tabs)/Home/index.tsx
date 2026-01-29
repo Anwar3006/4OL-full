@@ -9,10 +9,11 @@ import {
   Image,
   FlatList,
 } from "react-native";
-import React from "react";
+import React, { useEffect } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import * as Notifications from "expo-notifications";
 import Search from "@/components/Search";
 
 import CategoryList from "@/components/home/CategoryList";
@@ -20,6 +21,22 @@ import CampaignBox from "@/components/CampaignBox";
 import TopRated from "@/components/home/TopRated";
 
 const Home = () => {
+  useEffect(() => {
+    (async () => {
+      const { status: existingStatus } =
+        await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
+      if (existingStatus !== "granted") {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+      if (finalStatus !== "granted") {
+        console.log("Failed to get push token for push notification!");
+        return;
+      }
+    })();
+  }, []);
+
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const router = useRouter();
