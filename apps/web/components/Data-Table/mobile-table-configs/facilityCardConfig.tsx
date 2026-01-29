@@ -1,78 +1,92 @@
 "use client";
 
-import { Mail, Phone, MapPin, Building2 } from "lucide-react";
+import { Mail, Phone, MapPin, Star } from "lucide-react";
 import { MobileCardConfig } from "../mobile-card-types";
 import { StatusMap } from "@/constants/facility.const";
 import { TFacilityProfileOutput } from "@4ol/db/schemas/facility-profile.schema";
 import { toUppercaseFirstLetter } from "@/lib/utils";
+import {
+  useAddFacilityDialog,
+  useViewFacilityDialog,
+} from "@/stores/dialog-store";
 
 /**
- * Mobile card configuration for Facility entities
- * This defines how facility data should be displayed in card format on mobile devices
+ * We wrap the config in a hook so we can access the dialog stores safely.
  */
-export const facilityCardConfig: MobileCardConfig<TFacilityProfileOutput> = {
-  // Header configuration
-  header: {
-    title: (facility) => facility.facility_name,
-    subtitle: (facility) => toUppercaseFirstLetter(facility.facility_type),
-    badge: (facility) => StatusMap[facility.status],
-  },
+export const useFacilityCardConfig = () => {
+  const { open: openEdit } = useAddFacilityDialog();
+  const { open: openView } = useViewFacilityDialog();
 
-  // Fields to display in card body
-  fields: [
-    {
-      id: "email",
-      icon: <Mail className="h-4 w-4 shrink-0" />,
-      render: (facility) => <span className="truncate">{facility.email}</span>,
+  const config: MobileCardConfig<TFacilityProfileOutput> = {
+    header: {
+      title: (facility) => facility.facility_name,
+      subtitle: (facility) =>
+        facility.facility_type
+          .replaceAll("_", " ")
+          .split(" ")
+          .map(toUppercaseFirstLetter)
+          .join(" "),
+      badge: (facility) => StatusMap[facility.status],
     },
-    {
-      id: "phone",
-      icon: <Phone className="h-4 w-4 shrink-0" />,
-      render: (facility) => <span>{facility.contact_number}</span>,
-    },
-    {
-      id: "region",
-      icon: <MapPin className="h-4 w-4 shrink-0" />,
-      label: "Region",
-      render: (facility) => (
-        <span className="text-xs font-medium">
-          {facility.region.split(" ").map(toUppercaseFirstLetter).join(" ")}
-        </span>
-      ),
-      className: "pt-2 border-t justify-between",
-    },
-  ],
 
-  // Action menu items
-  actions: [
-    {
-      label: "Copy Facility ID",
-      onClick: (facility) => {
-        navigator.clipboard.writeText(facility.id);
+    fields: [
+      {
+        id: "email",
+        icon: <Mail className="h-4 w-4 shrink-0" />,
+        render: (facility) => (
+          <span className="truncate">{facility.email}</span>
+        ),
       },
-      separator: true,
-    },
-    {
-      label: "View Details",
-      onClick: (facility) => {
-        console.log("View details for:", facility.id);
+      {
+        id: "phone",
+        icon: <Phone className="h-4 w-4 shrink-0" />,
+        render: (facility) => <span>{facility.contact_number}</span>,
       },
-    },
-    {
-      label: "Edit Facility",
-      onClick: (facility) => {
-        console.log("Edit facility:", facility.id);
+      {
+        id: "region",
+        icon: <MapPin className="h-4 w-4 shrink-0" />,
+        label: "Region",
+        render: (facility) => (
+          <span className="text-xs font-medium">
+            {facility.region.split(" ").map(toUppercaseFirstLetter).join(" ")}
+          </span>
+        ),
+        className: "pt-2 border-t justify-end",
       },
-      separator: true,
-    },
-    {
-      label: "Deactivate",
-      onClick: (facility) => {
-        console.log("Deactivate facility:", facility.id);
-      },
-      destructive: true,
-    },
-  ],
+    ],
 
-  getId: (facility) => facility.id,
+    actions: [
+      {
+        label: "Copy Facility ID",
+        onClick: (facility) => {
+          navigator.clipboard.writeText(facility.id);
+        },
+        separator: true,
+      },
+      {
+        label: "View Details",
+        onClick: (facility) => {
+          openView(facility.id); // Now safely available
+        },
+      },
+      {
+        label: "Edit Facility",
+        onClick: (facility) => {
+          openEdit(facility); // Now safely available
+        },
+        separator: true,
+      },
+      {
+        label: "Deactivate",
+        onClick: (facility) => {
+          console.log("Deactivate facility:", facility.id);
+        },
+        destructive: true,
+      },
+    ],
+
+    getId: (facility) => facility.id,
+  };
+
+  return config;
 };

@@ -22,12 +22,14 @@ import { useFacilityProfiles } from "@/hooks/supabase-calls/useFacilities";
 import { createPaginationHandlers } from "@/lib/utils";
 import { DataTable } from "@/components/Data-Table/data-table";
 import { facilityColumns } from "@/components/Data-Table/columns/facilityColumns";
-import { facilityCardConfig } from "@/components/Data-Table/mobile-table-configs/facilityCardConfig";
+import { useFacilityCardConfig } from "@/components/Data-Table/mobile-table-configs/facilityCardConfig";
 import { FacilityViewDialog } from "./_components/view-facility-dialog";
 
 const FacilitiesPage = () => {
   const addFacility = useAddFacilityDialog();
   const viewFacilityDialog = useViewFacilityDialog();
+
+  const facilityCardConfig = useFacilityCardConfig();
 
   const router = useRouter();
   const searchParams = useSearchParams();

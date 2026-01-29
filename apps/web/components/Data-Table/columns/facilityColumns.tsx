@@ -1,5 +1,6 @@
 "use client";
 import { StatusMap } from "@/constants/facility.const";
+import { toUppercaseFirstLetter } from "@/lib/utils";
 import { TFacilityProfileOutput } from "@4ol/db/schemas/facility-profile.schema";
 import { ColumnDef } from "@tanstack/react-table";
 import { Mail, Phone } from "lucide-react";
@@ -60,7 +61,9 @@ export const facilityColumns: ColumnDef<TFacilityProfileOutput>[] = [
     ),
     cell: ({ row }) => (
       <div className="hidden xl:table-cell min-w-30">
-        <span className="text-sm">{row.original.region}</span>
+        <span className="text-sm">
+          {row.original.region.split(" ").map(toUppercaseFirstLetter).join(" ")}
+        </span>
       </div>
     ),
   },

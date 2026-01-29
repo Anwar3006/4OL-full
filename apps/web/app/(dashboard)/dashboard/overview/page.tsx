@@ -15,6 +15,7 @@ import {
   Calendar,
   Clock,
   LayoutDashboard,
+  HeartPulse,
 } from "lucide-react";
 
 // Shadcn UI (Assuming these components exist in your lib)
@@ -86,7 +87,7 @@ export default function OverviewPage() {
       </div>
 
       {/* 1. Core KPIs Row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
         <DashBoardStatsCard
           Icon={Download}
           title="Total App Downloads"
@@ -200,7 +201,7 @@ export default function OverviewPage() {
       </div>
 
       {/* 3. Supporting Metrics Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5 gap-4">
         <DashBoardStatsCard
           Icon={UserStar}
           title="New Signups"
@@ -209,8 +210,8 @@ export default function OverviewPage() {
           href=""
         />
         <DashBoardStatsCard
-          Icon={Smartphone}
-          title="Play Store"
+          Icon={Megaphone}
+          title="Marketing Engagements"
           value={data?.downloads?.play_store ?? 0}
           variant="cyan"
           href=""
@@ -223,14 +224,14 @@ export default function OverviewPage() {
           variant="orange"
         />
         <DashBoardStatsCard
-          Icon={Megaphone}
+          Icon={HeartPulse}
           href={"/conditions"}
           title="Conditions"
           value={data?.total_conditions ?? 0}
           variant="cyan"
         />
         <DashBoardStatsCard
-          Icon={Activity}
+          Icon={HeartPulse}
           href={"/healthy-living"}
           title="Healthy Living"
           value={data?.total_healthy_living ?? 0}

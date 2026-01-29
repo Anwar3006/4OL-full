@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Star,
   MessageSquare,
@@ -14,6 +14,7 @@ import { formatDistanceToNow } from "date-fns";
 import { usePerformFacilityReview } from "@/hooks/supabase-calls/useReviews";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 
 type Props = {
   facility: any;
@@ -22,10 +23,21 @@ type Props = {
 };
 
 export function FacilityRatingSection({ facility, adminId, auditData }: Props) {
+  const queryClient = useQueryClient();
   const [comment, setComment] = useState("");
   const [localRating, setLocalRating] = useState<number | null>(null);
   const [isSubmittingRating, setIsSubmittingRating] = useState(false);
+
   const { mutate: submitAction, isPending } = usePerformFacilityReview();
+
+  // Get live facility data from query cache
+  const liveFacility = queryClient.getQueryData([
+    "facility-profile",
+    facility.id,
+  ]) as any;
+
+  // Use live data if available, fallback to props
+  const currentFacility = liveFacility || facility;
 
   const { myReviews, summary } = auditData || {
     myReviews: [],
@@ -83,6 +95,8 @@ export function FacilityRatingSection({ facility, adminId, auditData }: Props) {
 
   // Handle status toggle
   const handleStatusToggle = (isTopRated: boolean) => {
+    // Optimistically update local state
+
     submitAction({
       adminId,
       facilityId: facility.id,
@@ -134,11 +148,11 @@ export function FacilityRatingSection({ facility, adminId, auditData }: Props) {
             </span>
             <Switch
               disabled={isPending || isSubmittingRating}
-              checked={facility.is_top_rated}
+              checked={currentFacility.is_top_rated}
               onCheckedChange={handleStatusToggle}
             />
           </div>
-          {facility.is_top_rated && (
+          {currentFacility.is_top_rated && (
             <Badge className="bg-amber-100 text-amber-700 border-amber-200 gap-1 animate-in fade-in zoom-in">
               <Trophy size={12} /> Featured
             </Badge>
@@ -300,37 +314,6 @@ function ReviewBox({ review }: { review: any }) {
     </div>
   );
 }
-
-// {[1, 2, 3, 4, 5].map((star) => (
-//                 <button
-//                   key={star}
-//                   type="button"
-//                   onClick={() => handleStarClick(star)}
-//                   disabled={isPending || isSubmittingRating}
-//                   className={`transition-transform hover:scale-110 active:scale-95 ${
-//                     isSubmittingRating ? "cursor-wait" : "cursor-pointer"
-//                   }`}
-//                 >
-//                   <Star
-//                     size={20}
-//                     fill={
-//                       star <= Math.round(summary.avgRating || 0) ||
-//                       (localRating && star <= localRating)
-//                         ? "#facc15"
-//                         : "none"
-//                     }
-//                     stroke={
-//                       star <= Math.round(summary.avgRating || 0) ||
-//                       (localRating && star <= localRating)
-//                         ? "#facc15"
-//                         : "#94a3b8"
-//                     }
-//                     className={`${
-//                       localRating && star <= localRating ? "animate-pulse" : ""
-//                     }`}
-//                   />
-
-//                 </button>
 
 function StarRating({
   rating,

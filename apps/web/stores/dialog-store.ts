@@ -20,7 +20,8 @@ export type DialogTypes =
   | "add-healthy-living"
   | "view-healthy-living"
   | "add-faq"
-  | "view-faq";
+  | "view-faq"
+  | "gallery-modal";
 
 /**
  * Generic dialog configuration
@@ -349,6 +350,21 @@ export const useViewFAQDialog = () => {
     entityId,
     open: (entityId: string) => openDialog("view-faq", { entityId }),
     close: () => closeDialog("view-faq"),
+  };
+};
+
+export const useGalleryModal = () => {
+  const openDialog = useDialogStore((state) => state.openDialog);
+  const closeDialog = useDialogStore((state) => state.closeDialog);
+  const isOpen = useDialogStore((state) => state.isDialogOpen("gallery-modal"));
+  const data = useDialogStore((state) => state.getDialogData("gallery-modal"));
+
+  return {
+    isOpen,
+    data,
+    isEditMode: !!data,
+    open: (data?: any) => openDialog("gallery-modal", { data }),
+    close: () => closeDialog("gallery-modal"),
   };
 };
 
