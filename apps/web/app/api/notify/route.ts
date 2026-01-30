@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
-import { sendWhatsApp, sendSMS, checkWhatsAppAvailability } from "@/lib/twilio";
+import {
+  sendWhatsApp,
+  sendSMS,
+  checkWhatsAppAvailability,
+  initiateWhatsAppHandshake,
+} from "@/lib/twilio";
 
 export async function POST(req: Request) {
   try {
@@ -18,23 +23,34 @@ export async function POST(req: Request) {
       facility_phone: facilityPhone,
       owner_phone: ownerPhone,
       facility_name: facilityName,
+      facility_email: facilityEmail,
+      temp_key: tempKey,
     } = payload.record;
+
+    const contentSid = process.env.TWILIO_CONTENT_TEMPLATE_SID || "";
+
+    // Placeholder values for the template {{1}}
+    const contentVariables = JSON.stringify({ "1": facilityName });
 
     console.log(
       `Facility with name: ${facilityName} Recorded. Route called. About to send credentials to user`,
     );
 
-    const message = `Welcome to 4 Our Life! ${facilityName} is now active. The below credentials will be used to log into mobile app when ypou download it`;
-
-    // 2. PRIORITY LOGIC: Facility WhatsApp -> Owner WhatsApp -> Owner SMS
+    // 2. PRIORITY LOGIC: Facility WhatsApp -> Facility Contact -> Owner WhatsApp -> Owner SMS
 
     // Check Facility WhatsApp
     const isFacilityWA_One = await checkWhatsAppAvailability(facilityWhatsapp);
     if (isFacilityWA_One) {
       console.log("Sending to Facility WhatsApp Number");
-      await sendWhatsApp(facilityWhatsapp, message);
+      await initiateWhatsAppHandshake(
+        facilityWhatsapp,
+        contentSid,
+        contentVariables,
+        facilityEmail,
+        tempKey,
+      );
       return NextResponse.json({
-        status: "sent",
+        status: "handshake_sent",
         channel: "whatsapp",
         recipient: "facility",
       });
@@ -42,9 +58,15 @@ export async function POST(req: Request) {
 
     const isFacilityWA_Two = await checkWhatsAppAvailability(facilityPhone);
     if (isFacilityWA_Two) {
-      await sendWhatsApp(facilityPhone, message);
+      await initiateWhatsAppHandshake(
+        facilityPhone,
+        contentSid,
+        contentVariables,
+        facilityEmail,
+        tempKey,
+      );
       return NextResponse.json({
-        status: "sent",
+        status: "handshake_sent",
         channel: "whatsapp",
         recipient: "facility",
       });
@@ -53,18 +75,25 @@ export async function POST(req: Request) {
     // Check Owner WhatsApp
     const isOwnerWA = await checkWhatsAppAvailability(ownerPhone);
     if (isOwnerWA) {
-      await sendWhatsApp(ownerPhone, message);
+      await initiateWhatsAppHandshake(
+        ownerPhone,
+        contentSid,
+        contentVariables,
+        facilityEmail,
+        tempKey,
+      );
       return NextResponse.json({
-        status: "sent",
+        status: "handshake_sent",
         channel: "whatsapp",
         recipient: "owner",
       });
     }
 
-    // Fallback: Owner SMS
-    await sendSMS(ownerPhone, message);
+    // Fallback to SMS (Templates aren't required for SMS)
+    const smsMessage = `Welcome! ${facilityName} is active. Login: ${facilityEmail} / ${tempKey}`;
+    await sendSMS(ownerPhone, smsMessage);
     return NextResponse.json({
-      status: "sent",
+      status: "sms_sent",
       channel: "sms",
       recipient: "owner",
     });

@@ -1,9 +1,40 @@
 import { Twilio } from "twilio";
+import { supabaseAdmin } from "./supabase/indexAdmin";
 
-const client = new Twilio(
+export const client = new Twilio(
   process.env.TWILIO_ACCOUNT_SID!,
   process.env.TWILIO_AUTH_TOKEN!,
 );
+
+export async function initiateWhatsAppHandshake(
+  to: string,
+  contentSid: string,
+  contentVariables: string,
+  email: string,
+  gpsAddress: string,
+) {
+  try {
+    const response = await client.messages.create({
+      from: `whatsapp:${process.env.TWILIO_WHATSAPP_NUMBER}`,
+      to: `whatsapp:${to}`,
+      contentSid: contentSid,
+      contentVariables: contentVariables,
+    });
+
+    //store to, email, gpsAddress, response.sid in DB, needed by webhook to send credentials when user
+    await supabaseAdmin.from("twilio_whatsapp_handshakes").insert({
+      id: to,
+      email: email,
+      gps_address: gpsAddress,
+      message_sid: response.sid,
+      status: "handshake_sent",
+    });
+    return { success: true, sid: response.sid };
+  } catch (error) {
+    console.error("WhatsApp Handshake Error:", error);
+    return { success: false, error };
+  }
+}
 
 export async function sendWhatsApp(to: string, message: string) {
   try {
