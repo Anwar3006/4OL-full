@@ -20,13 +20,18 @@ export async function POST(req: Request) {
       facility_name: facilityName,
     } = payload.record;
 
-    const message = `Welcome to 4 Our Life! ${facilityName} is now active. Access the admin portal here: https://4ourlife.com/admin`;
+    console.log(
+      `Facility with name: ${facilityName} Recorded. Route called. About to send credentials to user`,
+    );
+
+    const message = `Welcome to 4 Our Life! ${facilityName} is now active. The below credentials will be used to log into mobile app when ypou download it`;
 
     // 2. PRIORITY LOGIC: Facility WhatsApp -> Owner WhatsApp -> Owner SMS
 
     // Check Facility WhatsApp
     const isFacilityWA_One = await checkWhatsAppAvailability(facilityWhatsapp);
     if (isFacilityWA_One) {
+      console.log("Sending to Facility WhatsApp Number");
       await sendWhatsApp(facilityWhatsapp, message);
       return NextResponse.json({
         status: "sent",

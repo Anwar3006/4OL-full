@@ -635,35 +635,35 @@ const AddFacilityDialog = () => {
                           name="gps_address"
                           control={form.control}
                           label="GPS Address"
-                          readOnly
+                          readOnly={false}
                         />
                         <CustomInput
                           type="text"
                           name="street"
                           control={form.control}
                           label="Street Name"
-                          readOnly
+                          readOnly={false}
                         />
                         <CustomInput
                           type="text"
                           name="post_code"
                           control={form.control}
                           label="Post Code"
-                          readOnly
+                          readOnly={false}
                         />
                         <CustomInput
                           type="text"
                           name="area"
                           control={form.control}
                           label="Area"
-                          readOnly
+                          readOnly={false}
                         />
                         <CustomInput
                           type="text"
                           name="district"
                           control={form.control}
                           label="District"
-                          readOnly
+                          readOnly={false}
                         />
                         <CustomInput
                           type="text"
