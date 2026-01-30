@@ -61,7 +61,7 @@ export const authClient = createAuthClient({
 
   plugins: [
     expoClient({
-      scheme: "4ol",
+      scheme: "4ourlife",
       storage: SecureStore,
     }),
   ],

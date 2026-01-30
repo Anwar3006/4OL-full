@@ -52,6 +52,7 @@ export const auth = betterAuth({
 
     // Mobile app schemes - FIXED
     "4ol://*", // Wildcard for all paths under 4ol://
+    "4ourlife://*",
     "4ol://(app)/(auth)/(tabs)/Home",
 
     // Development mobile

@@ -19,23 +19,12 @@ import Search from "@/components/Search";
 import CategoryList from "@/components/home/CategoryList";
 import CampaignBox from "@/components/CampaignBox";
 import TopRated from "@/components/home/TopRated";
+import { useNotification } from "@/context/NotificationContext";
 
 const Home = () => {
-  useEffect(() => {
-    (async () => {
-      const { status: existingStatus } =
-        await Notifications.getPermissionsAsync();
-      let finalStatus = existingStatus;
-      if (existingStatus !== "granted") {
-        const { status } = await Notifications.requestPermissionsAsync();
-        finalStatus = status;
-      }
-      if (finalStatus !== "granted") {
-        console.log("Failed to get push token for push notification!");
-        return;
-      }
-    })();
-  }, []);
+  const { error, expoPushToken, notification } = useNotification();
+
+  console.log("Stuff - Notification: ", expoPushToken, error, notification);
 
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
@@ -61,7 +50,7 @@ const Home = () => {
           <View>
             <Text className="text-3xl font-black text-slate-900">John Doe</Text>
             <Text className="text-gray-500 text-xs font-bold tracking-tight">
-              How are you feeling today?
+              How are you feeling today {expoPushToken} ----
             </Text>
           </View>
         </View>

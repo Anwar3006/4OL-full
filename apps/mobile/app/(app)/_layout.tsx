@@ -18,12 +18,12 @@ SplashScreen.setOptions({
 export default function AppLayout() {
   return (
     <AuthProvider>
-      <BiometricAuthGuard>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="(auth)" />
-          <Stack.Screen name="(public)" />
-        </Stack>
-      </BiometricAuthGuard>
+      {/* <BiometricAuthGuard> //UNDO */}
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(auth)" />
+        <Stack.Screen name="(public)" />
+      </Stack>
+      {/* </BiometricAuthGuard> */}
     </AuthProvider>
   );
 }

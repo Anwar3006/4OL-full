@@ -2,17 +2,17 @@ import "dotenv/config";
 
 export default {
   expo: {
-    name: "4ol",
-    slug: "4ol",
+    name: "4 Our Life",
+    slug: "4ourlife",
     version: "1.0.0",
     orientation: "portrait",
     icon: "./assets/images/icon.png",
-    scheme: "4ol",
+    scheme: "4ourlife",
     userInterfaceStyle: "automatic",
     newArchEnabled: true,
     ios: {
       supportsTablet: true,
-      bundleIdentifier: "com.anonymous.fourOL",
+      bundleIdentifier: "com.4thpayapps.4ourlife.v2",
       icon: {
         dark: "./assets/icons/ios-dark.png",
         light: "./assets/icons/ios-light.png",
@@ -31,7 +31,7 @@ export default {
       },
     },
     android: {
-      package: "com.anonymous.fourOL",
+      package: "com.fourthpayapps.fourourlife.v2",
       adaptiveIcon: {
         backgroundColor: "#E6F4FE",
         foregroundImage: "./assets/icons/adaptive-icon.png",
@@ -87,7 +87,7 @@ export default {
       "expo-video",
       "expo-asset",
       "expo-secure-store",
-      "expo-notifications",
+      // "expo-notifications", //UNDO
       // "react-native-map",
     ],
     experiments: {
@@ -100,6 +100,10 @@ export default {
       SUPABASE_PUBLISHABLE_KEY: process.env.SUPABASE_PUBLISHABLE_KEY,
       SUPABASE_BUCKET_NAME: process.env.SUPABASE_BUCKET_NAME,
       GOOGLE_MAPS_API_KEY: process.env.GOOGLE_MAPS_API_KEY,
+      eas: {
+        projectId: "80101bfa-71d7-4483-96ae-76f6e8ccb6f5",
+      },
     },
+    owner: "anwar3006",
   },
 };

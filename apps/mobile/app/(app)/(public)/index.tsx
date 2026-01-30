@@ -8,15 +8,15 @@ import { LinearGradient } from "expo-linear-gradient"; // Install: npx expo inst
 import * as TrackingTransparency from "expo-tracking-transparency";
 
 export default function Index() {
-  useEffect(() => {
-    (async () => {
-      const { status } =
-        await TrackingTransparency.requestTrackingPermissionsAsync();
-      if (status === "granted") {
-        console.log("Tracking permission granted");
-      }
-    })();
-  }, []);
+  // useEffect(() => {
+  //   (async () => {
+  //     const { status } =
+  //       await TrackingTransparency.requestTrackingPermissionsAsync();
+  //     if (status === "granted") {
+  //       console.log("Tracking permission granted");
+  //     }
+  //   })();
+  // }, []); //UNDO
 
   const [assets] = useAssets([require("@/assets/videos/auth-video.mp4")]);
   const insets = useSafeAreaInsets();
