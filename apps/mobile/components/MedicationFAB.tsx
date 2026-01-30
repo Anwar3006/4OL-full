@@ -11,9 +11,6 @@ import {
   useWindowDimensions,
   KeyboardEvent,
   Animated,
-  ScrollView,
-  NativeSyntheticEvent,
-  NativeScrollEvent,
   Platform,
 } from "react-native";
 import { FlashList } from "@shopify/flash-list";
