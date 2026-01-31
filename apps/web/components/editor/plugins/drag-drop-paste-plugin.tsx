@@ -10,10 +10,11 @@
 import { useEffect } from "react"
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext"
 import { DRAG_DROP_PASTE } from "@lexical/rich-text"
-import { isMimeType, mediaFileReader } from "@lexical/utils"
+import { isMimeType } from "@lexical/utils"
 import { COMMAND_PRIORITY_LOW } from "lexical"
 
 import { INSERT_IMAGE_COMMAND } from "@/components/editor/plugins/images-plugin"
+import { uploadImageToSupabase } from "@/components/editor/utils/upload-image"
 
 const ACCEPTABLE_IMAGE_TYPES = [
   "image/",
@@ -29,16 +30,24 @@ export function DragDropPastePlugin(): null {
     return editor.registerCommand(
       DRAG_DROP_PASTE,
       (files) => {
+        const hasImage = files.some((file) =>
+          isMimeType(file, ACCEPTABLE_IMAGE_TYPES)
+        )
+        if (!hasImage) {
+          return false
+        }
+
         ;(async () => {
-          const filesResult = await mediaFileReader(
-            files,
-            [ACCEPTABLE_IMAGE_TYPES].flatMap((x) => x)
-          )
-          for (const { file, result } of filesResult) {
+          for (const file of files) {
             if (isMimeType(file, ACCEPTABLE_IMAGE_TYPES)) {
+              const result = await uploadImageToSupabase(file)
+              if (result.error) {
+                console.error("Failed to upload image:", result.error)
+                continue
+              }
               editor.dispatchCommand(INSERT_IMAGE_COMMAND, {
                 altText: file.name,
-                src: result,
+                src: result.publicUrl,
               })
             }
           }

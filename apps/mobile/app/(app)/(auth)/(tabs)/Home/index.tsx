@@ -1,25 +1,20 @@
 import {
   View,
   Text,
-  KeyboardAvoidingView,
   ScrollView,
   useWindowDimensions,
-  Platform,
   TouchableOpacity,
-  Image,
-  FlatList,
 } from "react-native";
-import React, { useEffect } from "react";
+import React from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import * as Notifications from "expo-notifications";
 import Search from "@/components/Search";
 
 import CategoryList from "@/components/home/CategoryList";
 import CampaignBox from "@/components/CampaignBox";
 import TopRated from "@/components/home/TopRated";
 import { useNotification } from "@/context/NotificationContext";
+import { MedicationFAB } from "@/components/MedicationFAB";
 
 const Home = () => {
   const { error, expoPushToken, notification } = useNotification();
@@ -28,11 +23,11 @@ const Home = () => {
 
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
-  const router = useRouter();
   const isLargeScreen = width > 600;
 
   return (
-    <ScrollView
+    <>
+      <ScrollView
       contentContainerStyle={{
         paddingTop: insets.top + 20,
         paddingBottom: insets.bottom + 10,
@@ -77,6 +72,8 @@ const Home = () => {
       {/* Top Rated Facilities */}
       <TopRated />
     </ScrollView>
+    <MedicationFAB />
+    </>
   );
 };
 
