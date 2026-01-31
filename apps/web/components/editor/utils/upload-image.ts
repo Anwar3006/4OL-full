@@ -1,4 +1,4 @@
-import { supabaseAdmin } from "@/lib/supabase/indexAdmin";
+import { supabase } from "@/lib/supabase/index";
 
 export interface UploadImageResult {
   publicUrl: string;
@@ -26,7 +26,7 @@ export async function uploadImageToSupabase(
     const fullPath = path ? `${path}/${fileName}` : fileName;
 
     // Upload to Supabase storage
-    const { error: uploadError } = await supabaseAdmin.storage
+    const { error: uploadError } = await supabase.storage
       .from(bucket)
       .upload(fullPath, file);
 
@@ -37,7 +37,7 @@ export async function uploadImageToSupabase(
     // Get public URL
     const {
       data: { publicUrl },
-    } = supabaseAdmin.storage.from(bucket).getPublicUrl(fullPath);
+    } = supabase.storage.from(bucket).getPublicUrl(fullPath);
 
     return { publicUrl };
   } catch (error) {
@@ -73,7 +73,7 @@ export async function uploadBlobToSupabase(
     const fullPath = path ? `${path}/${fileName}` : fileName;
 
     // Upload to Supabase storage
-    const { error: uploadError } = await supabaseAdmin.storage
+    const { error: uploadError } = await supabase.storage
       .from(bucketName)
       .upload(fullPath, blob);
 
@@ -84,7 +84,7 @@ export async function uploadBlobToSupabase(
     // Get public URL
     const {
       data: { publicUrl },
-    } = supabaseAdmin.storage.from(bucket).getPublicUrl(fullPath);
+    } = supabase.storage.from(bucket).getPublicUrl(fullPath);
 
     return { publicUrl };
   } catch (error) {
