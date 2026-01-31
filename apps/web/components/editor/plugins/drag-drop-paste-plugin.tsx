@@ -30,6 +30,13 @@ export function DragDropPastePlugin(): null {
     return editor.registerCommand(
       DRAG_DROP_PASTE,
       (files) => {
+        const hasImage = files.some((file) =>
+          isMimeType(file, ACCEPTABLE_IMAGE_TYPES)
+        )
+        if (!hasImage) {
+          return false
+        }
+
         ;(async () => {
           for (const file of files) {
             if (isMimeType(file, ACCEPTABLE_IMAGE_TYPES)) {

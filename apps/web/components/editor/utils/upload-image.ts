@@ -18,6 +18,7 @@ export async function uploadImageToSupabase(
   path: string = "richTextImages",
 ): Promise<UploadImageResult> {
   try {
+    const bucketName = process.env.NEXT_PUBLIC_SUPABASE_BUCKET_NAME || bucket;
     // Generate unique filename
     const fileExt = file.name.split(".").pop();
     const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
@@ -27,7 +28,7 @@ export async function uploadImageToSupabase(
 
     // Upload to Supabase storage
     const { error: uploadError } = await supabase.storage
-      .from(bucket)
+      .from(bucketName)
       .upload(fullPath, file);
 
     if (uploadError) {
@@ -37,7 +38,7 @@ export async function uploadImageToSupabase(
     // Get public URL
     const {
       data: { publicUrl },
-    } = supabase.storage.from(bucket).getPublicUrl(fullPath);
+    } = supabase.storage.from(bucketName).getPublicUrl(fullPath);
 
     return { publicUrl };
   } catch (error) {
@@ -84,7 +85,7 @@ export async function uploadBlobToSupabase(
     // Get public URL
     const {
       data: { publicUrl },
-    } = supabase.storage.from(bucket).getPublicUrl(fullPath);
+    } = supabase.storage.from(bucketName).getPublicUrl(fullPath);
 
     return { publicUrl };
   } catch (error) {

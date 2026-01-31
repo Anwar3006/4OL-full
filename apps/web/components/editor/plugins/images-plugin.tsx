@@ -87,8 +87,17 @@ export function ImagesPlugin(): JSX.Element | null {
       editor.registerCommand<ClipboardEvent>(
         PASTE_COMMAND,
         (event) => {
-          onPaste(event, editor);
-          return true;
+          const items = Array.from(event.clipboardData?.items || []);
+          const hasImage = items.some((item) => item.type.startsWith("image/"));
+          const htmlData = event.clipboardData?.getData("text/html");
+          const hasHtmlImage = htmlData && htmlData.includes("<img");
+
+          if (hasImage || hasHtmlImage) {
+            onPaste(event, editor);
+            return true;
+          }
+
+          return false;
         },
         COMMAND_PRIORITY_HIGH,
       ),
