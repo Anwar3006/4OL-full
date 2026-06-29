@@ -8,7 +8,8 @@
     "migrate": "drizzle-kit migrate",
     "push": "drizzle-kit push",
     "studio": "drizzle-kit studio",
-    "seed": "tsx scripts/bodyPart_category_seeder.ts"
+    "seed": "tsx scripts/bodyPart_category_seeder.ts",
+    "seed:diseases": "tsx scripts/disease_seeder.ts"
   },
   "keywords": [],
   "author": "",
