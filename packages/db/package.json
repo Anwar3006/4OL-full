@@ -8,7 +8,8 @@
     "migrate": "drizzle-kit migrate",
     "push": "drizzle-kit push",
     "studio": "drizzle-kit studio",
-    "seed": "tsx scripts/bodyPart_category_seeder.ts"
+    "seed": "tsx scripts/bodyPart_category_seeder.ts",
+    "seed:diseases": "tsx scripts/disease_seeder.ts"
   },
   "keywords": [],
   "author": "",
@@ -16,6 +17,7 @@
   "type": "module",
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
+    "@supabase/supabase-js": "^2.108.2",
     "zod": "^4.2.1"
   }
 }
