@@ -17,6 +17,7 @@
   "type": "module",
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
+    "@supabase/supabase-js": "^2.108.2",
     "zod": "^4.2.1"
   }
 }
